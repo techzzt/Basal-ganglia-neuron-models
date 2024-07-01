@@ -1,1 +1,1 @@
-# Network_BG
+# Basal-ganglia-neuron-models
