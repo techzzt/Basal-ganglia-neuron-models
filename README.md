@@ -26,10 +26,11 @@ $d$ | `d` | Outward-minus-Inward currents activated during spike (affecting post
 $C$ | `C` | Conductance
 $I$ | `I` | input current
 
-### ARGUMENTS
-## Neuron Model 
+
+## ARGUMENTS
 neuron models should be put under ./models
 
+#### Neuron Models
 Based on previous research, construct cortex-striatum 
 - SPN: Striatal Projection Neurons
 - FS: Fast-spiking Interneurons
