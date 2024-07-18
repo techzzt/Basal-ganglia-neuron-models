@@ -28,7 +28,7 @@ $I$ | `I` | input current
 
 
 ## ARGUMENTS
-neuron models should be put under ./models
+neuron models should be put under ```./models```
 
 #### Neuron Models
 Based on previous research, construct cortex-striatum 
