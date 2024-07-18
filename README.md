@@ -9,7 +9,7 @@ Hjorth, JJ Johannes, et al. "The microcircuits of striatum in silico." Proceedin
 
 #### Instantiating a LIF model network:
 
-#### Parameters/Dimensions & Variable names:
+### Parameters/Dimensions & Variable names:
 
 Eqns | Code | Description
 --- | --- | ---
@@ -25,3 +25,16 @@ $c$ | `V_reset` | Reset membrane potential
 $d$ | `d` | Outward-minus-Inward currents activated during spike (affecting post-spike behavior)
 $C$ | `C` | Conductance
 $I$ | `I` | input current
+
+### ARGUMENTS
+## Neuron Model 
+neuron models should be put under ./models
+
+Based on previous research, construct cortex-striatum 
+- SPN: Striatal Projection Neurons
+- FS: Fast-spiking Interneurons
+
+Neuron | Cell | Description 
+--- | --- | ---
+SPN | D1 - SPN | iSPN, inhibitory 
+SPN | D2 - SPN | dSPN, excitatory 
