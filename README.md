@@ -9,19 +9,6 @@ Hjorth, JJ Johannes, et al. "The microcircuits of striatum in silico." Proceedin
 
 #### Instantiating a LIF model network:
 
-### Izhikevich Model:
-#### Differential Equations (for single neuron $i$):
-$$
-\begin{align*}
-\frac{dV}{dt} &= R_m \left[k (V(t) - V_r)(V(t) - V_t) - U(t) + \left(g_{E}(t)(V_E - V(t)) + g_{I}(t)(V_I - V(t)) + g_{gap} \sum_j\left( w_{gap}^{ji} (V^{j}(t) - V^{i}(t))\right) + I_{inp} \right) \right] \\
-\frac{dU}{dt} &= a\left[ b(V(t) - V(r)) - U(t) \right] \\
-\frac{dg_{E}}{dt} &= \frac{1}{\tau_{E}} \left( -g_{E}(t) + \sum_j w_{E}^{ji}S_j(t) \right)\\
-\frac{dg_{I}}{dt} &= \frac{1}{\tau_{I}} \left( -g_{I}(t) + \sum_j w_{I}^{ji}S_j(t) \right)\\
-S_j(t) &= \sum_s \delta(t - t_j^{(s)}) \hspace{2em} \text{(neuron $j$ spike at $t$ indicator function)} \\
-&\text{If $V(t) \geq V_{peak} \Rightarrow V(t) \leftarrow c$, $U(t) \leftarrow U(t) + d$}
-\end{align*}
-$$
-
 #### Parameters/Dimensions & Variable names:
 
 Eqns | Code | Description
