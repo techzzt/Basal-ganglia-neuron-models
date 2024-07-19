@@ -35,7 +35,11 @@ Based on previous research, construct cortex-striatum
 - SPN: Striatal Projection Neurons
 - FS: Fast-spiking Interneurons
 
-Neuron | Cell | Description 
---- | --- | ---
-SPN | D1 - SPN | iSPN, inhibitory 
-SPN | D2 - SPN | dSPN, excitatory 
+#### Neuron Model Features
+Neuron | Brain region | Description | References 
+--- | --- | --- | ---
+STN | Striatum | get input from cortex through the input nuclei | [Kim et al. (2024)]: https://link.springer.com/article/10.1007/s11571-024-10119-8
+SNr | Striatum | make inhibitory output projection through the output nucleus | [Kim et al. (2024)]: https://link.springer.com/article/10.1007/s11571-024-10119-8
+
+#### References 
+Kim et al. (2024): Kim, Sang-Yoon, and Woochang Lim. "Quantifying harmony between direct and indirect pathways in the basal ganglia: healthy and Parkinsonian states." Cognitive Neurodynamics (2024): 1-21.
