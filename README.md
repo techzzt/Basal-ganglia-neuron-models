@@ -38,8 +38,8 @@ Based on previous research, construct cortex-striatum
 #### Neuron Model Features
 Neuron | Brain region | Description | References 
 --- | --- | --- | ---
-STN | Striatum | get input from cortex through the input nuclei | [Kim et al. (2024)]: https://link.springer.com/article/10.1007/s11571-024-10119-8
-SNr | Striatum | make inhibitory output projection through the output nucleus | [Kim et al. (2024)]: https://link.springer.com/article/10.1007/s11571-024-10119-8
+STN | Striatum | get input from cortex through the input nuclei | [Kim et al. (2024)](https://link.springer.com/article/10.1007/s11571-024-10119-8)
+SNr | Striatum | make inhibitory output projection through the output nucleus | [Kim et al. (2024)](https://link.springer.com/article/10.1007/s11571-024-10119-8)
 
 
 #### References 
