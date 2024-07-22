@@ -28,8 +28,13 @@ $I$ | `I` | input current
 
 
 ## ARGUMENTS
-neuron models should be put under ```./models```
+neuron models should be put under ```./bg_insilico```
 
+- SPN.py define quadratic integrate and fire model 
+- simulation.py: generate neuron model, spike mornitoring, plotting 
+- synapse.py: generate synapse, connection
+- test.ipynb: define params, simulation
+  
 #### Neuron Models
 Based on previous research, construct cortex-striatum 
 - SPN: Striatal Projection Neurons
