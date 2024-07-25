@@ -46,6 +46,11 @@ Neuron | Brain region | Description | References
 STN | Striatum | get input from cortex through the input nuclei | [Kim et al. (2024)](https://link.springer.com/article/10.1007/s11571-024-10119-8)
 SNr | Striatum | make inhibitory output projection through the output nucleus | [Kim et al. (2024)](https://link.springer.com/article/10.1007/s11571-024-10119-8)
 
+#### Model Information (New)
+Neuron | Characteristics | References 
+--- | --- | --- | ---
+SPN | activation of dSPN and suppression of iSPN, not co-activation |  | [Sheng et al. (2019)](https://pubmed.ncbi.nlm.nih.gov/31072930/)
 
 #### References 
 Kim et al. (2024): Kim, Sang-Yoon, and Woochang Lim. "Quantifying harmony between direct and indirect pathways in the basal ganglia: healthy and Parkinsonian states." Cognitive Neurodynamics (2024): 1-21.
+Sheng, M. J., Lu, D., Shen, Z. M., and Poo, M. M. (2019). Emergence of stable striatal D1R and D2R neuronal ensembles with distinct firing sequence during motor learning. Proc. Natl. Acad. Sci. U. S. A. 116, 11038–11047. doi: 10.1073/pnas.1901712116
