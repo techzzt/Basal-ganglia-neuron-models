@@ -49,7 +49,7 @@ SNr | Striatum | make inhibitory output projection through the output nucleus | 
 #### Model Information (New)
 Neuron |Characteristics | References 
 --- | --- | --- 
-SPN | activation of dSPN and suppression of iSPN, not co-activation  DA release associated with explicit or implicit reward that active glutamatergic synapse on dSPN and decrease the strength of those on iSPN | [Sheng et al. (2019)](https://pubmed.ncbi.nlm.nih.gov/31072930/)  [Surmeier et al. 2023](https://www.frontiersin.org/journals/synaptic-neuroscience/articles/10.3389/fnsyn.2023.1186484/full)
+SPN | activation of dSPN and suppression of iSPN, not co-activation <br/> DA release associated with explicit or implicit reward that active glutamatergic synapse on dSPN and decrease the strength of those on iSPN | [Sheng et al. (2019)](https://pubmed.ncbi.nlm.nih.gov/31072930/)  [Surmeier et al. 2023](https://www.frontiersin.org/journals/synaptic-neuroscience/articles/10.3389/fnsyn.2023.1186484/full)
 
 
 #### References 
