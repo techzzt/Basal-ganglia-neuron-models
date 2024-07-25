@@ -47,9 +47,9 @@ STN | Striatum | get input from cortex through the input nuclei | [Kim et al. (2
 SNr | Striatum | make inhibitory output projection through the output nucleus | [Kim et al. (2024)](https://link.springer.com/article/10.1007/s11571-024-10119-8)
 
 #### Model Information (New)
-Neuron | Characteristics | References 
+Neuron |Characteristics | References 
 --- | --- | --- 
-SPN | activation of dSPN and suppression of iSPN, not co-activation | [Sheng et al. (2019)](https://pubmed.ncbi.nlm.nih.gov/31072930/)
+SPN | activation of dSPN and suppression of iSPN, not co-activation /n DA release associated with explicit or implicit reward that active glutamatergic synapse on dSPN and decrease the strength of those on iSPN | [Sheng et al. (2019)](https://pubmed.ncbi.nlm.nih.gov/31072930/)
 
 
 #### References 
