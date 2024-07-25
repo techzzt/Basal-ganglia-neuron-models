@@ -49,7 +49,8 @@ SNr | Striatum | make inhibitory output projection through the output nucleus | 
 #### Model Information (New)
 Neuron | Characteristics | References 
 --- | --- | --- | ---
-SPN | activation of dSPN and suppression of iSPN, not co-activation |  | [Sheng et al. (2019)](https://pubmed.ncbi.nlm.nih.gov/31072930/)
+SPN | activation of dSPN and suppression of iSPN, not co-activation | [Sheng et al. (2019)](https://pubmed.ncbi.nlm.nih.gov/31072930/)
+
 
 #### References 
 Kim et al. (2024): Kim, Sang-Yoon, and Woochang Lim. "Quantifying harmony between direct and indirect pathways in the basal ganglia: healthy and Parkinsonian states." Cognitive Neurodynamics (2024): 1-21.
