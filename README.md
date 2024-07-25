@@ -44,16 +44,16 @@ Based on previous research, construct cortex-striatum
 Neuron | Brain region | Description | References 
 --- | --- | --- | ---
 STN | Striatum | get input from cortex through the input nuclei | [Kim et al. (2024)](https://link.springer.com/article/10.1007/s11571-024-10119-8)
-SNr | Striatum | make inhibitory output projection through the output nucleus <br/> received excitatory input from one CTX neuron, modeled using an alpha synapse | [Kim et al. (2024)](https://link.springer.com/article/10.1007/s11571-024-10119-8) <br/> [Kumaravelu et al. (2016)][https://pubmed.ncbi.nlm.nih.gov/26867734/] 
-FSI | Striatum | receive synaptic inputs from RS (regular spiking) neurons | [Kumaravelu et al. (2016)][https://pubmed.ncbi.nlm.nih.gov/26867734/] 
-GPe | Striatum | receive inhibitory input from all indirect Str MSNs, about 89%-90% of the total connections found in GPe | [Kumaravelu et al. (2016)][https://pubmed.ncbi.nlm.nih.gov/26867734/] 
-GPi | Striatum | early excitation of GPi was due to activation of STN neurons via the hyperdirect pathway | [Kumaravelu et al. (2016)][https://pubmed.ncbi.nlm.nih.gov/26867734/]
+SNr | Striatum | make inhibitory output projection through the output nucleus <br/> received excitatory input from one CTX neuron, modeled using an alpha synapse | [Kim et al. (2024)](https://link.springer.com/article/10.1007/s11571-024-10119-8) <br/> [Kumaravelu et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26867734/) 
+FSI | Striatum | receive synaptic inputs from RS (regular spiking) neurons | [Kumaravelu et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26867734/) 
+GPe | Striatum | receive inhibitory input from all indirect Str MSNs, about 89%-90% of the total connections found in GPe | [Kumaravelu et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26867734/) 
+GPi | Striatum | early excitation of GPi was due to activation of STN neurons via the hyperdirect pathway | [Kumaravelu et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26867734/)
 
 
 #### Model Information (New)
 Neuron |Characteristics | References 
 --- | --- | --- 
-SPN | activation of dSPN and suppression of iSPN, not co-activation <br/> DA release associated with explicit or implicit reward that active glutamatergic synapse on dSPN and decrease the strength of those on iSPN | [Sheng et al. (2019)](https://pubmed.ncbi.nlm.nih.gov/31072930/)  [Surmeier et al. 2023](https://www.frontiersin.org/journals/synaptic-neuroscience/articles/10.3389/fnsyn.2023.1186484/full)
+SPN | activation of dSPN and suppression of iSPN, not co-activation <br/> DA release associated with explicit or implicit reward that active glutamatergic synapse on dSPN and decrease the strength of those on iSPN | [Sheng et al. (2019)](https://pubmed.ncbi.nlm.nih.gov/31072930/) <br/> [Surmeier et al. 2023](https://www.frontiersin.org/journals/synaptic-neuroscience/articles/10.3389/fnsyn.2023.1186484/full)
 
 
 #### References 
