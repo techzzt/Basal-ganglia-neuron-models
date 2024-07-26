@@ -26,6 +26,11 @@ $d$ | `d` | Outward-minus-Inward currents activated during spike (affecting post
 $C$ | `C` | Conductance
 $I$ | `I` | input current
 
+**SPN simulation** 
+- set1: Lindahl, Mikael, and Jeanette Hellgren Kotaleski. "Untangling basal ganglia network dynamics and function: Role of dopamine depletion and inhibition investigated in a spiking network model." eneuro 3.6 (2016).
+- set2: https://github.com/zfountas/basal-ganglia-model/blob/master/README.md
+- set3: Gigi, Ilaria, Rosa Senatore, and Angelo Marcelli. "The onset of motor learning impairments in Parkinson’s disease: a computational investigation." Brain Informatics 11.1 (2024): 4.
+
 
 ## ARGUMENTS
 neuron models should be put under ```./bg_insilico```
