@@ -22,31 +22,41 @@ class Simulation:
 
     def run(self, duration):
         self.network.run(duration)
-        self.plot_results()
+        if plot:
+            self.plot_results(earliest_time_stabilized)
 
-    def plot_results(self):
-        dv_dt = np.diff(self.dv_monitor.v, axis=1) / (self.dv_monitor.t[1] - self.dv_monitor.t[0])
-
+    def plot_results(self, earliest_time_stabilized=None):
         plt.figure(figsize=(12, 8))
-        plt.subplot(3, 1, 1)
-        plt.plot(self.dv_monitor.t[:-1] / ms, dv_dt.T / mV * 1000, lw=0.5)
-        plt.xlabel('Time')
-        plt.ylabel('dv/dt')
-        plt.title('Membrane Potential Change (dv/dt)')
-        plt.legend(['Neuron {}'.format(i) for i in range(10)], loc='upper right', fontsize='small', ncol=5)
 
-        plt.subplot(3, 1, 2)
-        plt.scatter(self.spike_monitor.t / ms, self.spike_monitor.i, s=2, c='red', label='Spikes')
-        plt.xlabel('Time')
-        plt.ylabel('Neuron index')
-        plt.title('Spike Events')
+        # Plot membrane potential
+        plt.subplot(3, 1, 1)
+        plt.plot(self.dv_monitor.t / ms, self.dv_monitor.v[0] / mV, label='Membrane Potential')
+        if earliest_time_stabilized:
+            plt.axvline(x=earliest_time_stabilized / ms, color='gray', linestyle='--', label='Stabilization')
+        plt.xlabel('Time (ms)')
+        plt.ylabel('Membrane Potential (mV)')
         plt.legend()
 
+        # Plot spikes
+        plt.subplot(3, 1, 2)
+        if len(self.spike_monitor.i) > 0:
+            spike_times_of_neuron_0 = self.spike_monitor.t[self.spike_monitor.i == 0]
+            plt.plot(spike_times_of_neuron_0 / ms, np.zeros_like(spike_times_of_neuron_0), 'o', markersize=2, label='Spikes (Neuron 0)')
+        else:
+            plt.text(0.5, 0.5, 'No spikes recorded', fontsize=12, ha='center', va='center')
+        plt.xlabel('Time (ms)')
+        plt.ylabel('Neuron Index (0)')
+        plt.yticks([0])
+        plt.legend()
+        
+        # Plot firing rate
         plt.subplot(3, 1, 3)
-        plt.plot(self.rate_monitor.t / ms, self.rate_monitor.smooth_rate(width=10*ms) / Hz, label='Firing rate (Hz)')
-        plt.xlabel('Time')
-        plt.ylabel('Firing rate (Hz)')
-        plt.title('Population Firing Rate')
+        if len(self.rate_monitor.t) > 0:
+            plt.plot(self.rate_monitor.t / ms, self.rate_monitor.smooth_rate(width=10*ms) / Hz, label='Firing Rate')
+        else:
+            plt.text(0.5, 0.5, 'No firing rate data', fontsize=12, ha='center', va='center')
+        plt.xlabel('Time (ms)')
+        plt.ylabel('Firing Rate (Hz)')
         plt.legend()
 
         plt.tight_layout()
