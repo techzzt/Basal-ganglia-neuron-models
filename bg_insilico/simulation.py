@@ -14,25 +14,28 @@ class Simulation:
         self.dv_monitor = StateMonitor(self.neuron_model.neurons, 'v', record=True)
         self.spike_monitor = SpikeMonitor(self.neuron_model.neurons)
         self.rate_monitor = PopulationRateMonitor(self.neuron_model.neurons)
-    
+
     def build_network(self):
         self.network = Network(self.neuron_model.neurons, self.dv_monitor, self.spike_monitor, self.rate_monitor)
         if self.synapse_model:
             self.network.add(self.synapse_model.synapses)
 
-    def run(self, duration):
+    def run(self, duration, plot=False, earliest_time_stabilized=None):
         self.network.run(duration)
         if plot:
             self.plot_results(earliest_time_stabilized)
 
     def plot_results(self, earliest_time_stabilized=None):
-        plt.figure(figsize=(12, 8))
 
-        # Plot membrane potential
+        plt.figure(figsize=(12, 8))
+        total_simulation_time = self.dv_monitor.t[-1]  # Get the last recorded time
+
         plt.subplot(3, 1, 1)
         plt.plot(self.dv_monitor.t / ms, self.dv_monitor.v[0] / mV, label='Membrane Potential')
-        if earliest_time_stabilized:
-            plt.axvline(x=earliest_time_stabilized / ms, color='gray', linestyle='--', label='Stabilization')
+        if earliest_time_stabilized is not None and earliest_time_stabilized <= total_simulation_time:
+                plt.axvline(x=earliest_time_stabilized / ms, color='gray', linestyle='--', label='Stabilization')
+            
+        plt.xlim(0, total_simulation_time / ms)  # Limit x-axis to the duration of the simulation
         plt.xlabel('Time (ms)')
         plt.ylabel('Membrane Potential (mV)')
         plt.legend()
