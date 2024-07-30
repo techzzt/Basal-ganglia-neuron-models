@@ -26,7 +26,8 @@ $d$ | `d` | Outward-minus-Inward currents activated during spike (affecting post
 $C$ | `C` | Conductance
 $I$ | `I` | input current
 
-- param1.json: Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model (table2)
+- param1.json: Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model (table2, FSN)
+- param2.json: Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model (table4, MSN)
 
 
 **SPN simulation** 
