@@ -11,10 +11,10 @@ Hjorth, JJ Johannes, et al. "The microcircuits of striatum in silico." Proceedin
 
 ### Equation/Parameters & Variable names:
 
-Eqns | eqs | Description
+Eqns | eqs | Hyperparameters
 --- | --- | ---
 LIF | `v` | Membrane potential 
-AdEx | $$C_m \frac{dV}{dt} = -g_L(V - E_L) + g_L \Delta_T e^{\frac{V-V_T}{\Delta_T}} - u + I$$ \n $$\tau_w \frac{du}{dt} = a(V - E_L) - u$$| Resting membrane potential
+AdEx | $$C_m \frac{dV}{dt} = -g_L(V - E_L) + g_L \Delta_T e^{\frac{V-V_T}{\Delta_T}} - u + I$$   $$\tau_w \frac{du}{dt} = a(V - E_L) - u$$ | g_L, Delta_T, E_L, vt, tau_w, a, C 
 $V_t$ | `vt` | Instantaneous "threshold" potential
 $V_{peak}$ | `vpeak` | Spike cutoff potential
 $k$ | `k` | Constant ("$1/R$") 
