@@ -9,12 +9,16 @@ Hjorth, JJ Johannes, et al. "The microcircuits of striatum in silico." Proceedin
 
 #### Instantiating a LIF model network:
 
-### Parameters/Dimensions & Variable names:
+### Equation/Parameters & Variable names:
 
-Eqns | Code | Description
+Eqns | eqs | Description
 --- | --- | ---
-$V$ | `v` | Membrane potential 
-$V_r$ | `vr` | Resting membrane potential
+LIF | `v` | Membrane potential 
+AdEx | $$C_m \frac{dV}{dt} = -g_L(V - E_L) + g_L \Delta_T e^{\frac{V-V_T}{\Delta_T}} - u + I$$
+
+$$\tau_w \frac{du}{dt} = a(V - E_L) - u$$
+
+ | Resting membrane potential
 $V_t$ | `vt` | Instantaneous "threshold" potential
 $V_{peak}$ | `vpeak` | Spike cutoff potential
 $k$ | `k` | Constant ("$1/R$") 
