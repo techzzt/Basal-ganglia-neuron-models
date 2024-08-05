@@ -74,5 +74,9 @@ SPN | activation of dSPN and suppression of iSPN, not co-activation <br/> DA rel
 - McCarthy, M. M., et al. "Striatal origin of the pathologic beta oscillations in Parkinson's disease." Proceedings of the national academy of sciences 108.28 (2011): 11620-11625.
 - Ortone, Andrea, et al. "Dopamine depletion leads to pathological synchronization of distinct basal ganglia loops in the beta band." PLoS computational biology 19.4 (2023): e1010645.
 
-# Future work
+#### Future work
 Laqicque's LIF Neuron Model: https://snntorch.readthedocs.io/en/latest/tutorials/tutorial_2.html#the-passive-membrane
+
+1) 논문 참고해서 새로운 네트워크 추가
+2) 새로운 네트워크와 기존 SPN 네트워크 연결
+3) 1, 2 이후에 입력 값에 따른 패턴 비교 
