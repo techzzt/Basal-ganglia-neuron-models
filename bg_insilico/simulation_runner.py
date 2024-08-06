@@ -1,18 +1,57 @@
+import json
 import numpy as np
-from brian2 import ms, mV, nA, pA, StateMonitor, SpikeMonitor, PopulationRateMonitor
-from SPN import NeuronModel
-from simulation import Simulation
+from brian2 import mV, pA, siemens, ms, farad, second
+import importlib
+from result import Visualization
 
-def run_simulation(N, params, v_reset):
-    # Initialize neuron model and simulation
-    neuron_model = NeuronModel(N, params)
-    sim = Simulation(neuron_model)
+def load_params(json_file):
+    with open(json_file, 'r') as f:
+        params = json.load(f)
+    return params['params'], params['model']
+
+def convert_units(params):
+    # 단위를 포함한 값으로 변환
+    converted_params = {}
+    for key, value in params.items():
+        param_value = value['value']
+        param_unit = value['unit']
+        
+        if param_unit == 'siemens':
+            converted_params[key] = param_value * siemens
+        elif param_unit == 'mV':
+            converted_params[key] = param_value * mV
+        elif param_unit == 'ms':
+            converted_params[key] = param_value * ms
+        elif param_unit == 'pF':
+            converted_params[key] = param_value * farad  # pF는 farad로 변환
+        elif param_unit == 'pA':
+            converted_params[key] = param_value * pA
+        elif param_unit == '1/second':
+            converted_params[key] = param_value / second
+        elif param_unit == '':
+            converted_params[key] = param_value  # 단위가 없으면 그냥 값으로
+        else:
+            raise ValueError(f"Unknown unit: {param_unit}")
+
+    return converted_params
+
+def run_simulation(N, params, v_reset, model_name):
+    # 모델 클래스를 동적으로 로드
+    model_module = importlib.import_module(f'models.{model_name}')  # models 디렉토리에서 모델 로드
+    neuron_model_class = getattr(model_module, 'NeuronModel')
     
-    # Initial run of the simulation
+    # 파라미터 변환
+    converted_params = convert_units(params)  # 단위 변환 추가
+
+    # 뉴런 모델 초기화
+    neuron_model = neuron_model_class(N, converted_params)
+    sim = Visualization(neuron_model)
+    
+    # 시뮬레이션 초기 실행
     Initialize_time = 1000 * ms
     sim.run(duration=Initialize_time)
     
-    # Initial run of the simulation
+    # 결과 수집
     times = sim.dv_monitor.t
     membrane_potential = sim.dv_monitor.v[0]
     matching_indices = np.where(membrane_potential / mV >= v_reset / mV)[0]
@@ -22,30 +61,4 @@ def run_simulation(N, params, v_reset):
     else:
         earliest_time_stabilized = None
 
-    print("Earliest time when v stabilizes at v_reset (in ms):", earliest_time_stabilized)
-    
-    # Create new monitors for the second phase
-    sim.dv_monitor_new = StateMonitor(neuron_model.neurons, 'v', record=True)
-    sim.spike_monitor_new = SpikeMonitor(neuron_model.neurons)
-    sim.rate_monitor_new = PopulationRateMonitor(neuron_model.neurons)
-    sim.network.add(sim.dv_monitor_new, sim.spike_monitor_new, sim.rate_monitor_new)
-    
-    # Run the second phase of the simulation
-    if earliest_time_stabilized is not None:
-        wait_time_after_stabilization = 1000 * ms
-        sim.network.run(wait_time_after_stabilization)
-        neuron_model.neurons.I = 1 * nA
-        time_after_increase = 1000 * ms
-        sim.network.run(time_after_increase)
-
-        neuron_model.neurons.I = 0 * pA
-        time_after_decrease = 1000 * ms
-        sim.network.run(time_after_decrease)
-
-        simulation_time = 3000 * ms
-        remaining_time = simulation_time - earliest_time_stabilized - wait_time_after_stabilization - time_after_increase - time_after_decrease
-        sim.network.run(remaining_time)
-    else:
-        print("v does not reach v_reset, stopping simulation")
-
-    sim.plot_results(earliest_time_stabilized=earliest_time_stabilized)
+    return sim, earliest_time_stabilized
