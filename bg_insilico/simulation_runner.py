@@ -1,6 +1,6 @@
 import json
 import numpy as np
-from brian2 import mV, pA, siemens, ms, farad, second
+from brian2 import mV, pA, siemens, ms, farad, second, pF, nS, Hz
 import importlib
 from result import Visualization
 
@@ -10,39 +10,44 @@ def load_params(json_file):
     return params['params'], params['model']
 
 def convert_units(params):
-    # 단위를 포함한 값으로 변환
     converted_params = {}
-    for key, value in params.items():
-        param_value = value['value']
-        param_unit = value['unit']
-        
-        if param_unit == 'siemens':
-            converted_params[key] = param_value * siemens
-        elif param_unit == 'mV':
-            converted_params[key] = param_value * mV
-        elif param_unit == 'ms':
-            converted_params[key] = param_value * ms
-        elif param_unit == 'pF':
-            converted_params[key] = param_value * farad  # pF는 farad로 변환
-        elif param_unit == 'pA':
-            converted_params[key] = param_value * pA
-        elif param_unit == '1/second':
-            converted_params[key] = param_value / second
-        elif param_unit == '':
-            converted_params[key] = param_value  # 단위가 없으면 그냥 값으로
-        else:
-            raise ValueError(f"Unknown unit: {param_unit}")
-
+    for param, info in params.items():
+        value = info['value']
+        unit = info['unit']
+        if unit:
+            # 단위를 직접 가져오기
+            if unit == 'nS':
+                value *= nS
+            elif unit == 'mV':
+                value *= mV
+            elif unit == 'ms':
+                value *= ms
+            elif unit == 'pF':
+                value *= pF
+            elif unit == 'pA':
+                value *= pA
+            elif unit == '1/second':
+                value *= Hz
+            else:
+                print(f"Unknown unit for {param}: {unit}")
+            # 추가 단위들 필요에 따라 추가
+        converted_params[param] = value
     return converted_params
 
-def run_simulation(N, params, v_reset, model_name):
+def run_simulation(N, params, model_name):
     # 모델 클래스를 동적으로 로드
-    model_module = importlib.import_module(f'models.{model_name}')  # models 디렉토리에서 모델 로드
-    neuron_model_class = getattr(model_module, 'NeuronModel')
-    
-    # 파라미터 변환
-    converted_params = convert_units(params)  # 단위 변환 추가
+    module_path = f'models/{model_name}.py'
 
+    # NeuronModel 클래스 가져오기
+    spec = importlib.util.spec_from_file_location(model_name, module_path)
+    model_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(model_module)
+    neuron_model_class = model_module.NeuronModel
+
+    # 파라미터 변환
+    converted_params = convert_units(params)
+    print("Converted parameters:", converted_params)  # 디버깅 출력
+    
     # 뉴런 모델 초기화
     neuron_model = neuron_model_class(N, converted_params)
     sim = Visualization(neuron_model)
@@ -53,6 +58,7 @@ def run_simulation(N, params, v_reset, model_name):
     
     # 결과 수집
     times = sim.dv_monitor.t
+    v_reset = converted_params['vr']
     membrane_potential = sim.dv_monitor.v[0]
     matching_indices = np.where(membrane_potential / mV >= v_reset / mV)[0]
 
@@ -61,4 +67,4 @@ def run_simulation(N, params, v_reset, model_name):
     else:
         earliest_time_stabilized = None
 
-    return sim, earliest_time_stabilized
+    return sim
