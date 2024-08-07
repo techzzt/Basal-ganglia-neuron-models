@@ -1,1 +1,19 @@
-
+{
+    "model": "QIF",
+    "params": {
+        "N": {"value": 100, "unit": ""},
+        "k": {"value": 1, "unit": ""},
+        "v": {"value": -80, "unit": "mV"},
+        "u": {"value": 0, "unit": "mV / mS"},
+        "vr": {"value": -64.4, "unit": "mV"},
+        "vt": {"value": -50, "unit": "mV"},
+        "a": {"value": 0.2, "unit": "1/second"},
+        "b": {"value": 0.025, "unit": "1/second"},
+        "C": {"value": 80, "unit": "pF"},
+        "d": {"value": 0, "unit": "mv/second"},
+        "I": {"value": 0.5, "unit": "pA"}
+    },
+    "reference": {
+        "title": "Modeling Basal Ganglia Microcircuits using Spiking Neurons"
+    }
+}
