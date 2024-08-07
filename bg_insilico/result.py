@@ -1,5 +1,8 @@
 from brian2 import Network, StateMonitor, SpikeMonitor, PopulationRateMonitor
 import matplotlib.pyplot as plt
+import numpy as np
+from brian2 import ms, mV, pA, pF, siemens, amp, second, Hz
+
 
 class Visualization:
     def __init__(self, neuron_model):
@@ -22,7 +25,7 @@ class Visualization:
 
         # Membrane potential
         plt.subplot(4, 1, 1)
-        plt.plot(self.dv_monitor.t / ms, self.dv_monitor.v_m[0] / mV, label='Membrane Potential')
+        plt.plot(self.dv_monitor.t / ms, self.dv_monitor.v[0] / mV, label='Membrane Potential')
         if earliest_time_stabilized:
             plt.axvline(x=earliest_time_stabilized / ms, color='gray', linestyle='--', label='Stabilization')
         plt.xlabel('Time (ms)')
@@ -57,7 +60,7 @@ class Visualization:
         plt.plot(total_time, total_current, label='Current I (pA)', color='orange')
         plt.xlabel('Time (ms)')
         plt.ylabel('Current (pA)')
-        plt.xlim(0, (self.network.clock.t / ms)) 
+        plt.xlim(0, self.dv_monitor.t[-1] / ms)  # 수정된 부분
         plt.legend()
 
         plt.tight_layout()
