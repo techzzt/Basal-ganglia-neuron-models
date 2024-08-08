@@ -28,7 +28,7 @@ $I$ | `I` | input current
 
 - param1.json: Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model (table2, FSN)
 - param2.json: Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model (table4, MSN)
-
+- Transient Response of Basal Ganglia Network in Healthy and Low-Dopamine State
 
 **SPN simulation** 
 - set1: Lindahl, Mikael, and Jeanette Hellgren Kotaleski. "Untangling basal ganglia network dynamics and function: Role of dopamine depletion and inhibition investigated in a spiking network model." eneuro 3.6 (2016).
