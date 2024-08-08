@@ -14,6 +14,7 @@
         "I": {"value": 10, "unit": "pA"}
     },
     "reference": {
-        "title": "Modeling Basal Ganglia Microcircuits using Spiking Neurons"
+        "title": "Modeling Basal Ganglia Microcircuits using Spiking Neurons",
+        "journal": "2016 International Conference on Advances in Computing, Communications and Informatics (ICACCI). IEEE, 2016."    
     }
 }
