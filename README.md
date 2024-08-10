@@ -39,15 +39,12 @@ $I$ | `I` | input current
 ## ARGUMENTS
 neuron models should be put under ```./bg_insilico```
 
-- SPN.py define quadratic integrate and fire model 
-- simulation.py: generate neuron model, spike mornitoring, plotting 
-- synapse.py: generate synapse, connection
+- models/model{}.py: define quadratic integrate and fire model (AdEx, LIF, QIF, HH, Izh)
+- params: parameter list with json format
+- simulation_runner.py: generate neuron model, spike mornitoring
+- result.py: plotting 
 - test.ipynb: define params, simulation
-  
-#### Neuron Models
-Based on previous research, construct cortex-striatum 
-- SPN: Striatal Projection Neurons
-- FS: Fast-spiking Interneurons
+
 
 #### Neuron Model Features
 Neuron type | Brain region | Description | References | Alternative terms | Neuron transmitter
