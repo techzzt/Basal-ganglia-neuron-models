@@ -50,14 +50,23 @@ Based on previous research, construct cortex-striatum
 - FS: Fast-spiking Interneurons
 
 #### Neuron Model Features
-Neuron | Brain region | Description | References 
---- | --- | --- | ---
-STN | Striatum | get input from cortex through the input nuclei | [Kim et al. (2024)](https://link.springer.com/article/10.1007/s11571-024-10119-8)
-SNr | Striatum | make inhibitory output projection through the output nucleus <br/> received excitatory input from one CTX neuron, modeled using an alpha synapse | [Kim et al. (2024)](https://link.springer.com/article/10.1007/s11571-024-10119-8) <br/> [Kumaravelu et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26867734/) 
-MSN | Striatum | connect primarily to other MSNs through GABAergic synapses and have different rate of connectivity (all, 30% random) | [Mccarthy et al. (2012](https://www.researchgate.net/publication/51242523_Striatal_origin_of_the_pathologic_beta_oscillations_in_Parkinson%27s_disease) 
-FSI | Striatum | receive synaptic inputs from RS (regular spiking) neurons | [Kumaravelu et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26867734/) 
-GPe | Striatum | receive inhibitory input from all indirect Str MSNs, about 89%-90% of the total connections found in GPe | [Kumaravelu et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26867734/) 
-GPi | Striatum | early excitation of GPi was due to activation of STN neurons via the hyperdirect pathway | [Kumaravelu et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26867734/)
+Neuron type | Brain region | Description | References | Alternative terms | Neuron transmitter
+--- | --- | --- | --- | --- | ---
+MSN D1 | Striatum |  | | | 
+MSN D2 | Striatum |  | | | 
+FSN | Striatum |  | | | 
+ChiN | Striatum |  | | | 
+prototypic | GPe |  | | | 
+Arkypallidal | GPe |  | | | 
+PV+ | STN |  | | | 
+PV- | STN |  | | | 
+PV+ | GPi |  | | | 
+SST+ | GPi |  | | | 
+PV+ | SNr |  | | | 
+SST+ | SNr |  | | | 
+GABAergic | SNc |  | | | 
+Dopaminergic | SNc |  | | | 
+
 
 
 #### Model Information (New)
@@ -74,9 +83,4 @@ SPN | activation of dSPN and suppression of iSPN, not co-activation <br/> DA rel
 - McCarthy, M. M., et al. "Striatal origin of the pathologic beta oscillations in Parkinson's disease." Proceedings of the national academy of sciences 108.28 (2011): 11620-11625.
 - Ortone, Andrea, et al. "Dopamine depletion leads to pathological synchronization of distinct basal ganglia loops in the beta band." PLoS computational biology 19.4 (2023): e1010645.
 
-#### Future work (8/5)
-Laqicque's LIF Neuron Model: https://snntorch.readthedocs.io/en/latest/tutorials/tutorial_2.html#the-passive-membrane
-
-1) 논문 참고해서 새로운 네트워크 추가
-2) 새로운 네트워크와 기존 SPN 네트워크 연결
-3) 1, 2 이후에 입력 값에 따른 패턴 비교 
+#### Future work (8/12)
