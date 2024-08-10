@@ -15,16 +15,6 @@ Eqns | eqs | Hyperparameters
 --- | --- | ---
 LIF | `v` | Membrane potential 
 AdEx | $$C_m \frac{dV}{dt} = -g_L(V - E_L) + g_L \Delta_T e^{\frac{V-V_T}{\Delta_T}} - u + I$$   $$\tau_w \frac{du}{dt} = a(V - E_L) - u$$ | g_L, Delta_T, E_L, v, vr, vt, tau_w, a, d, C 
-$V_t$ | `vt` | Instantaneous "threshold" potential
-$V_{peak}$ | `vpeak` | Spike cutoff potential
-$k$ | `k` | Constant ("$1/R$") 
-$U(t)$ | `U` | Recovery variable
-$a$ | `a` | Recovery time constant 
-$b$ | `b` | Constant ("$1/R$")
-$c$ | `V_reset` | Reset membrane potential
-$d$ | `d` | Outward-minus-Inward currents activated during spike (affecting post-spike behavior)
-$C$ | `C` | Conductance
-$I$ | `I` | input current
 
 - param1.json: Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model (table2, FSN)
 - param2.json: Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model (table4, MSN)
