@@ -1,6 +1,6 @@
 import json
 import numpy as np
-from brian2 import mV, pA, siemens, ms, farad, second, pF, nS, Hz
+from brian2 import mV, pA, siemens, ms, farad, second, pF, nS, Hz, volt, ohm
 from brian2 import Network, StateMonitor, SpikeMonitor, PopulationRateMonitor
 import importlib
 from result import Visualization
@@ -27,8 +27,14 @@ def convert_units(params):
                 value *= pF
             elif unit == 'pA':
                 value *= pA
+            elif unit == 'Hz':
+                value *= Hz 
             elif unit == '1/second':
                 value *= Hz
+            elif unit == 'volt/second':  
+                value *= volt / second
+            elif unit == 'Ohm':  
+                value *= ohm
             else:
                 print(f"Unknown unit for {param}: {unit}")
             # 추가 단위들 필요에 따라 추가
@@ -47,14 +53,33 @@ def run_simulation(N, params, model_name):
 
     # 파라미터 변환
     converted_params = convert_units(params)
-    print("Converted parameters:", converted_params)  # 디버깅 출력
+    print("Converted parameters:", converted_params) 
     
     # 뉴런 모델 초기화
-   # 초기 I 값을 0으로 설정하고 이후 사용을 위해 원래 I 값을 저장
+    # 초기 I 값을 0으로 설정하고 이후 사용을 위해 원래 I 값을 저장
     initial_I = 0 * pA
-    increase_I = converted_params['I']
-    converted_params['I'] = initial_I
-    
+    if 'I' in params:
+        I_info = params['I']  # Access the original parameter info for 'I'
+        I_value = I_info['value']
+        I_unit = I_info['unit']
+        
+        if I_unit == 'pA':
+            initial_I = 0 * pA  # Set initial I in pA
+            increase_I = I_value * pA  # Use the value in pA
+        elif I_unit == 'volt/second':
+            initial_I = 0 * volt/second  # Set initial I in pA
+            increase_I = I_value * (volt / second) * 1e12  # Convert to pA
+            print(increase_I)
+        else:
+            print(f"Unknown unit for I: {I_unit}")
+            initial_I = 0 * pA  # Default to 0 if unknown
+            increase_I = initial_I  # Default increase_I to initial_I
+    else:
+        initial_I = 0 * pA  # Default to 0 if I is not defined
+        increase_I = initial_I  # Default increase_I to initial_I
+
+    converted_params['I'] = initial_I  # Set initial I in converted_params
+
     # 뉴런 모델 초기화
     neuron_model = neuron_model_class(N, converted_params)
     sim = Visualization(neuron_model)
@@ -62,7 +87,7 @@ def run_simulation(N, params, model_name):
     # 시뮬레이션 초기 실행
     Initialize_time = 1000 * ms
     sim.run(duration=Initialize_time)
-    
+
     # 결과 수집
     times = sim.dv_monitor.t
     v_reset = converted_params['vr']
@@ -93,7 +118,7 @@ def run_simulation(N, params, model_name):
         sim.run(duration=wait_time_after_stabilization)
         
         # Increase I to the value specified in JSON
-        neuron_model.neurons.I = increase_I
+        neuron_model.neurons.I = increase_I  # Use the converted value for I
         sim.run(duration=time_after_increase)
         
         # Decrease I back to 0
