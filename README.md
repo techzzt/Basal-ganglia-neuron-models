@@ -56,17 +56,16 @@ MSN D1 | 37,971
 MSN D2 | 37,971
 FSN | 1,599 
 ChiN | - 
-prototypic | GPe | 988 | | | 
-Arkypallidal | GPe | 329 | | | 
-PV+ | STN | **388** | | | 
-PV- | STN | - | | | 
-PV+ | GPi | - | | | 
-SST+ | GPi |  | | | 
-PV+ | SNr |  | | | 
-SST+ | SNr |  | | | 
-GABAergic | SNc |  | | | 
-Dopaminergic | SNc |  | | | 
-
+prototypic (GPe) | 988 | 
+Arkypallidal (GPe) | 329 | 
+PV+ (STN) | **388** | 
+PV- (STN) | - | 
+PV+ (GPi) | - | 
+SST+ (GPi) | - | 
+PV+ (SNr) | - | 
+SST+ (SNr) | - | 
+GABAergic (SNc) | - | 
+Dopaminergic (SNc) | - |
 
 #### References 
 - Kim et al. (2024): Kim, Sang-Yoon, and Woochang Lim. "Quantifying harmony between direct and indirect pathways in the basal ganglia: healthy and Parkinsonian states." Cognitive Neurodynamics (2024): 1-21.
