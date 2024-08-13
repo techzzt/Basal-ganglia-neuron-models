@@ -120,29 +120,58 @@ def run_simulation(N, params, model_name, I_values):
 
     return all_results, all_currents, total_time
 
-
 def plot_results(all_results, all_currents, I_values, total_time):
-    plt.figure(figsize=(15, 10))
+    num_plots = len(all_results)
+    plt.figure(figsize=(15, 5 * (num_plots + 1)))  # 각 그래프에 충분한 높이 할당
 
     # Membrane Potential Plot
-    plt.subplot(2, 1, 1)
     for i, membrane_potential in enumerate(all_results):
-        # x축을 total_time으로 설정하고, y축을 membrane_potential로 설정
+        plt.subplot(num_plots + 1, 1, i + 1)  # 각 전류에 대해 별도의 서브플롯 생성
         plt.plot(total_time[:len(membrane_potential)], membrane_potential / mV, label=f'I = {I_values[i]} pA')
-    plt.xlabel('Time (ms)')
-    plt.ylabel('Membrane Potential (mV)')
-    plt.title('Membrane Potential over Time')
-    plt.legend()
+        plt.xlabel('Time (ms)')
+        plt.ylabel('Membrane Potential (mV)')
+        plt.title(f'Membrane Potential for I = {I_values[i]} pA')
+        plt.legend()
 
     # Input Current Plot
-    plt.subplot(2, 1, 2)
-    for i, current in enumerate(all_currents):
-        plt.plot(total_time[:len(current)], current / pA, label=f'I = {I_values[i]} pA')
+    plt.subplot(num_plots + 1, 1, num_plots + 1)
+
+    # 초기 시간과 전류 설정
+    initial_time = np.arange(0, 1000, 1)  # 초기 1000ms 동안의 시간
+    initial_current = np.zeros_like(initial_time)  # 초기 전류는 0
+    
+    # 전체 시간과 전류 데이터 초기화
+    total_time_current = initial_time.tolist()
+    total_current = initial_current.tolist()
+
+    # 각 입력 전류에 대해 그래프 겹치기
+    for I in I_values:
+        # 입력 전류의 변화량 설정 (0, -90, 0), (0, -60, 0), ...
+        input_current_pattern = []
+        
+        # 특정 시점에만 값이 바뀌도록 설정
+        for t in range(1000):
+            if t < 200:
+                input_current_pattern.append(0)  # 0 pA
+            elif 200 <= t < 400:
+                input_current_pattern.append(I)  # I pA (예: -90, -60 등)
+            else:
+                input_current_pattern.append(0)  # 0 pA
+        
+        # 시간에 맞춰 결합
+        total_time_current.extend(np.arange(1000, 2000, 1))  # 두 번째 구간의 시간
+        total_current.extend(input_current_pattern)
+
+    # Plot the current
+    plt.plot(total_time_current, total_current, label='Input Current (pA)', color='orange')
     plt.xlabel('Time (ms)')
-    plt.ylabel('Input Current (pA)')
-    plt.title('Input Current over Time')
+    plt.ylabel('Current (pA)')
+    plt.xlim(0, total_time_current[-1])  # x축 범위 설정
+    plt.title('Input Current Patterns Over Time')
     plt.legend()
 
     plt.tight_layout()
     plt.show()
+
+
 
