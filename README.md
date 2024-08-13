@@ -37,11 +37,30 @@ MSN D1 | Striatum |  | | |
 MSN D2 | Striatum |  | | | 
 FSN | Striatum |  | | | 
 ChiN | Striatum |  | | | 
-prototypic | GPe |  | | | 
+prototypic | GPe |  | | GPe-T1 | 
 Arkypallidal | GPe |  | | | 
 PV+ | STN |  | | | 
 PV- | STN |  | | | 
 PV+ | GPi |  | | | 
+SST+ | GPi |  | | | 
+PV+ | SNr |  | | | 
+SST+ | SNr |  | | | 
+GABAergic | SNc |  | | | 
+Dopaminergic | SNc |  | | | 
+
+#### Population Value 
+Neuron type | References 1
+--- | ---  
+Network | 80,000  
+MSN D1 | 37,971
+MSN D2 | 37,971
+FSN | 1,599 
+ChiN | - 
+prototypic | GPe | 988 | | | 
+Arkypallidal | GPe | 329 | | | 
+PV+ | STN | **388** | | | 
+PV- | STN | - | | | 
+PV+ | GPi | - | | | 
 SST+ | GPi |  | | | 
 PV+ | SNr |  | | | 
 SST+ | SNr |  | | | 
