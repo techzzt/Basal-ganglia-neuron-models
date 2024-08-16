@@ -37,7 +37,7 @@ MSN D1 | Striatum | MSN - MSN, D1 - MSN | | | GABA
 MSN D2 | Striatum | MSN - MSN, D2 - MSN  | | | GABA
 FSN | Striatum |  | | | GABA
 ChiN | Striatum |  | | | ACh
-prototypic | GPe |  | [Pisani, A et al, 2000]([Pisani, A., Bonsi, P., Centonze, D., Calabresi, P., and Bernardi, G. (2000). Activation of D2-Like dopamine receptors reduces synaptic inputs to striatal cholinergic interneurons. J. Neuroscience 20:RC69.](https://www.frontiersin.org/journals/neural-circuits/articles/10.3389/fncir.2018.00003/full)) | GPe-T1 | 
+prototypic | GPe |  | [Pisani, A et al, 2000](https://www.frontiersin.org/journals/neural-circuits/articles/10.3389/fncir.2018.00003/full) | GPe-T1 | 
 Arkypallidal | GPe |  | | | 
 PV+ | STN |  | | | 
 PV- | STN |  | | | 
