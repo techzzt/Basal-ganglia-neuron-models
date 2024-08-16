@@ -33,11 +33,11 @@ neuron models should be put under ```./bg_insilico```
 #### Neuron Model Features
 Neuron type | Brain region | Description | References | Alternative terms | Neuron transmitter
 --- | --- | --- | --- | --- | ---
-MSN D1 | Striatum |  | | | 
-MSN D2 | Striatum |  | | | 
-FSN | Striatum |  | | | 
-ChiN | Striatum |  | | | 
-prototypic | GPe |  | | GPe-T1 | 
+MSN D1 | Striatum | MSN - MSN, D1 - MSN | | | GABA
+MSN D2 | Striatum | MSN - MSN, D2 - MSN  | | | GABA
+FSN | Striatum |  | | | GABA
+ChiN | Striatum |  | | | ACh
+prototypic | GPe |  | [Pisani, A 2000](Pisani, A., Bonsi, P., Centonze, D., Calabresi, P., and Bernardi, G. (2000). Activation of D2-Like dopamine receptors reduces synaptic inputs to striatal cholinergic interneurons. J. Neuroscience 20:RC69.) | GPe-T1 | 
 Arkypallidal | GPe |  | | | 
 PV+ | STN |  | | | 
 PV- | STN |  | | | 
