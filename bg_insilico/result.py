@@ -21,17 +21,17 @@ class Visualization:
         self.network.run(duration)
     
     def plot_results(self, earliest_time_stabilized=None):
-        plt.figure(figsize=(15, 15))
+        plt.figure(figsize=(16, 7))
 
         # Membrane potential
-        plt.subplot(4, 1, 1)
+        plt.subplot(2, 1, 1)
         plt.plot(self.dv_monitor.t / ms, self.dv_monitor.v[0] / mV, label='Membrane Potential')
         if earliest_time_stabilized:
             plt.axvline(x=earliest_time_stabilized / ms, color='gray', linestyle='--', label='Stabilization')
         plt.xlabel('Time (ms)')
         plt.ylabel('Membrane Potential (mV)')
         plt.legend()
-
+        """
         # Spikes
         plt.subplot(4, 1, 2)
         spikes_of_neuron_0 = self.spike_monitor.i[self.spike_monitor.i == 0] 
@@ -48,20 +48,16 @@ class Visualization:
         plt.xlabel('Time (ms)')
         plt.ylabel('Firing Rate (Hz)')
         plt.legend()
-
+        """
         # Input current
-        plt.subplot(4, 1, 4)
-        initial_time = np.arange(0, 1000, 1) 
-        initial_current = np.zeros_like(initial_time)  
-        total_time = np.concatenate((initial_time, self.current_monitor.t / ms))
-        total_current = np.concatenate((initial_current, self.current_monitor.I[0] / pA))
-
+        plt.subplot(2, 1, 2)
         # Plot the current
-        plt.plot(total_time, total_current, label='Current I (pA)', color='orange')
+        plt.plot(self.current_monitor.t / ms, self.current_monitor.I[0] / pA, label='Current I (pA)', color='orange')
         plt.xlabel('Time (ms)')
         plt.ylabel('Current (pA)')
-        plt.xlim(0, self.dv_monitor.t[-1] / ms)  # 수정된 부분
+        plt.xlim(0, self.dv_monitor.t[-1] / ms)  # x축 범위를 시뮬레이션 시간으로 설정
         plt.legend()
+
 
         plt.tight_layout()
         plt.show()
