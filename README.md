@@ -31,9 +31,9 @@ neuron models should be put under ```./bg_insilico```
 
 
 #### Neuron Model Features
-Neuron type | Brain region | Description | References | Alternative terms | Neuron transmitter
+Neuron type | Brain region | Description | References | Alternative terms | Neuron transmitter | Json
 --- | --- | --- | --- | --- | ---
-MSN D1 | Striatum | MSN - MSN, D1 - MSN | [Guzman el al, 2003](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6740391/)| | GABA
+MSN D1 | Striatum | MSN - MSN, D1 - MSN | [Guzman el al, 2003](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6740391/)| | GABA | D1_1: 0 means undefined value
 MSN D2 | Striatum | MSN - MSN, D2 - MSN  | | | GABA
 FSN | Striatum |  | | | GABA
 ChiN | Striatum |  | | | ACh
