@@ -37,7 +37,7 @@ def convert_units(params):
                 value *= ohm
             else:
                 print(f"Unknown unit for {param}: {unit}")
-            # 추가 단위들 필요에 따라 추가
+
         converted_params[param] = value
     return converted_params
 
@@ -85,7 +85,7 @@ def run_simulation(N, params, model_name):
     sim = Visualization(neuron_model)
 
     # 시뮬레이션 초기 실행
-    Initialize_time = 1000 * ms
+    Initialize_time = 200 * ms
     sim.run(duration=Initialize_time)
 
     # 결과 수집
