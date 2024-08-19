@@ -32,21 +32,21 @@ neuron models should be put under ```./bg_insilico```
 
 #### Neuron Model Features
 Neuron type | Brain region | Description | References | Alternative terms | Neuron transmitter | Json
---- | --- | --- | --- | --- | ---
+--- | --- | --- | --- | --- | ---| ---
 MSN D1 | Striatum | MSN - MSN, D1 - MSN | [Guzman el al, 2003](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6740391/)| | GABA | D1_1: 0 means undefined value
-MSN D2 | Striatum | MSN - MSN, D2 - MSN  | | | GABA
-FSN | Striatum |  | | | GABA
-ChiN | Striatum |  | | | ACh
-prototypic | GPe |  | [Pisani, A et al, 2000](https://www.jneurosci.org/content/jneuro/20/7/RC69.full.pdf) | GPe-T1 | 
-Arkypallidal | GPe |  | | GPe-TA | 
-PV+ | STN |  | | | 
-PV- | STN |  | | | 
-PV+ | GPi |  | | | 
-SST+ | GPi |  | | | 
-PV+ | SNr |  | | | 
-SST+ | SNr |  | | | 
-GABAergic | SNc |  | | | 
-Dopaminergic | SNc |  | | | 
+MSN D2 | Striatum | MSN - MSN, D2 - MSN  | | | GABA |
+FSN | Striatum |  | | | GABA |
+ChiN | Striatum |  | | | ACh |
+prototypic | GPe |  | [Pisani, A et al, 2000](https://www.jneurosci.org/content/jneuro/20/7/RC69.full.pdf) | GPe-T1 | |
+Arkypallidal | GPe |  | | GPe-TA | |
+PV+ | STN |  | | | |
+PV- | STN |  | | | |
+PV+ | GPi |  | | | |
+SST+ | GPi |  | | | |
+PV+ | SNr |  | | | |
+SST+ | SNr |  | | | |
+GABAergic | SNc |  | | | |
+Dopaminergic | SNc |  | | | |
 
 https://www.frontiersin.org/journals/neural-circuits/articles/10.3389/fncir.2018.00003/full
 
