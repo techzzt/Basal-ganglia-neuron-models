@@ -72,7 +72,9 @@ Dopaminergic (SNc) | - |
 #### References 
 [1] Lindahl, Mikael, and Jeanette Hellgren Kotaleski. "Untangling basal ganglia network dynamics and function: Role of dopamine depletion and inhibition investigated in a spiking network model." eneuro 3.6 (2016).
 
-[2] Bahuguna, Jyotika, Ad Aertsen, and Arvind Kumar. "Existence and control of Go/No-Go decision transition threshold in the striatum." PLoS computational biology 11.4 (2015): e1004233.
+[2] Chakravarty, Kingshuk, et al. "Transient response of basal ganglia network in healthy and low-dopamine state." eneuro 9.2 (2022).
+
+[3] Bahuguna, Jyotika, Ad Aertsen, and Arvind Kumar. "Existence and control of Go/No-Go decision transition threshold in the striatum." PLoS computational biology 11.4 (2015): e1004233.
 
 - Kim et al. (2024): Kim, Sang-Yoon, and Woochang Lim. "Quantifying harmony between direct and indirect pathways in the basal ganglia: healthy and Parkinsonian states." Cognitive Neurodynamics (2024): 1-21.
 - Sheng, M. J., Lu, D., Shen, Z. M., and Poo, M. M. (2019). Emergence of stable striatal D1R and D2R neuronal ensembles with distinct firing sequence during motor learning. Proc. Natl. Acad. Sci. U. S. A. 116, 11038–11047. doi: 10.1073/pnas.1901712116
