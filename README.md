@@ -39,11 +39,11 @@ FSN | Striatum |  | | | GABA |
 ChiN | Striatum |  | | | ACh |
 prototypic | GPe |  | [Pisani, A et al, 2000](https://www.jneurosci.org/content/jneuro/20/7/RC69.full.pdf) | GPe-T1 | |
 Arkypallidal | GPe |  | | GPe-TA | |
-PV+ | STN |  | | | |
+PV+ | STN | not seperate STN type | | | | ref 1
 PV- | STN |  | | | |
 PV+ | GPi |  | | | |
 SST+ | GPi |  | | | |
-PV+ | SNr |  | | | |
+PV+ | SNr | not seperate SNr type | | | | ref 1
 SST+ | SNr |  | | | |
 GABAergic | SNc |  | | | |
 Dopaminergic | SNc |  | | | |
