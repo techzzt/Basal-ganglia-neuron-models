@@ -33,7 +33,7 @@ neuron models should be put under ```./bg_insilico```
 #### Neuron Model Features
 Neuron type | Brain region | Description | References | Alternative terms | Neuron transmitter | Json
 --- | --- | --- | --- | --- | ---| ---
-MSN D1 | Striatum |  |  | GABA | 
+MSN D1 | Striatum | | | | GABA | 
 MSN D2 | Striatum | | | | GABA |
 FSN | Striatum |  | | | GABA |
 ChiN | Striatum |  | | | ACh |
