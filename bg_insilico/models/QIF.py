@@ -22,7 +22,7 @@ class NeuronModel:
         C : farad
         '''
 
-        self.neurons = NeuronGroup(self.N, model=eqs, threshold='v > vt', reset='v = vr; u += d', method='euler')
+        self.neurons = NeuronGroup(self.N, model=eqs, threshold='v > vpeak', reset='v = c; u += d', method='euler')
         self.set_parameters()
 
     def set_parameters(self):
