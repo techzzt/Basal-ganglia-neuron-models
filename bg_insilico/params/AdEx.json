@@ -1,0 +1,20 @@
+{
+    "model": "AdEx",
+    "params": {
+        "N": {"value": 100, "unit": ""},
+        "g_L": {"value": 12, "unit": "nS"},
+        "E_L": {"value": -58, "unit": "mV"},
+        "Delta_T": {"value": 7, "unit": "mV"},
+        "vt": {"value": -58, "unit": "mV"},
+        "vr": {"value": -70, "unit": "mV"},
+        "tau_w": {"value": 12, "unit": "ms"},
+        "a": {"value": 8, "unit": "nS"},
+        "d": {"value": 3, "unit": "pA"},
+        "C": {"value": 115, "unit": "pF"},
+        "I": {"value": 10, "unit": "pA"}
+    },
+    "reference": {
+        "title": "Modeling Basal Ganglia Microcircuits using Spiking Neurons",
+        "journal": "2016 International Conference on Advances in Computing, Communications and Informatics (ICACCI). IEEE, 2016."    
+    }
+}
