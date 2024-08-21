@@ -70,42 +70,41 @@ def run_simulation(N, params, model_name, I_values):
         else:
             converted_I = 0 * pA
 
-        converted_params['I'] = converted_I
-
         neuron_model = neuron_model_class(N, converted_params)
         sim = Run(neuron_model)
 
-        Initialize_time = 1000 * ms
+        total_simtime = 1000 * ms
+
+        # Phase 1: Initial stabilization with 0 pA current
         neuron_model.neurons.I = 0 * pA
+        stabilization_time = 200 * ms
+        sim.run(duration=stabilization_time)
+        membrane_potential_phase1 = sim.dv_monitor.v[0]
+        current_phase1 = sim.current_monitor.I[0]
 
-        wait_time_after_stabilization = 300 * ms
-        sim.run(duration=wait_time_after_stabilization)
-
-        membrane_potential = sim.dv_monitor.v[0]
-        current = sim.current_monitor.I[0]
-
+        # Phase 2: Inject specific current I
         neuron_model.neurons.I = converted_I
-        time_after_increase = 200 * ms
-        sim.run(duration=time_after_increase)
-        
-        membrane_potential_after_increase = sim.dv_monitor.v[0]
-        current_after_increase = sim.current_monitor.I[0]
+        injection_time = 300 * ms
+        sim.run(duration=injection_time)
+        membrane_potential_phase2 = sim.dv_monitor.v[0]
+        current_phase2 = sim.current_monitor.I[0]
 
+        # Phase 3: Return to 0 pA current
         neuron_model.neurons.I = 0 * pA
-        time_after_decrease = Initialize_time - wait_time_after_stabilization - time_after_increase
-        sim.run(duration=time_after_decrease)
-        membrane_potential_after_decrease = sim.dv_monitor.v[0]
-        current_after_decrease = sim.current_monitor.I[0]
-
-        membrane_potential = np.concatenate((membrane_potential, membrane_potential_after_increase, membrane_potential_after_decrease))
-        current = np.concatenate((current, current_after_increase, current_after_decrease))
+        return_to_baseline_time = total_simtime - stabilization_time - injection_time
+        sim.run(duration=return_to_baseline_time)
+        membrane_potential_phase3 = sim.dv_monitor.v[0]
+        current_phase3 = sim.current_monitor.I[0]
+        
+        membrane_potential = np.concatenate((membrane_potential_phase1, membrane_potential_phase2, membrane_potential_phase3))
+        current = np.concatenate((current_phase1, current_phase2, current_phase3))
 
         all_results.append(membrane_potential)
         all_currents.append(current)
         total_time.append(sim.dv_monitor.t / ms)
         injection_times.append({
-            'start': wait_time_after_stabilization / ms,
-            'duration': time_after_increase / ms
+            'start': stabilization_time / ms,
+            'duration': injection_time / ms
         })
 
     return all_results, all_currents, total_time, injection_times
@@ -117,25 +116,28 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
     # Membrane Potential Plot
     for i, (membrane_potential, current, injection_time) in enumerate(zip(all_results, all_currents, injection_times)):
         plt.subplot(num_plots, 1, i + 1)
-        
-        # Find the minimum length among the time vector, membrane potential, and current
-        min_length = min(len(total_time[i]), len(membrane_potential), len(current))
-        
-        # Use only the first 'min_length' elements for plotting
-        time_vector = total_time[i][:min_length]
+
+        # Construct a time vector manually to ensure it starts from 0 ms and aligns with the concatenated data
+        total_duration = len(membrane_potential)  # Assuming sampling is consistent
+        dt = total_time[i][1] - total_time[i][0]  # Time step size
+        time_vector = np.arange(0, total_duration * dt, dt)
+
+        # Use only the first 'min_length' elements for plotting (if there's any discrepancy)
+        min_length = min(len(time_vector), len(membrane_potential), len(current))
+        time_vector = time_vector[:min_length]
         membrane_potential = membrane_potential[:min_length]
         current = current[:min_length]
-        
+
         plt.plot(time_vector, membrane_potential / mV, label=f'I = {I_values[i]} pA')
         # plt.plot(time_vector, current / pA, label=f'Current I = {I_values[i]} pA', linestyle='--', color='orange')
         plt.xlabel('Time (ms)')
-        plt.ylabel('Membrane Potential (mV) / Current (pA)')
-        # plt.title(f'Membrane Potential & Current for I = {I_values[i]} pA')
+        plt.ylabel('Membrane Potential (mV)')
         plt.legend()
 
+        # Mark the start and end of the current injection
         start_time = injection_time['start']
         duration = injection_time['duration']
-        plt.axvline(x=start_time, color='r', linestyle='--', label='Current Injection Start')
+        plt.axvline(x=start_time, color='r', linestyle='--', label=f'Current Injection Start (I = {I_values[i]} pA)')
         plt.axvline(x=start_time + duration, color='g', linestyle='--', label='Current Injection End')
 
     plt.tight_layout()
@@ -144,8 +146,12 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
     # Plot all currents together in a single plot
     plt.figure(figsize=(15, 6))
     for i, current in enumerate(all_currents):
-        min_length = min(len(total_time[i]), len(current))
-        time_vector = total_time[i][:min_length]
+        total_duration = len(current)  # Assuming sampling is consistent
+        dt = total_time[i][1] - total_time[i][0]  # Time step size
+        time_vector = np.arange(0, total_duration * dt, dt)
+
+        min_length = min(len(time_vector), len(current))
+        time_vector = time_vector[:min_length]
         current = current[:min_length]
         
         plt.plot(time_vector, current / pA, label=f'I = {I_values[i]} pA', linestyle='--')
@@ -156,5 +162,6 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
     plt.legend()
     plt.tight_layout()
     plt.show()
+
 
 
