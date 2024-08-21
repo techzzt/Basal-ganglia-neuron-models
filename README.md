@@ -64,7 +64,7 @@ PV+ (STN) | **388** |
 PV- (STN) | - | 
 PV+ (GPi) | - | 
 SST+ (GPi) | - | 
-PV+ (SNr) | - | 
+PV+ (SNr) | **754** | 
 SST+ (SNr) | - | 
 GABAergic (SNc) | - | 
 Dopaminergic (SNc) | - |
