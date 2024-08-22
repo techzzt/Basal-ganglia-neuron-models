@@ -34,7 +34,7 @@ neuron models should be put under ```./bg_insilico```
 Neuron type | Brain region | Description | References | Alternative terms | Neuron transmitter | Json
 --- | --- | --- | --- | --- | ---| ---
 MSN D1 | Striatum | LIF model [2] | | | GABA | 
-MSN D2 | Striatum | LIF model [2] | | | GABA |
+MSN D2 | Striatum | LIF model, set constant input as 0 [2] | | | GABA |
 FSN | Striatum |  | | | GABA |
 ChiN | Striatum |  | | | ACh |
 prototypic | GPe |  | | GPe-T1 | |
