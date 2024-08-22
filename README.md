@@ -37,8 +37,8 @@ MSN D1 | Striatum | LIF model [2] | | | GABA |
 MSN D2 | Striatum | LIF model, set constant input as 0 [2] | | | GABA |
 FSN | Striatum | | | FSI [1] | GABA |
 ChiN | Striatum |  | | | ACh |
-prototypic | GPe |  | | GPe-T1 | |
-Arkypallidal | GPe |  | | GPe-TA | |
+prototypic | GPe | [2] refer to [1] | | GPe-T1 | |
+Arkypallidal | GPe | [2] refer to [1] | | GPe-TA | |
 PV+ | STN | not seperate STN type [1] | | | | 
 PV- | STN |  | | | |
 PV+ | GPi |  | | | |
