@@ -15,6 +15,6 @@
         "I": {"value": 12, "unit": "pA"}
     },
     "reference": {
-        "title": "Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model"
+        "title": "Transient Response of Basal Ganglia Network in Healthy and Low-Dopamine State"    
     }
 }
