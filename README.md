@@ -52,7 +52,7 @@ https://www.frontiersin.org/journals/neural-circuits/articles/10.3389/fncir.2018
 synapse connection code reference: https://github.com/Hjorthmedh/Snudda/blob/master/snudda/data/input_config/external-input-dSTR-scaled-v2.json
 
 #### Population Value 
-Neuron type | (References 1)[https://www.eneuro.org/content/3/6/ENEURO.0156-16.2016.short] | References 2 | (Reference 3)[https://www.eneuro.org/content/9/2/ENEURO.0376-21.2022.abstract]
+Neuron type | [References 1](https://www.eneuro.org/content/3/6/ENEURO.0156-16.2016.short) | References 2 | (Reference 3)[https://www.eneuro.org/content/9/2/ENEURO.0376-21.2022.abstract]
 --- | --- | --- | ---
 Network | 80,000 |  | 6,539
 MSN D1 | 37,971 | 2,000 | 2,000
