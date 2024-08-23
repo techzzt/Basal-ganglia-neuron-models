@@ -52,23 +52,23 @@ https://www.frontiersin.org/journals/neural-circuits/articles/10.3389/fncir.2018
 synapse connection code reference: https://github.com/Hjorthmedh/Snudda/blob/master/snudda/data/input_config/external-input-dSTR-scaled-v2.json
 
 #### Population Value 
-Neuron type | References 1 | References 2
---- | --- | ---
-Network | 80,000 |  
-MSN D1 | 37,971 | 2,000
-MSN D2 | 37,971 | 2,000
-FSN | 1,599 | 80
-ChiN | - 
-prototypic (GPe) | 988 | 
-Arkypallidal (GPe) | 329 | 
-PV+ (STN) | **388** | 
-PV- (STN) | - | 
-PV+ (GPi) | - | 
-SST+ (GPi) | - | 
-PV+ (SNr) | **754** | 
-SST+ (SNr) | - | 
-GABAergic (SNc) | - | 
-Dopaminergic (SNc) | - |
+Neuron type | References 1 | References 2 | (Reference 3)[Chakravarty, Kingshuk, et al. "Transient response of basal ganglia network in healthy and low-dopamine state." eneuro 9.2 (2022).]
+--- | --- | --- | ---
+Network | 80,000 |  | 6,539
+MSN D1 | 37,971 | 2,000 | 2,000
+MSN D2 | 37,971 | 2,000 | 2,000
+FSN | 1,599 | 80 | 80
+ChiN | - | - | -
+prototypic (GPe) | 988 | - | 988 
+Arkypallidal (GPe) | 329 | - | 329
+PV+ (STN) | **388** | - | **388**
+PV- (STN) | - | - | - 
+PV+ (GPi) | - | - | -  
+SST+ (GPi) | - | - | - 
+PV+ (SNr) | **754** | - | **754**
+SST+ (SNr) | - | - | -  
+GABAergic (SNc) | - | - | - 
+Dopaminergic (SNc) | - | - | - 
 
 #### References (parameters)
 [1] Lindahl, Mikael, and Jeanette Hellgren Kotaleski. "Untangling basal ganglia network dynamics and function: Role of dopamine depletion and inhibition investigated in a spiking network model." eneuro 3.6 (2016).
@@ -81,6 +81,7 @@ Dopaminergic (SNc) | - |
 [2] Chakravarty, Kingshuk, et al. "Transient response of basal ganglia network in healthy and low-dopamine state." eneuro 9.2 (2022).
 
 [3] Hjorth, JJ Johannes, et al. "The microcircuits of striatum in silico." Proceedings of the National Academy of Sciences 117.17 (2020): 9554-9565.
+
 
 - Kim et al. (2024): Kim, Sang-Yoon, and Woochang Lim. "Quantifying harmony between direct and indirect pathways in the basal ganglia: healthy and Parkinsonian states." Cognitive Neurodynamics (2024): 1-21.
 - Sheng, M. J., Lu, D., Shen, Z. M., and Poo, M. M. (2019). Emergence of stable striatal D1R and D2R neuronal ensembles with distinct firing sequence during motor learning. Proc. Natl. Acad. Sci. U. S. A. 116, 11038–11047. doi: 10.1073/pnas.1901712116
