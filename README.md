@@ -49,6 +49,7 @@ GABAergic | SNc |  | | | |
 Dopaminergic | SNc |  | | | |
 
 https://www.frontiersin.org/journals/neural-circuits/articles/10.3389/fncir.2018.00003/full
+synapse connection code reference: https://github.com/Hjorthmedh/Snudda/blob/master/snudda/data/input_config/external-input-dSTR-scaled-v2.json
 
 #### Population Value 
 Neuron type | References 1 | References 2
