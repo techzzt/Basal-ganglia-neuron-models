@@ -144,8 +144,6 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
 
             start_time = injection_time['start']
             injection_duration = injection_time['duration']
-            ax_membrane.axvline(x=start_time, color='r', linestyle='--', label='Injection Start')
-            ax_membrane.axvline(x=start_time + injection_duration, color='g', linestyle='--', label='Injection End')
 
             if j == 0:
                 ax_membrane.set_ylabel(f'I = {I} pA\nMembrane Potential (mV)')
@@ -159,6 +157,11 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
             index = i * num_durations + j
             current = all_currents[index]
             time_vector = total_time[index]
+
+            # Ensure the time_vector starts at 0
+            if time_vector[0] != 0:
+                time_vector = np.concatenate(([0], time_vector))
+                current = np.concatenate(([current[0]], current))
 
             min_length = min(len(time_vector), len(current))
             time_vector = time_vector[:min_length]
@@ -174,6 +177,7 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
 
     plt.tight_layout()
     plt.show()
+
 
 
 
