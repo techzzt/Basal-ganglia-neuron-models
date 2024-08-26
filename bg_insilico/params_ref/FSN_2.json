@@ -3,7 +3,6 @@
     "params": {
         "N": {"value": 100, "unit": ""},
         "g_L": {"value": 16.67, "unit": "nS"},
-        "v": {"value": -80, "unit": "mV"},
         "vr": {"value": -65, "unit": "mV"},
         "vt": {"value": -54, "unit": "mV"},
         "E_L": {"value": -65, "unit": "mV"},
