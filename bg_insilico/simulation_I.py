@@ -1,9 +1,9 @@
 import json
 import numpy as np
-from brian2 import mV, pA, siemens, ms, farad, second, pF, nS, Hz, volt, ohm
-from brian2 import Network, StateMonitor, SpikeMonitor, PopulationRateMonitor
 import importlib
 import matplotlib.pyplot as plt
+from brian2 import mV, pA, siemens, ms, farad, second, pF, nS, Hz, volt, ohm
+from brian2 import Network, StateMonitor, SpikeMonitor, PopulationRateMonitor
 from result_I import Run
 
 def load_params(json_file):
@@ -40,7 +40,7 @@ def convert_units(params):
         converted_params[param] = value
     return converted_params
 
-def run_simulation(N, params, model_name, I_values, durations):
+def run_simulation(N, params, model_name, I_values, durations, injection_start_time):
     module_path = f'models/{model_name}.py'
     spec = importlib.util.spec_from_file_location(model_name, module_path)
     model_module = importlib.util.module_from_spec(spec)
@@ -74,22 +74,23 @@ def run_simulation(N, params, model_name, I_values, durations):
 
             neuron_model = neuron_model_class(N, converted_params)
             sim = Run(neuron_model)
+            
             neuron_model.neurons.I = 0 * pA
-            wait_time_after_stabilization = 50 * ms
-            sim.run(duration=wait_time_after_stabilization)
+            neuron_model.neurons.v[0] = 0 * mV
+
+            print(f"Running simulation with I={converted_I} for injection_start_time={injection_start_time} ms and duration={duration} ms")
+            sim.run(duration=injection_start_time)
             membrane_potential = sim.dv_monitor.v[0]
             current = sim.current_monitor.I[0]
 
             neuron_model.neurons.I = converted_I
-            time_after_increase = duration * ms
-            sim.run(duration=time_after_increase)
+            sim.run(duration=duration * ms)
             membrane_potential_after_increase = sim.dv_monitor.v[0]
             current_after_increase = sim.current_monitor.I[0]
 
-            Initialize_time = 1000 * ms
             neuron_model.neurons.I = 0 * pA
-            time_after_decrease = Initialize_time - wait_time_after_stabilization - time_after_increase
-            sim.run(duration=time_after_decrease)
+            remaining_time = 1000 * ms - (injection_start_time + duration * ms)
+            sim.run(duration=remaining_time)
             membrane_potential_after_decrease = sim.dv_monitor.v[0]
             current_after_decrease = sim.current_monitor.I[0]
 
@@ -100,7 +101,7 @@ def run_simulation(N, params, model_name, I_values, durations):
             all_currents.append(current)
             total_time.append(sim.dv_monitor.t / ms)
             injection_times.append({
-                'start': wait_time_after_stabilization / ms,
+                'start': injection_start_time / ms,
                 'duration': duration
             })
 
@@ -110,6 +111,11 @@ def run_simulation(N, params, model_name, I_values, durations):
 def plot_results(all_results, all_currents, I_values, total_time, injection_times, durations):
     num_I_values = len(I_values)
     num_durations = len(durations)
+
+    # Determine the global min and max membrane potentials for consistent y-axis limits
+    all_membrane_potentials = np.concatenate(all_results)
+    global_min_potential = np.min(all_membrane_potentials)
+    global_max_potential = np.max(all_membrane_potentials)
 
     # Create a figure with a grid of subplots: num_I_values rows for membrane potential + 1 row per duration for currents
     fig, axes = plt.subplots(num_I_values + 1, num_durations, figsize=(5 * num_durations, 4 * (num_I_values + 1)))
@@ -141,6 +147,9 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
             ax_membrane.set_xlabel('Time (ms)')
             ax_membrane.set_ylabel('Membrane Potential (mV)')
             ax_membrane.set_title(f'I = {I} pA, Duration = {duration} ms')
+
+            # Set consistent y-axis limits
+            ax_membrane.set_ylim(global_min_potential / mV, global_max_potential / mV)
 
             start_time = injection_time['start']
             injection_duration = injection_time['duration']
@@ -177,10 +186,3 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
 
     plt.tight_layout()
     plt.show()
-
-
-
-
-
-
-
