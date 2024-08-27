@@ -3,9 +3,8 @@
     "params": {
         "N": {"value": 100, "unit": ""},
         "g_L": {"value": 6.46, "unit": "nS"},
-        "v": {"value": -80, "unit": "mV"},
         "vr": {"value": -85.4, "unit": "mV"},
-        "vt": {"value": -45, "unit": "mV"},
+        "th": {"value": -45, "unit": "mV"},
         "E_L": {"value": -85.4, "unit": "mV"},
         "C": {"value": 157, "unit": "pF"},
         "I": {"value": 300, "unit": "pA"}
