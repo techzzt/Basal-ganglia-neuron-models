@@ -8,17 +8,17 @@ class NeuronModel:
 
     def build_model(self):
         eqs = '''
-        dv/dt = (-g_L*1*pF/ms/mV*(v-E_L) + I)/C : volt
-        g_L     : 1/second
-        E_L     : 1/second
+        dv/dt = (-g_L*(v-E_L) + I)/C : volt
+        g_L     : siemens
+        E_L     : volt
         d       : volt/second
         vr      : volt
-        vt      : volt
+        th      : volt
         I : amp
         C : farad
         '''
 
-        self.neurons = NeuronGroup(self.N, model=eqs, threshold='v > vt', reset='v = vr; u += d', method='euler')
+        self.neurons = NeuronGroup(self.N, model=eqs, threshold='v > th', reset='v = vr', method='euler')
         self.set_parameters()
 
     def set_parameters(self):
