@@ -52,23 +52,23 @@ https://www.frontiersin.org/journals/neural-circuits/articles/10.3389/fncir.2018
 synapse connection code reference: https://github.com/Hjorthmedh/Snudda/blob/master/snudda/data/input_config/external-input-dSTR-scaled-v2.json
 
 #### Population Value 
-Neuron type | [References 1](https://www.eneuro.org/content/3/6/ENEURO.0156-16.2016.short) | References 2 | [Reference 3](https://www.eneuro.org/content/9/2/ENEURO.0376-21.2022.abstract) | [Reference 4](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1010645)
---- | --- | --- | --- | --- 
-Network | 80,000 |  | 6,539 |
-MSN D1 | 37,971 | 2,000 | 2,000 | 6,000
-MSN D2 | 37,971 | 2,000 | 2,000 | 6,000
-FSN | 1,599 | 80 | 80 | 420
-ChiN | - | - | - | -
-prototypic (GPe) | 988 | - | 988 | 780
-Arkypallidal (GPe) | 329 | - | 329 | 264
-PV+ (STN) | **388** | - | **388** | **408**
-PV- (STN) | - | - | - | -
-PV+ (GPi) | - | - | - | -
-SST+ (GPi) | - | - | - | - 
-PV+ (SNr) | **754** | - | **754** | -
-SST+ (SNr) | - | - | - | -
-GABAergic (SNc) | - | - | - | -
-Dopaminergic (SNc) | - | - | - | -
+Neuron type | [References 1](https://www.eneuro.org/content/3/6/ENEURO.0156-16.2016.short) | References 2 | [Reference 3](https://www.eneuro.org/content/9/2/ENEURO.0376-21.2022.abstract) | [Reference 4](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1010645) | [Reference 5](https://www.biorxiv.org/content/10.1101/2023.03.07.531640v1)
+--- | --- | --- | --- | --- | ---
+Network | 80,000 |  | 6,539 | - | 
+MSN D1 | 37,971 | 2,000 | 2,000 | 6,000 | -
+MSN D2 | 37,971 | 2,000 | 2,000 | 6,000 | 0.475 * 2.8 * 10000000
+FSN | 1,599 | 80 | 80 | 420 | 0.2 * 2.8 * 10000000
+ChiN | - | - | - | - | -
+prototypic (GPe) | 988 | - | 988 | 780 | 0.7 * 4.6 * 100000 
+Arkypallidal (GPe) | 329 | - | 329 | 264 | 0.25 * 4.6 * 100000
+PV+ (STN) | **388** | - | **388** | **408** | **13,560**
+PV- (STN) | - | - | - | - | -
+PV+ (GPi) | - | - | - | - | -
+SST+ (GPi) | - | - | - | - | -
+PV+ (SNr) | **754** | - | **754** | - | -
+SST+ (SNr) | - | - | - | - | -
+GABAergic (SNc) | - | - | - | - | -
+Dopaminergic (SNc) | - | - | - | - | -
 
 #### References (parameters)
 [1] Lindahl, Mikael, and Jeanette Hellgren Kotaleski. "Untangling basal ganglia network dynamics and function: Role of dopamine depletion and inhibition investigated in a spiking network model." eneuro 3.6 (2016).
