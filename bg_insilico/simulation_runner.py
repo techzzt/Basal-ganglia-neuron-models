@@ -1,8 +1,9 @@
 import json
 import numpy as np
 from brian2 import mV, pA, siemens, ms, farad, second, pF, nS, Hz, volt, ohm
-from brian2 import Network, StateMonitor, SpikeMonitor, PopulationRateMonitor
+from brian2 import Network, StateMonitor, SpikeMonitor, PopulationRateMonitor, start_scope
 import importlib
+import matplotlib.pyplot as plt 
 from result import Visualization
 
 def load_params(json_file):
@@ -16,9 +17,11 @@ def convert_units(params):
         value = info['value']
         unit = info['unit']
         if unit:
-            # 단위를 직접 가져오기
+            # Convert units according to the specifications
             if unit == 'nS':
                 value *= nS
+            elif unit == 'S':
+                value *= siemens
             elif unit == 'mV':
                 value *= mV
             elif unit == 'ms':
@@ -28,12 +31,12 @@ def convert_units(params):
             elif unit == 'pA':
                 value *= pA
             elif unit == 'Hz':
-                value *= Hz 
+                value *= Hz
             elif unit == '1/second':
                 value *= Hz
-            elif unit == 'volt/second':  
+            elif unit == 'volt/second':
                 value *= volt / second
-            elif unit == 'Ohm':  
+            elif unit == 'Ohm':
                 value *= ohm
             else:
                 print(f"Unknown unit for {param}: {unit}")
@@ -42,56 +45,58 @@ def convert_units(params):
     return converted_params
 
 def run_simulation(N, params, model_name):
-    # 모델 클래스를 동적으로 로드
-    module_path = f'models/{model_name}.py'
+    # start_scope()
 
-    # NeuronModel 클래스 가져오기
+    results = []
+
+    # Load neuron model dynamically
+    module_path = f'models/{model_name}.py'
     spec = importlib.util.spec_from_file_location(model_name, module_path)
     model_module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(model_module)
     neuron_model_class = model_module.NeuronModel
 
-    # 파라미터 변환
+    # Convert parameters
     converted_params = convert_units(params)
-    print("Converted parameters:", converted_params) 
+    print("Converted parameters:", converted_params)
+
+    # Handle input current
+    I_value = params['I']['value']
+    I_unit = params['I']['unit']
     
-    # 뉴런 모델 초기화
-    # 초기 I 값을 0으로 설정하고 이후 사용을 위해 원래 I 값을 저장
-    initial_I = 0 * pA
-    if 'I' in params:
-        I_info = params['I']  # Access the original parameter info for 'I'
-        I_value = I_info['value']
-        I_unit = I_info['unit']
-        
-        if I_unit == 'pA':
-            initial_I = 0 * pA  # Set initial I in pA
-            increase_I = I_value * pA  # Use the value in pA
-        elif I_unit == 'volt/second':
-            initial_I = 0 * volt/second  # Set initial I in pA
-            increase_I = I_value * (volt / second) * 1e12  # Convert to pA
-            print(increase_I)
-        else:
-            print(f"Unknown unit for I: {I_unit}")
-            initial_I = 0 * pA  # Default to 0 if unknown
-            increase_I = initial_I  # Default increase_I to initial_I
+    if I_unit == 'pA':
+        initial_I = 0 * pA  
+        increase_I = I_value * pA  
+    elif I_unit == 'volt/second':
+        initial_I = 0 * volt/second  
+        increase_I = I_value * (volt / second) * 1e12  
     else:
-        initial_I = 0 * pA  # Default to 0 if I is not defined
-        increase_I = initial_I  # Default increase_I to initial_I
+        print(f"Unknown unit for I: {I_unit}")
+        initial_I = 0 * pA  
+        increase_I = initial_I  
 
-    converted_params['I'] = initial_I  # Set initial I in converted_params
+    converted_params['I'] = initial_I  
 
-    # 뉴런 모델 초기화
+    # Initialize neuron model
     neuron_model = neuron_model_class(N, converted_params)
-    sim = Visualization(neuron_model)
+    network = Network(neuron_model.neurons)
+    
+    dv_monitor = StateMonitor(neuron_model.neurons, 'v', record=True)
+    spike_monitor = SpikeMonitor(neuron_model.neurons)
+    rate_monitor = PopulationRateMonitor(neuron_model.neurons)
+    current_monitor = StateMonitor(neuron_model.neurons, 'I', record=True)
+    network.add(dv_monitor, spike_monitor, rate_monitor, current_monitor)
+    
+    neuron_model.neurons.v[0] = -80 * mV
 
-    # 시뮬레이션 초기 실행
+    neuron_model.neurons.I = 0 * pA  
     Initialize_time = 200 * ms
-    sim.run(duration=Initialize_time)
+    network.run(duration=Initialize_time)
 
-    # 결과 수집
-    times = sim.dv_monitor.t
+    # Collect results
+    times = dv_monitor.t
     v_reset = converted_params['vr']
-    membrane_potential = sim.dv_monitor.v[0]
+    membrane_potential = dv_monitor.v[0]
     matching_indices = np.where(membrane_potential / mV >= v_reset / mV)[0]
 
     if len(matching_indices) > 0:
@@ -99,33 +104,61 @@ def run_simulation(N, params, model_name):
     else:
         earliest_time_stabilized = None
 
-    # 새 모니터 설정
+    # Set up additional monitors
     dv_monitor_new = StateMonitor(neuron_model.neurons, variables='v', record=True)
     spike_monitor_new = SpikeMonitor(neuron_model.neurons)
-    rate_monitor_new = PopulationRateMonitor(neuron_model.neurons)  # 10ms의 bin 크기
-    current_monitor = StateMonitor(neuron_model.neurons, variables='I', record=True)
+    rate_monitor_new = PopulationRateMonitor(neuron_model.neurons)
+    current_monitor_new = StateMonitor(neuron_model.neurons, variables='I', record=True)
 
-    sim.network.add(dv_monitor_new, spike_monitor_new, rate_monitor_new, current_monitor)
+    network.add(dv_monitor_new, spike_monitor_new, rate_monitor_new, current_monitor_new)
 
-    # Input current
+    # Run simulation with input current
     if earliest_time_stabilized is not None:
         wait_time_after_stabilization = 100 * ms
         time_after_increase = 200 * ms
         time_after_decrease = 200 * ms
         total_simulation_time = Initialize_time + wait_time_after_stabilization + time_after_increase + time_after_decrease
-
-        # Stabilization period
-        sim.run(duration=wait_time_after_stabilization)
         
-        # Increase I to the value specified in JSON
-        neuron_model.neurons.I = increase_I  # Use the converted value for I
-        sim.run(duration=time_after_increase)
-        
-        # Decrease I back to 0
+        neuron_model.neurons.I = 0 * pA  
+        network.run(duration=wait_time_after_stabilization)
+        neuron_model.neurons.I = increase_I  
+        network.run(duration=time_after_increase)
         neuron_model.neurons.I = 0 * pA
-        sim.run(duration=time_after_decrease)
+        network.run(duration=time_after_decrease)
+
     else:
         print("v did not reach v_reset, stopping simulation")
         total_simulation_time = Initialize_time
 
-    return sim
+    results = {
+        'times': dv_monitor_new.t / ms,
+        'membrane_potential': dv_monitor_new.v[0] / mV,
+        'current': current_monitor_new.I[0] / pA
+    }
+
+    return results
+
+
+def plot_results(results):
+    plt.figure(figsize = (15, 8))
+    times = results['times']
+    membrane_potential = results['membrane_potential']
+    current = results['current']
+
+    fig, axes = plt.subplots(2, 1, figsize=(10, 8))
+
+    axes[0].plot(times, membrane_potential)
+    axes[0].set_title('Membrane Potential')
+    axes[0].set_xlabel('Time (ms)')
+    axes[0].set_ylabel('Membrane Potential (mV)')
+    axes[0].set_ylim([-80, 50])
+    axes[0].set_xlim(left=0)
+
+    axes[1].plot(times, current)
+    axes[1].set_title('Current')
+    axes[1].set_xlabel('Time (ms)')
+    axes[1].set_ylabel('Current (pA)')
+    axes[1].set_xlim(left=0)
+
+    plt.tight_layout()
+    plt.show()
