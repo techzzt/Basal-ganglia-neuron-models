@@ -31,13 +31,13 @@ neuron models should be put under ```./bg_insilico```
 
 
 #### Neuron Model Features
-Neuron type | Brain region | Description | References | Alternative terms | Neuron transmitter | Json
+Neuron type | Brain region | Parameter Description | References | Alternative terms | Neuron transmitter | Json
 --- | --- | --- | --- | --- | ---| ---
-MSN D1 | Striatum | LIF model [2] | | STN, SPN [4] | GABA | 
-MSN D2 | Striatum | LIF model, set constant input as 0 [2] | | | GABA |
+MSN D1 | Striatum | LIF model [2] | | STN, dSPN [4] | GABA | 
+MSN D2 | Striatum | LIF model, set constant input as 0 [2] | | iSPN | GABA |
 FSN | Striatum | | | FSI [1], FS[3] | GABA |
 ChiN | Striatum |  | | | ACh |
-prototypic | GPe | [2] refer to [1] | | GPe-T1 | |
+prototypic | GPe | [2] refer to [1] | consider ChAT in GPe [5] | GPe-T1 | |
 Arkypallidal | GPe | [2] refer to [1] | | GPe-TA | |
 PV+ | STN | not seperate STN type [1] | | | | 
 PV- | STN |  | | | |
@@ -85,6 +85,8 @@ Dopaminergic (SNc) | - | - | - | - | -
 [3] Hjorth, JJ Johannes, et al. "The microcircuits of striatum in silico." Proceedings of the National Academy of Sciences 117.17 (2020): 9554-9565.
 
 [4] Fieblinger, Tim. "Striatal control of movement: a role for new neuronal (Sub-) populations?." Frontiers in human neuroscience 15 (2021): 697284.
+
+[5] Dong, Jie, et al. "Connectivity and functionality of the globus pallidus externa under normal conditions and Parkinson's disease." Frontiers in neural circuits 15 (2021): 645287.
 
 
 - Kim et al. (2024): Kim, Sang-Yoon, and Woochang Lim. "Quantifying harmony between direct and indirect pathways in the basal ganglia: healthy and Parkinsonian states." Cognitive Neurodynamics (2024): 1-21.
