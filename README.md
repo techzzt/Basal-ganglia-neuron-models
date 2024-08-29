@@ -44,7 +44,7 @@ PV+ | STN | not seperate STN type [1] | | | |
 PV- | STN |  | | | |
 PV+ | GPi |  | | | |
 SST+ | GPi |  | | | |
-PV+ | SNr | not seperate SNr type [1] <br> spike cut off refer to [1], and set I arbitarily [2] | | | GABA |
+PV+ | SNr | not seperate SNr type [1] <br> spike cut off refer to [1], and set I arbitarily [2] | | | GABA [6] |
 SST+ | SNr |  | | | GABA |
 GABAergic | SNc |  | | | |
 Dopaminergic | SNc |  | | | |
@@ -89,6 +89,7 @@ Dopaminergic (SNc) | - | - | - | - | -
 
 [5] Dong, Jie, et al. "Connectivity and functionality of the globus pallidus externa under normal conditions and Parkinson's disease." Frontiers in neural circuits 15 (2021): 645287.
 
+[6] The role of neurotransmitter systems in mediating deep brain stimulation effects in Parkinson’s disease
 
 - Kim et al. (2024): Kim, Sang-Yoon, and Woochang Lim. "Quantifying harmony between direct and indirect pathways in the basal ganglia: healthy and Parkinsonian states." Cognitive Neurodynamics (2024): 1-21.
 - Sheng, M. J., Lu, D., Shen, Z. M., and Poo, M. M. (2019). Emergence of stable striatal D1R and D2R neuronal ensembles with distinct firing sequence during motor learning. Proc. Natl. Acad. Sci. U. S. A. 116, 11038–11047. doi: 10.1073/pnas.1901712116
