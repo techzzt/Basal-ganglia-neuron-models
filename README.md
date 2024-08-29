@@ -44,8 +44,8 @@ PV+ | STN | not seperate STN type [1] | | | |
 PV- | STN |  | | | |
 PV+ | GPi |  | | | |
 SST+ | GPi |  | | | |
-PV+ | SNr | not seperate SNr type [1] <br> spike cut off refer to [1], and set I arbitarily [2] | | | |
-SST+ | SNr |  | | | |
+PV+ | SNr | not seperate SNr type [1] <br> spike cut off refer to [1], and set I arbitarily [2] | | | GABA |
+SST+ | SNr |  | | | GABA |
 GABAergic | SNc |  | | | |
 Dopaminergic | SNc |  | | | |
 
