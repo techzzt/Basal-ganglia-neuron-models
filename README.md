@@ -6,6 +6,7 @@ Hjorth, JJ Johannes, et al. "The microcircuits of striatum in silico." Proceedin
 **Network Structure**
 
 ![readme](https://github.com/techzzt/Basal-ganglia-neuron-models/assets/49440852/23c7f1c7-f357-4d2a-b546-126fd4996887)
+![neurotransmitter](https://github.com/user-attachments/assets/4bd7e1a5-2c19-457f-a619-24c511868422)
 
 
 ### Equation/Parameters & Variable names:
