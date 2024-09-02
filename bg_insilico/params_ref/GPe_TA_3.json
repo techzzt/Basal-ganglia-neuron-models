@@ -15,6 +15,6 @@
         "I": {"value": 1, "unit": "pA"}
     },
     "reference": {
-        "title": "Transient Response of Basal Ganglia Network in Healthy and Low-Dopamine State"    
+        "title": "Dopamine depletion leads to pathological synchronization of distinct basal ganglia loops in the beta band"    
     }
 }
