@@ -34,6 +34,8 @@ def convert_units(params):
                 value *= volt / second
             elif unit == 'Ohm':  
                 value *= ohm
+            elif unit == 'amp':
+                value *= amp
             else:
                 print(f"Unknown unit for {param}: {unit}")
         converted_params[param] = value
