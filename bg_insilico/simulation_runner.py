@@ -81,17 +81,19 @@ def run_simulation(N, params, model_name):
     neuron_model = neuron_model_class(N, converted_params)
     network = Network(neuron_model.neurons)
     
+# Set up monitors before initial run
     dv_monitor = StateMonitor(neuron_model.neurons, 'v', record=True)
     spike_monitor = SpikeMonitor(neuron_model.neurons)
     rate_monitor = PopulationRateMonitor(neuron_model.neurons)
     current_monitor = StateMonitor(neuron_model.neurons, 'I', record=True)
+
     network.add(dv_monitor, spike_monitor, rate_monitor, current_monitor)
-    
+ 
     neuron_model.neurons.v[0] = -80 * mV
 
     neuron_model.neurons.I = 0 * pA  
     Initialize_time = 200 * ms
-    network.run(duration=Initialize_time)
+    network.run(duration = Initialize_time)
 
     # Collect results
     times = dv_monitor.t
@@ -103,14 +105,6 @@ def run_simulation(N, params, model_name):
         earliest_time_stabilized = times[matching_indices[0]] * 1000
     else:
         earliest_time_stabilized = None
-
-    # Set up additional monitors
-    dv_monitor_new = StateMonitor(neuron_model.neurons, variables='v', record=True)
-    spike_monitor_new = SpikeMonitor(neuron_model.neurons)
-    rate_monitor_new = PopulationRateMonitor(neuron_model.neurons)
-    current_monitor_new = StateMonitor(neuron_model.neurons, variables='I', record=True)
-
-    network.add(dv_monitor_new, spike_monitor_new, rate_monitor_new, current_monitor_new)
 
     # Run simulation with input current
     if earliest_time_stabilized is not None:
@@ -131,9 +125,9 @@ def run_simulation(N, params, model_name):
         total_simulation_time = Initialize_time
 
     results = {
-        'times': dv_monitor_new.t / ms,
-        'membrane_potential': dv_monitor_new.v[0] / mV,
-        'current': current_monitor_new.I[0] / pA
+        'times': dv_monitor.t / ms,
+        'membrane_potential': dv_monitor.v[0] / mV,
+        'current': current_monitor.I[0] / pA
     }
 
     return results
@@ -151,7 +145,7 @@ def plot_results(results):
     axes[0].set_title('Membrane Potential')
     axes[0].set_xlabel('Time (ms)')
     axes[0].set_ylabel('Membrane Potential (mV)')
-    axes[0].set_ylim([-80, 50])
+    axes[0].set_ylim([-90, 50])
     axes[0].set_xlim(left=0)
 
     axes[1].plot(times, current)
