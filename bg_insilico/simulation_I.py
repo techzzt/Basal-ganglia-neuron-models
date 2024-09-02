@@ -77,7 +77,8 @@ def run_simulation(N, params, model_name, I_values, durations, injection_start_t
             neuron_model = neuron_model_class(N, converted_params)
             dv_monitor = StateMonitor(neuron_model.neurons, 'v', record=True)
             current_monitor = StateMonitor(neuron_model.neurons, 'I', record=True)
-            network = Network(neuron_model.neurons, dv_monitor, current_monitor)
+            spikes = SpikeMonitor(neuron_model.neurons)
+            network = Network(neuron_model.neurons, dv_monitor, current_monitor, spikes)
 
             neuron_model.neurons.v[0] = -80 * mV
             # print(f"Running simulation with I={converted_I} for injection_start_time={injection_start_time} ms and duration={duration} ms")
@@ -92,7 +93,17 @@ def run_simulation(N, params, model_name, I_values, durations, injection_start_t
             remaining_time = 1000 * ms - (injection_start_time + duration * ms)
             network.run(duration=remaining_time)
 
-            all_results.append(dv_monitor.v[0])
+            # draw nicer spikes 
+            membrane_potential = dv_monitor.v[0]
+            spike_times = spikes.t / ms
+            dt = defaultclock.dt / ms
+            
+            # Modify the membrane potential at spike times
+            for t in spike_times:
+                idx = int(t / dt)
+                membrane_potential[idx] = converted_params['th']
+
+            all_results.append(membrane_potential)
             all_currents.append(current_monitor.I[0])
             total_time.append(dv_monitor.t / ms)
             injection_times.append({
@@ -101,7 +112,6 @@ def run_simulation(N, params, model_name, I_values, durations, injection_start_t
             })
 
     return all_results, all_currents, total_time, injection_times
-
 
 
 def plot_results(all_results, all_currents, I_values, total_time, injection_times, durations):
@@ -170,3 +180,77 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
     plt.tight_layout()
     plt.show()
 
+"""
+def plot_results(all_results, all_currents, I_values, total_time, injection_times, durations):
+    num_I_values = len(I_values)
+    num_durations = len(durations)
+
+    all_membrane_potentials = np.concatenate(all_results)
+    global_min_potential = np.min(all_membrane_potentials)
+    global_max_potential = np.max(all_membrane_potentials)
+
+    margin = 5  # mV
+    adjusted_min = global_min_potential - margin 
+    adjusted_max = global_max_potential + margin
+    
+    fig, axes = plt.subplots(num_I_values + 1, num_durations, figsize=(5 * num_durations, 4 * (num_I_values + 1)))
+    
+    for i, I in enumerate(I_values):
+        for j, duration in enumerate(durations):
+            index = i * num_durations + j
+            ax_membrane = axes[i, j] if num_I_values > 1 else axes[j]
+
+            membrane_potential = all_results[index]
+            injection_time = injection_times[index]
+            time_vector = total_time[index]
+
+            if time_vector[0] != 0:
+                time_vector = np.concatenate(([0], time_vector))
+                membrane_potential = np.concatenate(([membrane_potential[0]], membrane_potential))
+            
+            min_length = min(len(time_vector), len(membrane_potential))
+            time_vector = time_vector[:min_length]
+            membrane_potential = membrane_potential[:min_length]
+
+            ax_membrane.plot(time_vector, membrane_potential) 
+            ax_membrane.set_xlabel('Time (ms)')
+            ax_membrane.set_ylabel('Membrane Potential (mV)')
+            ax_membrane.set_title(f'I = {I} pA, Duration = {duration} ms')
+            
+            # Set the global y limits for all plots
+            ax_membrane.set_ylim(adjusted_min / mV, adjusted_max / mV)
+
+            start_time = injection_time['start']
+            injection_duration = injection_time['duration']
+
+            if j == 0:
+                ax_membrane.set_ylabel(f'I = {I} pA\nMembrane Potential (mV)')
+            if i == num_I_values - 1:
+                ax_membrane.set_xlabel(f'Duration = {duration} ms\nTime (ms)')
+
+    for j, duration in enumerate(durations):
+        ax_current = axes[num_I_values, j]
+        for i, I in enumerate(I_values):
+            index = i * num_durations + j
+            current = all_currents[index]
+            time_vector = total_time[index]
+
+            if time_vector[0] != 0:
+                time_vector = np.concatenate(([0], time_vector))
+                current = np.concatenate(([current[0]], current))
+
+            min_length = min(len(time_vector), len(current))
+            time_vector = time_vector[:min_length]
+            current = current[:min_length]
+
+            ax_current.plot(time_vector, current / pA, label=f'I = {I} pA', linestyle='--')
+
+        ax_current.set_xlabel('Time (ms)')
+        ax_current.set_ylabel('Current (pA)')
+        ax_current.set_title(f'Current for Duration = {duration} ms')
+        ax_current.legend()
+    
+    plt.tight_layout()
+    plt.show()
+
+"""
