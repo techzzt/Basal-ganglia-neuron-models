@@ -17,12 +17,12 @@ class NeuronModel:
         k       : 1
         vr      : volt
         vt      : volt
-        vpeak   : volt
+        th   : volt
         I : amp
         C : farad
         '''
 
-        self.neurons = NeuronGroup(self.N, model=eqs, threshold='v > vpeak', reset='v = c; u += d', method='euler')
+        self.neurons = NeuronGroup(self.N, model=eqs, threshold='v > th', reset='v = c; u += d', method='euler')
         self.set_parameters()
 
     def set_parameters(self):
