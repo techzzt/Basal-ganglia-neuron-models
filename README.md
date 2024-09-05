@@ -49,9 +49,6 @@ SST+ | SNr |  | | | GABA |
 GABAergic | SNc |  | | | |
 Dopaminergic | SNc |  | | | |
 
-https://www.frontiersin.org/journals/neural-circuits/articles/10.3389/fncir.2018.00003/full
-synapse connection code reference: https://github.com/Hjorthmedh/Snudda/blob/master/snudda/data/input_config/external-input-dSTR-scaled-v2.json
-
 #### Population Value 
 Neuron type | [References 1](https://www.eneuro.org/content/3/6/ENEURO.0156-16.2016.short) | References 2 | [Reference 3](https://www.eneuro.org/content/9/2/ENEURO.0376-21.2022.abstract) | [Reference 4](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1010645) | [Reference 5](https://www.biorxiv.org/content/10.1101/2023.03.07.531640v1)
 --- | --- | --- | --- | --- | ---
