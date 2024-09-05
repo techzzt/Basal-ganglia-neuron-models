@@ -3,3 +3,6 @@
 <img width="771" alt="image" src="https://github.com/user-attachments/assets/36ad9b1e-16ff-434a-8f46-82eb42d45605">
 
 - The experimental results for AdEx set as Table 1
+
+The reproduce results based on reconfigured code 
+![AdEx](https://github.com/user-attachments/assets/3eeba8c9-07fa-4e1b-b1b7-ac7ad5d76b00)
