@@ -4,5 +4,5 @@
 
 - The experimental results for AdEx set as Table 1
 
-The reproduce results based on reconfigured code 
+The reproduce results based on reconfigured code (current injection duration: 300ms)
 ![AdEx](https://github.com/user-attachments/assets/3eeba8c9-07fa-4e1b-b1b7-ac7ad5d76b00)
