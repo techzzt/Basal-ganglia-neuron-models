@@ -1,3 +1,5 @@
-![image](https://github.com/user-attachments/assets/2c130ec2-9a8d-4307-9bdf-48b44636c942)
+<img width="669" alt="image" src="https://github.com/user-attachments/assets/0ad84c72-1d2e-4cdc-ba1e-67ab1be2be54">
 
-GPe_T1 visualization result for -80mV
+<img width="771" alt="image" src="https://github.com/user-attachments/assets/36ad9b1e-16ff-434a-8f46-82eb42d45605">
+
+- The experimental results for AdEx set as Table 1
