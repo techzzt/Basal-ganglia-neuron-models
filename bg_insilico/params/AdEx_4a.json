@@ -1,0 +1,20 @@
+{
+    "model": "AdEx",
+    "params": {
+        "N": {"value": 100, "unit": ""},
+        "g_L": {"value": 10, "unit": "nS"},
+        "E_L": {"value": -70, "unit": "mV"},
+        "Delta_T": {"value": 2, "unit": "mV"},
+        "vt": {"value": -50, "unit": "mV"},
+        "vr": {"value": -58, "unit": "mV"},
+        "th": {"value": 0, "unit": "mV"},
+        "tau_w": {"value": 30, "unit": "ms"},
+        "a": {"value": 2, "unit": "nS"},
+        "d": {"value": 0, "unit": "pA"},
+        "C": {"value": 200, "unit": "pF"},
+        "I": {"value": 500, "unit": "pA"}
+    },
+    "reference": {
+        "title": "Firing patterns in the adaptive exponential integrate-and-fire model"
+    }
+}
