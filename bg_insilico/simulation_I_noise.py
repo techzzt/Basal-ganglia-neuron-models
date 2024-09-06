@@ -2,6 +2,8 @@ import json
 import numpy as np
 import importlib
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker  # ticker 모듈 import
+
 from brian2 import *
 from brian2 import mV, pA, siemens, ms, farad, second, pF, nS, Hz, volt, ohm
 
@@ -127,9 +129,9 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
     num_I_values = len(I_values)
     num_durations = len(durations)
 
-    all_membrane_potentials = np.concatenate(all_results)
-    global_min_potential = np.min(all_membrane_potentials)
-    global_max_potential = np.max(all_membrane_potentials)
+    all_membrane_potentials = np.concatenate(all_results) / mV
+    global_min_potential = np.min(all_membrane_potentials)  
+    global_max_potential = np.max(all_membrane_potentials)  
 
     fig, axes = plt.subplots(num_I_values + 1, num_durations, figsize=(5 * num_durations, 4 * (num_I_values + 1)))
     
@@ -138,7 +140,7 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
             index = i * num_durations + j
             ax_membrane = axes[i, j] if num_I_values > 1 else axes[j]
 
-            membrane_potential = all_results[index]
+            membrane_potential = all_results[index] / mV  # 단위 변환
             injection_time = injection_times[index]
             time_vector = total_time[index]
 
@@ -150,12 +152,12 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
             time_vector = time_vector[:min_length]
             membrane_potential = membrane_potential[:min_length]
 
-            ax_membrane.plot(time_vector, membrane_potential / mV)
+            ax_membrane.plot(time_vector, membrane_potential)
             ax_membrane.set_xlabel('Time (ms)')
             ax_membrane.set_ylabel('Membrane Potential (mV)')
             ax_membrane.set_title(f'I = {I} pA, Duration = {duration} ms')
-            ax_membrane.set_ylim(global_min_potential / mV, global_max_potential / mV * 1.1)
-            ax_membrane.yaxis.set_major_formatter(ticker.FuncFormatter(format_mV))
+            ax_membrane.set_ylim(global_min_potential * 1.1, global_max_potential * 1.1)  # 범위 조정
+            ax_membrane.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f'{x:.0f}'))  # 단위 포맷
 
             start_time = injection_time['start']
             injection_duration = injection_time['duration']
@@ -169,7 +171,7 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
         ax_current = axes[num_I_values, j]
         for i, I in enumerate(I_values):
             index = i * num_durations + j
-            current = all_currents[index]
+            current = all_currents[index] / pA  # 단위 변환
             time_vector = total_time[index]
 
             if time_vector[0] != 0:
@@ -180,7 +182,7 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
             time_vector = time_vector[:min_length]
             current = current[:min_length]
 
-            ax_current.plot(time_vector, current / pA, label=f'I = {I} pA', linestyle='--')
+            ax_current.plot(time_vector, current, label=f'I = {I} pA', linestyle='--')
 
         ax_current.set_xlabel('Time (ms)')
         ax_current.set_ylabel('Current (pA)')
