@@ -1,0 +1,16 @@
+{
+    "model": "LIF_noise",
+    "params": {
+        "N": {"value": 100, "unit": ""},
+        "g_L": {"value": 6.46, "unit": "nS"},
+        "vr": {"value": -85.4, "unit": "mV"},
+        "th": {"value": -45, "unit": "mV"},
+        "E_L": {"value": -85.4, "unit": "mV"},
+        "C": {"value": 157, "unit": "pF"},
+        "I": {"value": 300, "unit": "pA"}
+        },
+    "reference": {
+        "title": "Transient Response of Basal Ganglia Network in Healthy and Low-Dopamine State",
+        "journal": "eneuro 9.2 (2022)."
+    }
+}
