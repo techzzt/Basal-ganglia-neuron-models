@@ -28,7 +28,6 @@ neuron models should be put under ```./bg_insilico```
 - params: parameter list with json format
 - simulation_runner.py: generate neuron model, spike mornitoring
 - simulation_runner.py: generate neuron model, spike mornitoring with various I 
-- result.py: plotting 
 - test.ipynb: define params, simulation
 
 
