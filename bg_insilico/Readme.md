@@ -5,4 +5,6 @@
 - The experimental results for AdEx set as Table 1
 
 The reproduce results based on reconfigured code (current injection duration: 300ms)
+Naud, Richard, et al. "Firing patterns in the adaptive exponential integrate-and-fire model." Biological cybernetics 99 (2008): 335-347.
+
 ![AdEx](https://github.com/user-attachments/assets/3eeba8c9-07fa-4e1b-b1b7-ac7ad5d76b00)
