@@ -1,14 +1,14 @@
 from brian2 import *
 
 class NeuronModel:
-    def __init__(self, N, params):
+    def __init__(self, N, params, sigma = 3 * mV, tau = 1 * ms):
         self.N = N
         self.params = params
         self.build_model()
 
     def build_model(self):
         eqs = '''
-        dv/dt = (k*1*pF/ms/mV*(v-vr)*(v-vt)-u*pF+I)/C : volt
+        dv/dt = (k*1*pF/ms/mV*(v-vr)*(v-vt)-u*pF+I)/C + sigma*sqrt(2/tau)*xi:: volt
         du/dt = a*(b*(v-vr)-u) : volt/second
         a       : 1/second
         b       : 1/second
@@ -20,6 +20,8 @@ class NeuronModel:
         th   : volt
         I : amp
         C : farad
+        sigma   : volt
+        tau     : second
         '''
 
         self.neurons = NeuronGroup(self.N, model=eqs, threshold='v > th', reset='v = c; u += d', method='euler')

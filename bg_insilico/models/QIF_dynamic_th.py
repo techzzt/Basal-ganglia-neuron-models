@@ -4,6 +4,8 @@ class NeuronModel:
     def __init__(self, N, params):
         self.N = N
         self.params = params
+        self.sigma = sigma
+        self.tau = tau
         self.build_model()
 
     def build_model(self):
