@@ -1,7 +1,7 @@
 from brian2 import *
 
 class NeuronModel:
-    def __init__(self, N, params, sigma = 3 * volt, tau=1 * ms):
+    def __init__(self, N, params, sigma = 3 * mV, tau = 1 * ms):
         self.N = N
         self.params = params
         self.sigma = sigma
