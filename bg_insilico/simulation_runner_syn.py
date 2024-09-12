@@ -1,6 +1,8 @@
 import json
 from brian2 import *
-from Neuronmodels.GPe_STN import GPeModel, STNModel, GPeSTNSynapse
+from Neuronmodels.GPe_STN import GPeSTNSynapse
+from Neuronmodels.GPe import GPe
+from Neuronmodels.STN import STN
 import matplotlib.pyplot as plt
 import importlib
 
@@ -84,4 +86,81 @@ def plot_results(results):
     plt.title('STN Membrane Potential with GPe Input')
     plt.xlabel('Time (ms)')
     plt.ylabel('Membrane potential (mV)')
+    plt.show()
+
+
+def run_simulation_with_input(gpe_params_file, spn_params_file, synapse_params, model_class_gpe, model_class_spn, synapse_class):
+    # Load GPe and SPN parameters from the JSON files
+    N_GPe, gpe_params, gpe_model_name = load_params(gpe_params_file)
+    N_SPN, spn_params, spn_model_name = load_params(spn_params_file)
+
+    # Convert units for the neuron models
+    gpe_params_converted = convert_units(gpe_params)
+    spn_params_converted = convert_units(spn_params)
+
+    # Dynamically load neuron models using the provided class names
+    model_module_gpe = importlib.import_module(f'Neuronmodels.{model_class_gpe}')
+    model_module_spn = importlib.import_module(f'Neuronmodels.{model_class_spn}')
+    
+    # Initialize the neuron models
+    gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted)
+    spn_model = getattr(model_module_spn, model_class_spn)(N=N_SPN, params=spn_params_converted)
+
+    GPe = gpe_model.create_neurons()
+    SPN = spn_model.create_neurons()
+
+    # Set up the synapses between GPe and SPN
+    synapse = importlib.import_module(f'Neuronmodels.{synapse_class}')
+    synapse_instance = synapse.GPeSTNSynapse(GPe, SPN, synapse_params)
+    syn_GPe_SPN = synapse_instance.create_synapse()
+
+    # Set up monitors for both neuron groups
+    dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
+    dv_monitor_spn = StateMonitor(SPN, 'v', record=True)
+    spike_monitor_gpe = SpikeMonitor(GPe)
+    spike_monitor_spn = SpikeMonitor(SPN)
+
+    # Create a network
+    net = Network(GPe, SPN, syn_GPe_SPN, dv_monitor_gpe, dv_monitor_spn, spike_monitor_gpe, spike_monitor_spn)
+
+    # Initial run without input
+    GPe.I = 0 * pA
+    net.run(200*ms)
+
+    # Apply input to GPe neurons from 200 ms to 300 ms
+    GPe.I = gpe_params_converted['I']  # Apply input current
+    net.run(100*ms)
+
+    # Remove input from GPe after 300 ms (spontaneous activity)
+    GPe.I = 0 * pA
+    net.run(200*ms)  # Run the remaining 200 ms
+
+    # Return results for plotting and analysis
+    return {
+        'gpe_times': dv_monitor_gpe.t / ms,
+        'gpe_membrane_potential': dv_monitor_gpe.v[0] / mV,
+        'spn_times': dv_monitor_spn.t / ms,
+        'spn_membrane_potential': dv_monitor_spn.v[0] / mV,
+        'gpe_spikes': spike_monitor_gpe.count,
+        'spn_spikes': spike_monitor_spn.count
+    }
+
+def plot_results_with_input(results):
+    plt.figure(figsize=(10, 6))
+
+    # Plot GPe membrane potential
+    plt.subplot(2, 1, 1)
+    plt.plot(results['gpe_times'], results['gpe_membrane_potential'])
+    plt.title('GPe Membrane Potential with Input')
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Membrane potential (mV)')
+
+    # Plot SPN membrane potential
+    plt.subplot(2, 1, 2)
+    plt.plot(results['spn_times'], results['spn_membrane_potential'])
+    plt.title('SPN Membrane Potential (Spontaneous Response to GPe)')
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Membrane potential (mV)')
+
+    plt.tight_layout()
     plt.show()
