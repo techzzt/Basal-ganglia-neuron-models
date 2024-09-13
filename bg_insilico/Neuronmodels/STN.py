@@ -29,7 +29,11 @@ class STN(NeuronModel):
         C      : farad
         I      : amp        
         I_syn  : amp
+        R: ohm
         '''
+
+        R = 1.0 * ohm
+
         self.neurons = NeuronGroup(self.N, eqs_STN, threshold='v > th', reset='v = vr; u += d', method='euler')
 
         # Initialize parameters from the JSON params

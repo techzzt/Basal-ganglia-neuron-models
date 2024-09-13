@@ -71,15 +71,18 @@ class GPeSTNSynapse:
 
     def create_synapse(self):
         # Create the synapse model between GPe and STN
+        
         syn_GPe_STN = Synapses(self.GPe, self.STN, model='''
             w : siemens
             tau_syn : second
             E_GABA : volt
             dg/dt = -g/tau_syn : siemens (clock-driven)
             I_syn_post = g * (E_GABA - v_post) : amp (summed)
-            ''', on_pre='''
+            ''', 
+            on_pre='''
             g += w  # Increase conductance on spike 
             ''')
+        
         syn_GPe_STN.connect(p=0.2)  # Connect with probability 0.2
         syn_GPe_STN.w = self.params['w']
         syn_GPe_STN.tau_syn = self.params['tau_syn']
