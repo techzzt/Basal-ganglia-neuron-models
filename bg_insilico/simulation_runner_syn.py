@@ -48,7 +48,7 @@ def run_simulation(N_1, N_2, params_file_1, params_file_2, synapse_params, model
     # Convert units for the neuron models
     params_1_converted = convert_units(params_1)
     params_2_converted = convert_units(params_2)
-    
+    print(params_2_converted)
     # Dynamically load neuron models using the provided class names
     model_module_1 = importlib.import_module(f'Neuronmodels.{model_class_1}')
     model_module_2 = importlib.import_module(f'Neuronmodels.{model_class_2}')
@@ -68,11 +68,27 @@ def run_simulation(N_1, N_2, params_file_1, params_file_2, synapse_params, model
 
     # Set up the monitors
     dv_monitor = StateMonitor(neurons_2, 'v', record=True)
+    state_monitor = StateMonitor(neurons_2, ['v', 'u'], record=True)
     spike_monitor = SpikeMonitor(neurons_2)
 
     # Create a network and run the simulation
     net = Network(neurons_1, neurons_2, syn_generic, dv_monitor, spike_monitor)
     net.run(1000*ms)
+
+    # Process the results
+    v = state_monitor.v
+    u = state_monitor.u
+    
+    # Apply conditional logic manually (STN vr)
+    vr = params_2_converted['vr']
+    vr = vr.item()  # or vr.magnitude if vr is a Quantity object
+
+    for i in range(len(v)):
+        for j in range(len(v[0])):
+            if u[i][j] < 0:
+                v[i][j] = clip(v[i][j], vr - 15 * mV, 20 * mV)
+            else:
+                v[i][j] = vr
 
     # Return results for plotting
     return {
@@ -117,7 +133,7 @@ def run_simulation_with_input(N_GPe, N_SPN, gpe_params_file, spn_params_file, sy
 
     # Set up monitors for both neuron groups
     dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
-    dv_monitor_spn = StateMonitor(SPN, 'v', record=True)
+    dv_monitor_spn = StateMonitor(SPN, ['v', 'u'], record=True)
     spike_monitor_gpe = SpikeMonitor(GPe)
     spike_monitor_spn = SpikeMonitor(SPN)
 
@@ -135,6 +151,21 @@ def run_simulation_with_input(N_GPe, N_SPN, gpe_params_file, spn_params_file, sy
     # Remove input from GPe after 300 ms (spontaneous activity)
     GPe.I = 0 * pA
     net.run(200*ms)  # Run the remaining 200 ms
+
+    # Process the results
+    v = dv_monitor_spn.v
+    u = dv_monitor_spn.u
+    
+    # Apply conditional logic manually (STN vr)
+    vr = spn_params_converted['vr']
+    vr = vr.item()  # or vr.magnitude if vr is a Quantity object
+
+    for i in range(len(v)):
+        for j in range(len(v[0])):
+            if u[i][j] < 0:
+                v[i][j] = clip(v[i][j], vr - 15 * mV, 20 * mV)
+            else:
+                v[i][j] = vr
 
     # Return results for plotting and analysis
     return {
