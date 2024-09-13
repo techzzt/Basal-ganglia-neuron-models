@@ -39,11 +39,11 @@ def convert_units(params):
         converted_params[param] = value
     return converted_params
 
-def run_simulation(params_file_1, params_file_2, synapse_params, model_class_1, model_class_2, synapse_class):
+def run_simulation(N_1, N_2, params_file_1, params_file_2, synapse_params, model_class_1, model_class_2, synapse_class):
     
-    # Load parameters for the two neuron groups
-    N_1, params_1, model_name_1 = load_params(params_file_1)
-    N_2, params_2, model_name_2 = load_params(params_file_2)
+    # Load parameters for the two neuron groups (without N)
+    _, params_1, model_name_1 = load_params(params_file_1)
+    _, params_2, model_name_2 = load_params(params_file_2)
 
     # Convert units for the neuron models
     params_1_converted = convert_units(params_1)
@@ -53,7 +53,7 @@ def run_simulation(params_file_1, params_file_2, synapse_params, model_class_1, 
     model_module_1 = importlib.import_module(f'Neuronmodels.{model_class_1}')
     model_module_2 = importlib.import_module(f'Neuronmodels.{model_class_2}')
     
-    # Initialize the neuron models
+    # Initialize the neuron models with the specified N
     neuron_model_1 = getattr(model_module_1, model_class_1)(N=N_1, params=params_1_converted)
     neuron_model_2 = getattr(model_module_2, model_class_2)(N=N_2, params=params_2_converted)
 
@@ -80,6 +80,7 @@ def run_simulation(params_file_1, params_file_2, synapse_params, model_class_1, 
         'membrane_potential': dv_monitor.v[0] / mV
     }
 
+
 def plot_results(results):
     plt.figure(figsize=(10, 6))
     plt.plot(results['times'], results['membrane_potential'])
@@ -89,10 +90,10 @@ def plot_results(results):
     plt.show()
 
 
-def run_simulation_with_input(gpe_params_file, spn_params_file, synapse_params, model_class_gpe, model_class_spn, synapse_class):
-    # Load GPe and SPN parameters from the JSON files
-    N_GPe, gpe_params, gpe_model_name = load_params(gpe_params_file)
-    N_SPN, spn_params, spn_model_name = load_params(spn_params_file)
+def run_simulation_with_input(N_GPe, N_SPN, gpe_params_file, spn_params_file, synapse_params, model_class_gpe, model_class_spn, synapse_class):
+    # Load GPe and SPN parameters from the JSON files (without N)
+    _, gpe_params, gpe_model_name = load_params(gpe_params_file)
+    _, spn_params, spn_model_name = load_params(spn_params_file)
 
     # Convert units for the neuron models
     gpe_params_converted = convert_units(gpe_params)
@@ -129,7 +130,7 @@ def run_simulation_with_input(gpe_params_file, spn_params_file, synapse_params, 
 
     # Apply input to GPe neurons from 200 ms to 300 ms
     GPe.I = gpe_params_converted['I']  # Apply input current
-    net.run(100*ms)
+    net.run(300*ms)
 
     # Remove input from GPe after 300 ms (spontaneous activity)
     GPe.I = 0 * pA
@@ -142,8 +143,11 @@ def run_simulation_with_input(gpe_params_file, spn_params_file, synapse_params, 
         'spn_times': dv_monitor_spn.t / ms,
         'spn_membrane_potential': dv_monitor_spn.v[0] / mV,
         'gpe_spikes': spike_monitor_gpe.count,
-        'spn_spikes': spike_monitor_spn.count
+        'spn_spikes': spike_monitor_spn.count,
+        'synapse': syn_GPe_SPN  # Return synapse for connectivity plotting
+
     }
+
 
 def plot_results_with_input(results):
     plt.figure(figsize=(10, 6))
@@ -163,4 +167,33 @@ def plot_results_with_input(results):
     plt.ylabel('Membrane potential (mV)')
 
     plt.tight_layout()
+    plt.show()
+
+
+def plot_connectivity(synapse, N_pre, N_post, title='Synaptic Connectivity'):
+    '''
+    Plots the connectivity matrix of the synapses.
+    
+    Parameters:
+    synapse (Brian2 Synapses object): The synapse object for which to plot the connectivity.
+    N_pre (int): Number of presynaptic neurons.
+    N_post (int): Number of postsynaptic neurons.
+    title (str): Title for the plot.
+    '''
+    plt.figure(figsize=(8, 8))
+    
+    # Get the pre and post-synaptic indices from the Synapses object
+    pre_indices = synapse.i
+    post_indices = synapse.j
+    
+    # Create a scatter plot of the connectivity
+    plt.scatter(pre_indices, post_indices, s=10, c='blue', alpha=0.5)
+    
+    plt.xlim([0, N_pre])
+    plt.ylim([0, N_post])
+    plt.xlabel('Presynaptic neuron index (GPe)')
+    plt.ylabel('Postsynaptic neuron index (SPN)')
+    plt.title(title)
+    plt.grid(True)
+    
     plt.show()
