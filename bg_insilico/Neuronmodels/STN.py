@@ -29,7 +29,7 @@ class STN(NeuronModel):
         C      : farad
         I      : amp        
         I_syn  : amp
-        R: ohm
+        R      : ohm
         '''
 
         R = 1.0 * ohm
