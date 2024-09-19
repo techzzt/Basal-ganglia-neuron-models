@@ -48,7 +48,7 @@ def run_simulation(N_1, N_2, params_file_1, params_file_2, synapse_params, model
     # Convert units for the neuron models
     params_1_converted = convert_units(params_1)
     params_2_converted = convert_units(params_2)
-    print(params_2_converted)
+
     # Dynamically load neuron models using the provided class names
     model_module_1 = importlib.import_module(f'Neuronmodels.{model_class_1}')
     model_module_2 = importlib.import_module(f'Neuronmodels.{model_class_2}')
@@ -78,10 +78,8 @@ def run_simulation(N_1, N_2, params_file_1, params_file_2, synapse_params, model
     # Process the results
     v = state_monitor.v
     u = state_monitor.u
-    
-    # Apply conditional logic manually (STN vr)
     vr = params_2_converted['vr']
-    vr = vr.item()  # or vr.magnitude if vr is a Quantity object
+    vr = vr.item() 
 
     for i in range(len(v)):
         for j in range(len(v[0])):
@@ -144,22 +142,18 @@ def run_simulation_with_input(N_GPe, N_SPN, gpe_params_file, spn_params_file, sy
     GPe.I = 0 * pA
     net.run(200*ms)
 
-    # Apply input to GPe neurons from 200 ms to 300 ms
-    GPe.I = gpe_params_converted['I']  # Apply input current
+    GPe.I = gpe_params_converted['I'] 
     net.run(300*ms)
 
-    # Remove input from GPe after 300 ms (spontaneous activity)
     GPe.I = 0 * pA
-    net.run(200*ms)  # Run the remaining 200 ms
+    net.run(200*ms)  
 
     # Process the results
     v = dv_monitor_spn.v
     u = dv_monitor_spn.u
     
-    # Apply conditional logic manually (STN vr)
     vr = spn_params_converted['vr']
-    vr = vr.item()  # or vr.magnitude if vr is a Quantity object
-
+    vr = vr.item()  
     for i in range(len(v)):
         for j in range(len(v[0])):
             if u[i][j] < 0:
@@ -175,8 +169,7 @@ def run_simulation_with_input(N_GPe, N_SPN, gpe_params_file, spn_params_file, sy
         'spn_membrane_potential': dv_monitor_spn.v[0] / mV,
         'gpe_spikes': spike_monitor_gpe.count,
         'spn_spikes': spike_monitor_spn.count,
-        'synapse': syn_GPe_SPN  # Return synapse for connectivity plotting
-
+        'synapse': syn_GPe_SPN  
     }
 
 
