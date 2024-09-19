@@ -28,7 +28,7 @@ class GPeModel(NeuronModel):
         C      : farad
         I      : amp
         '''
-        self.neurons = NeuronGroup(self.N, eqs_GPe, threshold='v > th', reset='v = vr; u += d', method='euler')
+        self.neurons = NeuronGroup(self.N, eqs_GPe, threshold='v >= th', reset='v = vr; u += d', method='euler')
 
         # Initialize parameters from the JSON params
         for param, value in self.params.items():
@@ -55,7 +55,7 @@ class STNModel(NeuronModel):
         I      : amp        
         I_syn  : amp
         '''
-        self.neurons = NeuronGroup(self.N, eqs_STN, threshold='v > th', reset='v = vr; u += d', method='euler')
+        self.neurons = NeuronGroup(self.N, eqs_STN, threshold='v >= th', reset='v = vr; u += d', method='euler')
 
         # Initialize parameters from the JSON params
         for param, value in self.params.items():
@@ -73,21 +73,22 @@ class GPeSTNSynapse:
         # Create the synapse model between GPe and STN
         
         syn_GPe_STN = Synapses(self.GPe, self.STN, model='''
-            w : siemens
+            g0 : siemens
             tau_syn : second
             E_GABA : volt
-            dg/dt = -g/tau_syn : siemens (clock-driven)
+            dg/dt = -g/tau_syn : siemens
             I_syn_post = g * (E_GABA - v_post) : amp (summed)
             ''', 
+            
             on_pre='''
-            g += w  # Increase conductance on spike 
+            g += g0 
             ''')
         
         syn_GPe_STN.connect(p=0.2)  # Connect with probability 0.2
-        syn_GPe_STN.w = self.params['w']
+        syn_GPe_STN.g0 = self.params['g0']
         syn_GPe_STN.tau_syn = self.params['tau_syn']
         syn_GPe_STN.E_GABA = self.params['E_GABA']
-        syn_GPe_STN.delay = self.params['delay']
+        # syn_GPe_STN.delay = self.params['delay']
 
         return syn_GPe_STN
 
