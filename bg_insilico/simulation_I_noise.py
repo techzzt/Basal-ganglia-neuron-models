@@ -150,7 +150,7 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
             ax_membrane.set_xlabel('Time (ms)')
             ax_membrane.set_ylabel('Membrane Potential (mV)')
             ax_membrane.set_title(f'I = {I} pA, Duration = {duration} ms')
-            ax_membrane.set_ylim(global_min_potential * 1.1, global_max_potential * 1.1)  # 범위 조정
+            ax_membrane.set_ylim(global_min_potential * 1.2, global_max_potential * 0.7)  # 범위 조정
             ax_membrane.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f'{x:.0f}'))  # 단위 포맷
 
             start_time = injection_time['start']
