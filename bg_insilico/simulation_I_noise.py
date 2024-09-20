@@ -101,13 +101,7 @@ def run_simulation(N, params, model_name, I_values, durations, injection_start_t
             membrane_potential = dv_monitor.v[0]
             spike_times = spikes.t / ms
             dt = defaultclock.dt / ms
-
-            if 'vt' in converted_params:
-                VT = converted_params['vt']
-                if final_v > VT:
-                    print(f"전류 중단 후 자발적 스파이크 발생 가능성 있음 (막전위: {final_v/mV} mV, 임계치: {VT/mV} mV, I: {converted_I})")
-                else:
-                    print(f"전류 중단 후 자발적 스파이크 발생 가능성 낮음 (막전위: {final_v/mV} mV, 임계치: {VT/mV} mV, I: {converted_I})")
+        
             
             # Modify the membrane potential at spike times
             for t in spike_times:
