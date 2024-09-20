@@ -21,7 +21,7 @@ class NeuronModel:
         tau     : second
         '''
 
-        self.neurons = NeuronGroup(self.N, model=eqs, threshold='v > th', reset='v = vr', method='euler')
+        self.neurons = NeuronGroup(self.N, model=eqs, threshold='v >= th', reset='v = vr', method='euler')
         self.set_parameters()
 
     def set_parameters(self):
