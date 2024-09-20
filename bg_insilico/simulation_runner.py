@@ -190,7 +190,7 @@ def plot_results(results):
     axes[0].set_title('Membrane Potential')
     axes[0].set_xlabel('Time (ms)')
     axes[0].set_ylabel('Membrane Potential (mV)')
-    axes[0].set_ylim([-90, 50])
+    axes[0].set_ylim([-120, 0])
     axes[0].set_xlim(left=0)
 
     axes[1].plot(times, current)
