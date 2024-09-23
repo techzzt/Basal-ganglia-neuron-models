@@ -228,6 +228,9 @@ def run_simulation_without_input(N_GPe, N_SPN, gpe_params_file, spn_params_file,
             else:
                 v[i][j] = vr
     
+    # Retrieve synapse weights
+    weights = np.array(syn_GPe_SPN.w) 
+   
     # Return results for plotting and analysis
     return {
         'gpe_times': dv_monitor_gpe.t / ms,
@@ -236,9 +239,10 @@ def run_simulation_without_input(N_GPe, N_SPN, gpe_params_file, spn_params_file,
         'spn_membrane_potential': dv_monitor_spn.v[0] / mV,
         'gpe_spikes': spike_monitor_gpe.count,
         'spn_spikes': spike_monitor_spn.count,
-        'spike_monitor_gpe': spike_monitor_gpe,  # Include spike monitors here
-        'spike_monitor_spn': spike_monitor_spn,  # Include spike monitors here
-        'synapse': syn_GPe_SPN  
+        'spike_monitor_gpe': spike_monitor_gpe,  
+        'spike_monitor_spn': spike_monitor_spn,  
+        'synapse': syn_GPe_SPN,
+        'weights': weights    
     }
 
 
@@ -291,74 +295,34 @@ def plot_connectivity(synapse, N_pre, N_post, title='Synaptic Connectivity'):
     
     plt.show()
 
-def run_simulation_with_input(N_GPe, N_SPN, gpe_params_file, spn_params_file, synapse_params, model_class_gpe, model_class_spn, synapse_class):
-    # Load GPe and SPN parameters from the JSON files (without N)
-    _, gpe_params, gpe_model_name = load_params(gpe_params_file)
-    _, spn_params, spn_model_name = load_params(spn_params_file)
 
-    # Convert units for the neuron models
-    gpe_params_converted = convert_units(gpe_params)
-    spn_params_converted = convert_units(spn_params)
-
-    # Dynamically load neuron models using the provided class names
-    model_module_gpe = importlib.import_module(f'Neuronmodels.{model_class_gpe}')
-    model_module_spn = importlib.import_module(f'Neuronmodels.{model_class_spn}')
+def plot_results_with_weight_matrix(results, N_GPe, N_STN):
+    plt.figure(figsize=(10, 8))
     
-    # Initialize the neuron models
-    gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted)
-    spn_model = getattr(model_module_spn, model_class_spn)(N=N_SPN, params=spn_params_converted)
+    # Extract weights from the results
+    synapses = results['synapse']  # Make sure you have access to the synapse object
+    weights = synapses.w  # Get the weights of the synapses
+    connected_pre = synapses.i  # Indices of pre-synaptic neurons
+    connected_post = synapses.j  # Indices of post-synaptic neurons
 
-    GPe = gpe_model.create_neurons()
-    SPN = spn_model.create_neurons()
+    # Create an empty weight matrix
+    weight_matrix = np.zeros((N_GPe, N_STN))
 
-    # Set up the synapses between GPe and SPN
-    synapse = importlib.import_module(f'Neuronmodels.{synapse_class}')
-    synapse_instance = synapse.GPeSTNSynapse(GPe, SPN, synapse_params)
-    syn_GPe_SPN = synapse_instance.create_synapse()
+    # Populate the weight matrix with the corresponding weights
+    for pre, post, weight in zip(connected_pre, connected_post, weights):
+        weight_matrix[pre, post] = weight  # Assign the weight to the correct position
 
-    # Set up monitors for both neuron groups
-    dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
-    dv_monitor_spn = StateMonitor(SPN, ['v', 'u'], record=True)
-    spike_monitor_gpe = SpikeMonitor(GPe)
-    spike_monitor_spn = SpikeMonitor(SPN)
+    # Plot synapse weights
+    plt.imshow(weight_matrix, aspect='auto', cmap='viridis')
+    plt.title('Synapse Weights (GPe to SPN)')
+    plt.xlabel('Post-synaptic Neurons (SPN)')
+    plt.ylabel('Pre-synaptic Neurons (GPe)')
+    plt.colorbar(label='Weight (nS)')
 
-    # Create a network
-    net = Network(GPe, SPN, syn_GPe_SPN, dv_monitor_gpe, dv_monitor_spn, spike_monitor_gpe, spike_monitor_spn)
+    plt.tight_layout()
+    plt.show()
 
-    # Initial run without input
-    GPe.I = 0 * pA
-    net.run(200*ms)
 
-    GPe.I = gpe_params_converted['I'] 
-    net.run(300*ms)
-
-    GPe.I = 0 * pA
-    net.run(200*ms)  
-
-    # Process the results
-    v = dv_monitor_spn.v
-    u = dv_monitor_spn.u
-    
-    vr = spn_params_converted['vr']
-    vr = vr.item()  
-    for i in range(len(v)):
-        for j in range(len(v[0])):
-            if u[i][j] < 0:
-                v[i][j] = clip(v[i][j], vr - 15 * mV, 20 * mV)
-            else:
-                v[i][j] = vr
-
-    # Return results for plotting and analysis
-    return {
-        'gpe_times': dv_monitor_gpe.t / ms,
-        'gpe_membrane_potential': dv_monitor_gpe.v[0] / mV,
-        'spn_times': dv_monitor_spn.t / ms,
-        'spn_membrane_potential': dv_monitor_spn.v[0] / mV,
-        'gpe_spikes': spike_monitor_gpe.count,
-        'spn_spikes': spike_monitor_spn.count,
-        'synapse': syn_GPe_SPN  
-    }
-    
 def plot_results_with_spikes(results, spike_monitor_gpe, spike_monitor_spn):
     plt.figure(figsize=(10, 8))
 
