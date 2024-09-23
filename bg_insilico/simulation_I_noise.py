@@ -2,7 +2,7 @@ import json
 import numpy as np
 import importlib
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker  # ticker 모듈 import
+import matplotlib.ticker as ticker  
 
 from brian2 import *
 from brian2 import mV, pA, siemens, ms, farad, second, pF, nS, Hz, volt, ohm
