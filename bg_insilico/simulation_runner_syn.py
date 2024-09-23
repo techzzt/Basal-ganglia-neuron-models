@@ -245,7 +245,7 @@ def run_simulation_without_input(N_GPe, N_SPN, gpe_params_file, spn_params_file,
         'weights': weights    
     }
 
-
+### Visualization post spike pattern with input 
 def plot_results_with_input(results):
     plt.figure(figsize=(10, 6))
 
@@ -266,7 +266,7 @@ def plot_results_with_input(results):
     plt.tight_layout()
     plt.show()
 
-
+### Visualization neuron connection with point  
 def plot_connectivity(synapse, N_pre, N_post, title='Synaptic Connectivity'):
     '''
     Plots the connectivity matrix of the synapses.
@@ -295,7 +295,7 @@ def plot_connectivity(synapse, N_pre, N_post, title='Synaptic Connectivity'):
     
     plt.show()
 
-
+### Visualization weight matrix within synapse connection 
 def plot_results_with_weight_matrix(results, N_GPe, N_STN):
     plt.figure(figsize=(10, 8))
     
@@ -322,7 +322,7 @@ def plot_results_with_weight_matrix(results, N_GPe, N_STN):
     plt.tight_layout()
     plt.show()
 
-
+### Visualization pre, post spike pattern 
 def plot_results_with_spikes(results, spike_monitor_gpe, spike_monitor_spn):
     plt.figure(figsize=(10, 8))
 
