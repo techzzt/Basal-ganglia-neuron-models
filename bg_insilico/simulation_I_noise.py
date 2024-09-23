@@ -82,16 +82,13 @@ def run_simulation(N, params, model_name, I_values, durations, injection_start_t
             spikes = SpikeMonitor(neuron_model.neurons)
             network = Network(neuron_model.neurons, dv_monitor, current_monitor, spikes)
 
-            neuron_model.neurons.v[0] = 0 * mV
-            # print(f"Running simulation with I={converted_I} for injection_start_time={injection_start_time} ms and duration={duration} ms")
-        
+            neuron_model.neurons.v[0] = 0 * mV        
             neuron_model.neurons.I = 0 * pA
             network.run(injection_start_time)
 
             neuron_model.neurons.I = converted_I
             network.run(duration=duration * ms)
             final_v = dv_monitor.v[0][-1]  
-            # print(f"전류 주입 종료 시점의 막전위: {final_v/mV} mV")
             
             neuron_model.neurons.I = 0 * pA
             remaining_time = 1000 * ms - (injection_start_time + duration * ms)
