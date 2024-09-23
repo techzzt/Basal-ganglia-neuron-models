@@ -82,14 +82,15 @@ def run_simulation(N, params, model_name, I_values, durations, injection_start_t
             spikes = SpikeMonitor(neuron_model.neurons)
             network = Network(neuron_model.neurons, dv_monitor, current_monitor, spikes)
 
-            neuron_model.neurons.v[0] = 0 * mV        
+            neuron_model.neurons.v[0] = 0 * mV
+        
             neuron_model.neurons.I = 0 * pA
             network.run(injection_start_time)
 
             neuron_model.neurons.I = converted_I
             network.run(duration=duration * ms)
             final_v = dv_monitor.v[0][-1]  
-            
+
             neuron_model.neurons.I = 0 * pA
             remaining_time = 1000 * ms - (injection_start_time + duration * ms)
             network.run(duration=remaining_time)
@@ -99,7 +100,6 @@ def run_simulation(N, params, model_name, I_values, durations, injection_start_t
             spike_times = spikes.t / ms
             dt = defaultclock.dt / ms
         
-            
             # Modify the membrane potential at spike times
             for t in spike_times:
                 idx = int(t / dt)
@@ -131,7 +131,7 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
             index = i * num_durations + j
             ax_membrane = axes[i, j] if num_I_values > 1 else axes[j]
 
-            membrane_potential = all_results[index] / mV  
+            membrane_potential = all_results[index] / mV  # 단위 변환
             injection_time = injection_times[index]
             time_vector = total_time[index]
 
@@ -162,8 +162,7 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
         ax_current = axes[num_I_values, j]
         for i, I in enumerate(I_values):
             index = i * num_durations + j
-            current = all_currents[index] / pA  
-            time_vector = total_time[index]
+            current = all_currents[index] / pA
 
             if time_vector[0] != 0:
                 time_vector = np.concatenate(([0], time_vector))
