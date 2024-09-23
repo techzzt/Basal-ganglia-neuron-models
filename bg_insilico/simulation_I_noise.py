@@ -90,7 +90,7 @@ def run_simulation(N, params, model_name, I_values, durations, injection_start_t
 
             neuron_model.neurons.I = converted_I
             network.run(duration=duration * ms)
-            final_v = dv_monitor.v[0][-1]  # 주입 전류가 끝난 시점의 막전위
+            final_v = dv_monitor.v[0][-1]  
             # print(f"전류 주입 종료 시점의 막전위: {final_v/mV} mV")
             
             neuron_model.neurons.I = 0 * pA
@@ -134,7 +134,7 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
             index = i * num_durations + j
             ax_membrane = axes[i, j] if num_I_values > 1 else axes[j]
 
-            membrane_potential = all_results[index] / mV  # 단위 변환
+            membrane_potential = all_results[index] / mV  
             injection_time = injection_times[index]
             time_vector = total_time[index]
 
@@ -165,7 +165,7 @@ def plot_results(all_results, all_currents, I_values, total_time, injection_time
         ax_current = axes[num_I_values, j]
         for i, I in enumerate(I_values):
             index = i * num_durations + j
-            current = all_currents[index] / pA  # 단위 변환
+            current = all_currents[index] / pA  
             time_vector = total_time[index]
 
             if time_vector[0] != 0:
