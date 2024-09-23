@@ -1,5 +1,7 @@
 import json
 from brian2 import *
+from brian2 import profiling_summary
+
 from Neuronmodels.GPe_STN import GPeSTNSynapse
 from Neuronmodels.GPe import GPe
 from Neuronmodels.STN import STN
@@ -161,7 +163,71 @@ def run_simulation_with_input(N_GPe, N_SPN, gpe_params_file, spn_params_file, sy
                 v[i][j] = clip(v[i][j], vr - 15 * mV, 20 * mV)
             else:
                 v[i][j] = vr
+    
+    # Return results for plotting and analysis
+    return {
+        'gpe_times': dv_monitor_gpe.t / ms,
+        'gpe_membrane_potential': dv_monitor_gpe.v[0] / mV,
+        'spn_times': dv_monitor_spn.t / ms,
+        'spn_membrane_potential': dv_monitor_spn.v[0] / mV,
+        'gpe_spikes': spike_monitor_gpe.count,
+        'spn_spikes': spike_monitor_spn.count,
+        'spike_monitor_gpe': spike_monitor_gpe,  # Include spike monitors here
+        'spike_monitor_spn': spike_monitor_spn,  # Include spike monitors here
+        'synapse': syn_GPe_SPN  
+    }
 
+def run_simulation_without_input(N_GPe, N_SPN, gpe_params_file, spn_params_file, synapse_params, model_class_gpe, model_class_spn, synapse_class):
+    # Load GPe and SPN parameters from the JSON files (without N)
+    _, gpe_params, gpe_model_name = load_params(gpe_params_file)
+    _, spn_params, spn_model_name = load_params(spn_params_file)
+
+    # Convert units for the neuron models
+    gpe_params_converted = convert_units(gpe_params)
+    spn_params_converted = convert_units(spn_params)
+
+    # Dynamically load neuron models using the provided class names
+    model_module_gpe = importlib.import_module(f'Neuronmodels.{model_class_gpe}')
+    model_module_spn = importlib.import_module(f'Neuronmodels.{model_class_spn}')
+    
+    # Initialize the neuron models
+    gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted)
+    spn_model = getattr(model_module_spn, model_class_spn)(N=N_SPN, params=spn_params_converted)
+
+    GPe = gpe_model.create_neurons()
+    SPN = spn_model.create_neurons()
+
+    # Set up the synapses between GPe and SPN
+    synapse = importlib.import_module(f'Neuronmodels.{synapse_class}')
+    synapse_instance = synapse.GPeSTNSynapse(GPe, SPN, synapse_params)
+    syn_GPe_SPN = synapse_instance.create_synapse()
+
+    # Set up monitors for both neuron groups
+    dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
+    dv_monitor_spn = StateMonitor(SPN, ['v', 'u'], record=True)
+    spike_monitor_gpe = SpikeMonitor(GPe)
+    spike_monitor_spn = SpikeMonitor(SPN)
+
+    # Create a network
+    net = Network(GPe, SPN, syn_GPe_SPN, dv_monitor_gpe, dv_monitor_spn, spike_monitor_gpe, spike_monitor_spn)
+
+    # Initial run without input
+    GPe.I = 0 * pA
+    net.run(700*ms)
+
+    # Process the results
+    v = dv_monitor_spn.v
+    u = dv_monitor_spn.u
+    
+    vr = spn_params_converted['vr']
+    vr = vr.item()  
+    for i in range(len(v)):
+        for j in range(len(v[0])):
+            if u[i][j] < 0:
+                v[i][j] = clip(v[i][j], vr - 15 * mV, 20 * mV)
+            else:
+                v[i][j] = vr
+    
     # Return results for plotting and analysis
     return {
         'gpe_times': dv_monitor_gpe.t / ms,
