@@ -363,14 +363,14 @@ def plot_results_with_spikes(results, spike_monitor_gpe, spike_monitor_STN):
 def plot_raster(results):
     plt.figure(figsize=(12, 6))
 
-    # GPe 뉴런의 스파이크 래스터 플롯
+    # GPe Neuron
     plt.subplot(2, 1, 1)
     plt.scatter(results['spike_monitor_gpe'].t/ms, results['spike_monitor_gpe'].i, s=2, color='blue')
     plt.title('GPe Population Raster Plot')
     plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
 
-    # STN 뉴런의 스파이크 래스터 플롯
+    # STN Neuron
     plt.subplot(2, 1, 2)
     plt.scatter(results['spike_monitor_STN'].t/ms, results['spike_monitor_STN'].i, s=2, color='green')
     plt.title('STN Population Raster Plot')
