@@ -107,39 +107,39 @@ def plot_results(results):
     plt.show()
 
 
-def run_simulation_with_input(N_GPe, N_SPN, gpe_params_file, spn_params_file, synapse_params, model_class_gpe, model_class_spn, synapse_class):
-    # Load GPe and SPN parameters from the JSON files (without N)
+def run_simulation_with_input(N_GPe, N_STN, gpe_params_file, STN_params_file, synapse_params, model_class_gpe, model_class_STN, synapse_class):
+    # Load GPe and STN parameters from the JSON files (without N)
     _, gpe_params, gpe_model_name = load_params(gpe_params_file)
-    _, spn_params, spn_model_name = load_params(spn_params_file)
+    _, STN_params, STN_model_name = load_params(STN_params_file)
 
     # Convert units for the neuron models
     gpe_params_converted = convert_units(gpe_params)
-    spn_params_converted = convert_units(spn_params)
+    STN_params_converted = convert_units(STN_params)
 
     # Dynamically load neuron models using the provided class names
     model_module_gpe = importlib.import_module(f'Neuronmodels.{model_class_gpe}')
-    model_module_spn = importlib.import_module(f'Neuronmodels.{model_class_spn}')
+    model_module_STN = importlib.import_module(f'Neuronmodels.{model_class_STN}')
     
     # Initialize the neuron models
     gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted)
-    spn_model = getattr(model_module_spn, model_class_spn)(N=N_SPN, params=spn_params_converted)
+    STN_model = getattr(model_module_STN, model_class_STN)(N=N_STN, params=STN_params_converted)
 
     GPe = gpe_model.create_neurons()
-    SPN = spn_model.create_neurons()
+    STN = STN_model.create_neurons()
 
-    # Set up the synapses between GPe and SPN
+    # Set up the synapses between GPe and STN
     synapse = importlib.import_module(f'Neuronmodels.{synapse_class}')
-    synapse_instance = synapse.GPeSTNSynapse(GPe, SPN, synapse_params)
-    syn_GPe_SPN = synapse_instance.create_synapse()
+    synapse_instance = synapse.GPeSTNSynapse(GPe, STN, synapse_params)
+    syn_GPe_STN = synapse_instance.create_synapse()
 
     # Set up monitors for both neuron groups
     dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
-    dv_monitor_spn = StateMonitor(SPN, ['v', 'u'], record=True)
+    dv_monitor_STN = StateMonitor(STN, ['v', 'u'], record=True)
     spike_monitor_gpe = SpikeMonitor(GPe)
-    spike_monitor_spn = SpikeMonitor(SPN)
+    spike_monitor_STN = SpikeMonitor(STN)
 
     # Create a network
-    net = Network(GPe, SPN, syn_GPe_SPN, dv_monitor_gpe, dv_monitor_spn, spike_monitor_gpe, spike_monitor_spn)
+    net = Network(GPe, STN, syn_GPe_STN, dv_monitor_gpe, dv_monitor_STN, spike_monitor_gpe, spike_monitor_STN)
 
     # Initial run without input
     GPe.I = 0 * pA
@@ -152,10 +152,10 @@ def run_simulation_with_input(N_GPe, N_SPN, gpe_params_file, spn_params_file, sy
     net.run(200*ms)  
 
     # Process the results
-    v = dv_monitor_spn.v
-    u = dv_monitor_spn.u
+    v = dv_monitor_STN.v
+    u = dv_monitor_STN.u
     
-    vr = spn_params_converted['vr']
+    vr = STN_params_converted['vr']
     vr = vr.item()  
     for i in range(len(v)):
         for j in range(len(v[0])):
@@ -168,58 +168,58 @@ def run_simulation_with_input(N_GPe, N_SPN, gpe_params_file, spn_params_file, sy
     return {
         'gpe_times': dv_monitor_gpe.t / ms,
         'gpe_membrane_potential': dv_monitor_gpe.v[0] / mV,
-        'spn_times': dv_monitor_spn.t / ms,
-        'spn_membrane_potential': dv_monitor_spn.v[0] / mV,
+        'STN_times': dv_monitor_STN.t / ms,
+        'STN_membrane_potential': dv_monitor_STN.v[0] / mV,
         'gpe_spikes': spike_monitor_gpe.count,
-        'spn_spikes': spike_monitor_spn.count,
+        'STN_spikes': spike_monitor_STN.count,
         'spike_monitor_gpe': spike_monitor_gpe,  # Include spike monitors here
-        'spike_monitor_spn': spike_monitor_spn,  # Include spike monitors here
-        'synapse': syn_GPe_SPN  
+        'spike_monitor_STN': spike_monitor_STN,  # Include spike monitors here
+        'synapse': syn_GPe_STN  
     }
 
-def run_simulation_without_input(N_GPe, N_SPN, gpe_params_file, spn_params_file, synapse_params, model_class_gpe, model_class_spn, synapse_class):
-    # Load GPe and SPN parameters from the JSON files (without N)
+def run_simulation_without_input(N_GPe, N_STN, gpe_params_file, STN_params_file, synapse_params, model_class_gpe, model_class_STN, synapse_class):
+    # Load GPe and STN parameters from the JSON files (without N)
     _, gpe_params, gpe_model_name = load_params(gpe_params_file)
-    _, spn_params, spn_model_name = load_params(spn_params_file)
+    _, STN_params, STN_model_name = load_params(STN_params_file)
 
     # Convert units for the neuron models
     gpe_params_converted = convert_units(gpe_params)
-    spn_params_converted = convert_units(spn_params)
+    STN_params_converted = convert_units(STN_params)
 
     # Dynamically load neuron models using the provided class names
     model_module_gpe = importlib.import_module(f'Neuronmodels.{model_class_gpe}')
-    model_module_spn = importlib.import_module(f'Neuronmodels.{model_class_spn}')
+    model_module_STN = importlib.import_module(f'Neuronmodels.{model_class_STN}')
     
     # Initialize the neuron models
     gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted)
-    spn_model = getattr(model_module_spn, model_class_spn)(N=N_SPN, params=spn_params_converted)
+    STN_model = getattr(model_module_STN, model_class_STN)(N=N_STN, params=STN_params_converted)
 
     GPe = gpe_model.create_neurons()
-    SPN = spn_model.create_neurons()
+    STN = STN_model.create_neurons()
 
-    # Set up the synapses between GPe and SPN
+    # Set up the synapses between GPe and STN
     synapse = importlib.import_module(f'Neuronmodels.{synapse_class}')
-    synapse_instance = synapse.GPeSTNSynapse(GPe, SPN, synapse_params)
-    syn_GPe_SPN = synapse_instance.create_synapse()
+    synapse_instance = synapse.GPeSTNSynapse(GPe, STN, synapse_params)
+    syn_GPe_STN = synapse_instance.create_synapse()
 
     # Set up monitors for both neuron groups
     dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
-    dv_monitor_spn = StateMonitor(SPN, ['v', 'u'], record=True)
+    dv_monitor_STN = StateMonitor(STN, ['v', 'u'], record=True)
     spike_monitor_gpe = SpikeMonitor(GPe)
-    spike_monitor_spn = SpikeMonitor(SPN)
+    spike_monitor_STN = SpikeMonitor(STN)
 
     # Create a network
-    net = Network(GPe, SPN, syn_GPe_SPN, dv_monitor_gpe, dv_monitor_spn, spike_monitor_gpe, spike_monitor_spn)
+    net = Network(GPe, STN, syn_GPe_STN, dv_monitor_gpe, dv_monitor_STN, spike_monitor_gpe, spike_monitor_STN)
 
     # Initial run without input
     GPe.I = 0 * pA
     net.run(700*ms)
 
     # Process the results
-    v = dv_monitor_spn.v
-    u = dv_monitor_spn.u
+    v = dv_monitor_STN.v
+    u = dv_monitor_STN.u
     
-    vr = spn_params_converted['vr']
+    vr = STN_params_converted['vr']
     vr = vr.item()  
     for i in range(len(v)):
         for j in range(len(v[0])):
@@ -229,19 +229,19 @@ def run_simulation_without_input(N_GPe, N_SPN, gpe_params_file, spn_params_file,
                 v[i][j] = vr
     
     # Retrieve synapse weights
-    weights = np.array(syn_GPe_SPN.w) 
+    weights = np.array(syn_GPe_STN.w) 
    
     # Return results for plotting and analysis
     return {
         'gpe_times': dv_monitor_gpe.t / ms,
         'gpe_membrane_potential': dv_monitor_gpe.v[0] / mV,
-        'spn_times': dv_monitor_spn.t / ms,
-        'spn_membrane_potential': dv_monitor_spn.v[0] / mV,
+        'STN_times': dv_monitor_STN.t / ms,
+        'STN_membrane_potential': dv_monitor_STN.v[0] / mV,
         'gpe_spikes': spike_monitor_gpe.count,
-        'spn_spikes': spike_monitor_spn.count,
+        'STN_spikes': spike_monitor_STN.count,
         'spike_monitor_gpe': spike_monitor_gpe,  
-        'spike_monitor_spn': spike_monitor_spn,  
-        'synapse': syn_GPe_SPN,
+        'spike_monitor_STN': spike_monitor_STN,  
+        'synapse': syn_GPe_STN,
         'weights': weights    
     }
 
@@ -256,10 +256,10 @@ def plot_results_with_input(results):
     plt.xlabel('Time (ms)')
     plt.ylabel('Membrane potential (mV)')
 
-    # Plot SPN membrane potential
+    # Plot STN membrane potential
     plt.subplot(2, 1, 2)
-    plt.plot(results['spn_times'], results['spn_membrane_potential'])
-    plt.title('SPN Membrane Potential (Spontaneous Response to GPe)')
+    plt.plot(results['STN_times'], results['STN_membrane_potential'])
+    plt.title('STN Membrane Potential (Spontaneous Response to GPe)')
     plt.xlabel('Time (ms)')
     plt.ylabel('Membrane potential (mV)')
 
@@ -289,7 +289,7 @@ def plot_connectivity(synapse, N_pre, N_post, title='Synaptic Connectivity'):
     plt.xlim([0, N_pre])
     plt.ylim([0, N_post])
     plt.xlabel('Presynaptic neuron index (GPe)')
-    plt.ylabel('Postsynaptic neuron index (SPN)')
+    plt.ylabel('Postsynaptic neuron index (STN)')
     plt.title(title)
     plt.grid(True)
     
@@ -314,8 +314,8 @@ def plot_results_with_weight_matrix(results, N_GPe, N_STN):
 
     # Plot synapse weights
     plt.imshow(weight_matrix, aspect='auto', cmap='viridis')
-    plt.title('Synapse Weights (GPe to SPN)')
-    plt.xlabel('Post-synaptic Neurons (SPN)')
+    plt.title('Synapse Weights (GPe to STN)')
+    plt.xlabel('Post-synaptic Neurons (STN)')
     plt.ylabel('Pre-synaptic Neurons (GPe)')
     plt.colorbar(label='Weight (nS)')
 
@@ -323,7 +323,7 @@ def plot_results_with_weight_matrix(results, N_GPe, N_STN):
     plt.show()
 
 ### Visualization pre, post spike pattern 
-def plot_results_with_spikes(results, spike_monitor_gpe, spike_monitor_spn):
+def plot_results_with_spikes(results, spike_monitor_gpe, spike_monitor_STN):
     plt.figure(figsize=(10, 8))
 
     # Plot GPe membrane potential with spikes
@@ -341,17 +341,17 @@ def plot_results_with_spikes(results, spike_monitor_gpe, spike_monitor_spn):
     plt.ylabel('Membrane potential (mV)')
     plt.legend()
 
-    # Plot SPN membrane potential with spikes
+    # Plot STN membrane potential with spikes
     plt.subplot(2, 1, 2)
-    plt.plot(results['spn_times'], results['spn_membrane_potential'], label='Membrane potential')
+    plt.plot(results['STN_times'], results['STN_membrane_potential'], label='Membrane potential')
 
-    # Plot SPN spikes (spike times for each neuron)
-    for neuron_id in np.unique(spike_monitor_spn.i):
-        spike_times = spike_monitor_spn.t[spike_monitor_spn.i == neuron_id] / ms  # Get spike times for this neuron
-        spike_values = np.interp(spike_times, results['spn_times'], results['spn_membrane_potential'])  # Interpolate membrane potential at spike times
+    # Plot STN spikes (spike times for each neuron)
+    for neuron_id in np.unique(spike_monitor_STN.i):
+        spike_times = spike_monitor_STN.t[spike_monitor_STN.i == neuron_id] / ms  # Get spike times for this neuron
+        spike_values = np.interp(spike_times, results['STN_times'], results['STN_membrane_potential'])  # Interpolate membrane potential at spike times
         plt.scatter(spike_times, spike_values, color='red', label='Spikes' if neuron_id == 0 else "", zorder=3)
     
-    plt.title('SPN Membrane Potential (Spontaneous Response to GPe)')
+    plt.title('STN Membrane Potential (Spontaneous Response to GPe)')
     plt.xlabel('Time (ms)')
     plt.ylabel('Membrane potential (mV)')
     plt.legend()
@@ -359,3 +359,23 @@ def plot_results_with_spikes(results, spike_monitor_gpe, spike_monitor_spn):
     plt.tight_layout()
     plt.show()
 
+### Visualization with statemonitor result 
+def plot_raster(results):
+    plt.figure(figsize=(12, 6))
+
+    # GPe 뉴런의 스파이크 래스터 플롯
+    plt.subplot(2, 1, 1)
+    plt.scatter(results['spike_monitor_gpe'].t/ms, results['spike_monitor_gpe'].i, s=2, color='blue')
+    plt.title('GPe Population Raster Plot')
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Neuron Index')
+
+    # STN 뉴런의 스파이크 래스터 플롯
+    plt.subplot(2, 1, 2)
+    plt.scatter(results['spike_monitor_STN'].t/ms, results['spike_monitor_STN'].i, s=2, color='green')
+    plt.title('STN Population Raster Plot')
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Neuron Index')
+
+    plt.tight_layout()
+    plt.show()
