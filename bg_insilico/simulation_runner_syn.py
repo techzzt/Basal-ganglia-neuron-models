@@ -188,7 +188,7 @@ def run_simulation_without_input(N_GPe, N_STN, gpe_params_file, STN_params_file,
 
     # Dynamically load neuron models using the provided class names
     model_module_gpe = importlib.import_module(f'Neuronmodels.{model_class_gpe}')
-    model_module_STN = importlib.import_module(f'Neuronmodels.{model_class_STN}')
+    model_module_STN = importlib.import_000module(f'Neuronmodels.{model_class_STN}')
     
     # Initialize the neuron models
     gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted)
@@ -244,6 +244,89 @@ def run_simulation_without_input(N_GPe, N_STN, gpe_params_file, STN_params_file,
         'synapse': syn_GPe_STN,
         'weights': weights    
     }
+
+def run_simulation_with_inh_ext_input(
+    N_GPe, N_STN, gpe_params_file, STN_params_file, synapse_params, 
+    model_class_gpe, model_class_STN, synapse_class, input_condition='slow_wave'):
+
+    _, gpe_params, gpe_model_name = load_params(gpe_params_file)
+    _, STN_params, STN_model_name = load_params(STN_params_file)
+
+    gpe_params_converted = convert_units(gpe_params)
+    STN_params_converted = convert_units(STN_params)
+
+    model_module_gpe = importlib.import_module(f'Neuronmodels.{model_class_gpe}')
+    model_module_STN = importlib.import_module(f'Neuronmodels.{model_class_STN}')
+
+    # Initialize the neuron models
+    gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted)
+    STN_model = getattr(model_module_STN, model_class_STN)(N=N_STN, params=STN_params_converted)
+
+    # Create neurons for GPe and STN
+    GPe = gpe_model.create_neurons()
+    STN = STN_model.create_neurons()
+
+    # Create Striatum and Cortex neuron groups
+    N_Striatum = N_GPe  # Use the same number as GPe for consistency
+    N_Cortex = N_STN  # Use the same number as STN for consistency
+    Striatum = NeuronGroup(N_Striatum, 'v : 1', threshold='v > 1', reset='v = 0')
+    Cortex = NeuronGroup(N_Cortex, 'v : 1', threshold='v > 1', reset='v = 0')
+
+    # Set up the synapses between GPe and STN, including Striatum and Cortex inputs
+    synapse = importlib.import_module(f'Neuronmodels.{synapse_class}')
+    synapse_instance = synapse.GPeSTNSynapse(GPe, STN, Striatum, Cortex, synapse_params)
+    syn_Str_GPe, syn_GPe_STN = synapse_instance.create_synapse()
+
+    # Set up monitors for GPe and STN neuron groups
+    dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
+    dv_monitor_STN = StateMonitor(STN, ['v', 'u'], record=True)
+    spike_monitor_gpe = SpikeMonitor(GPe)
+    spike_monitor_STN = SpikeMonitor(STN)
+
+    # Create a network and add components
+    net = Network(GPe, STN, Striatum, Cortex, syn_GPe_STN, syn_Str_GPe, dv_monitor_gpe, dv_monitor_STN, spike_monitor_gpe, spike_monitor_STN)
+
+    # Initial run with input from Striatum to GPe (inhibitory) and Cortex to STN (excitatory)
+    GPe.I_inh = 300 * pA  
+    GPe.I = 0 * pA 
+    STN.I = 0 * pA
+    net.run(200*ms)
+    
+    GPe.I = 300 * pA 
+    net.run(300*ms)
+
+    GPe.I = 0 * pA  
+    net.run(200*ms)
+
+    # Process the results (same post-processing as in the run_simulation_without_input)
+    v = dv_monitor_STN.v
+    u = dv_monitor_STN.u
+    vr = STN_params_converted['vr'].item()  # Convert 'vr' to a scalar value for easy access
+    for i in range(len(v)):
+        for j in range(len(v[0])):
+            if u[i][j] < 0:
+                v[i][j] = clip(v[i][j], vr - 15 * mV, 20 * mV)
+            else:
+                v[i][j] = vr
+
+    # Retrieve synapse weights
+    weights = np.array(syn_GPe_STN.w)
+
+    # Return results for plotting and analysis
+    return {
+        'gpe_times': dv_monitor_gpe.t / ms,
+        'gpe_membrane_potential': dv_monitor_gpe.v[0] / mV,
+        'STN_times': dv_monitor_STN.t / ms,
+        'STN_membrane_potential': dv_monitor_STN.v[0] / mV,
+        'gpe_spikes': spike_monitor_gpe.count,
+        'STN_spikes': spike_monitor_STN.count,
+        'spike_monitor_gpe': spike_monitor_gpe,  
+        'spike_monitor_STN': spike_monitor_STN,
+        'synapse_GPe_STN': syn_GPe_STN,
+        'synapse_Str_GPe': syn_Str_GPe,
+        'weights': weights    
+    }
+
 
 ### Visualization post spike pattern with input 
 def plot_results_with_input(results):
