@@ -188,7 +188,7 @@ def run_simulation_without_input(N_GPe, N_STN, gpe_params_file, STN_params_file,
 
     # Dynamically load neuron models using the provided class names
     model_module_gpe = importlib.import_module(f'Neuronmodels.{model_class_gpe}')
-    model_module_STN = importlib.import_000module(f'Neuronmodels.{model_class_STN}')
+    model_module_STN = importlib.import_module(f'Neuronmodels.{model_class_STN}')
     
     # Initialize the neuron models
     gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted)
@@ -267,8 +267,8 @@ def run_simulation_with_inh_ext_input(
     STN = STN_model.create_neurons()
 
     # Create Striatum and Cortex neuron groups
-    N_Striatum = N_GPe  # Use the same number as GPe for consistency
-    N_Cortex = N_STN  # Use the same number as STN for consistency
+    N_Striatum = N_GPe
+    N_Cortex = N_STN  
     Striatum = NeuronGroup(N_Striatum, 'v : 1', threshold='v > 1', reset='v = 0')
     Cortex = NeuronGroup(N_Cortex, 'v : 1', threshold='v > 1', reset='v = 0')
 
@@ -280,7 +280,7 @@ def run_simulation_with_inh_ext_input(
     # Set up monitors for GPe and STN neuron groups
     dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
     dv_monitor_STN = StateMonitor(STN, ['v', 'u'], record=True)
-    spike_monitor_gpe = SpikeMonitor(GPe)
+    spike_monitor_gpe = SpikeMonitor(GPe, variables='v')
     spike_monitor_STN = SpikeMonitor(STN)
 
     # Create a network and add components
@@ -288,11 +288,12 @@ def run_simulation_with_inh_ext_input(
 
     # Initial run with input from Striatum to GPe (inhibitory) and Cortex to STN (excitatory)
     GPe.I_inh = 300 * pA  
+    # GPe.v = gpe_params_converted['E_L'] 
     GPe.I = 0 * pA 
     STN.I = 0 * pA
     net.run(200*ms)
     
-    GPe.I = 300 * pA 
+    GPe.I = gpe_params_converted['I'] 
     net.run(300*ms)
 
     GPe.I = 0 * pA  
@@ -329,7 +330,7 @@ def run_simulation_with_inh_ext_input(
 
 
 ### Visualization post spike pattern with input 
-def plot_results_with_input(results):
+def plot_results_pre_post(results):
     plt.figure(figsize=(10, 6))
 
     # Plot GPe membrane potential
