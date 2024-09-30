@@ -12,7 +12,7 @@
         "a": {"value": 2.5, "unit": "nS"},
         "d": {"value": 70, "unit": "pA"},
         "C": {"value": 40, "unit": "pF"},
-        "I": {"value": 12, "unit": "pA"}
+        "I": {"value": 300, "unit": "pA"}
     },
     "reference": {
         "title": "Dopamine depletion leads to pathological synchronization of distinct basal ganglia loops in the beta band"    
