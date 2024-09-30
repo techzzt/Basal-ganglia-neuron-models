@@ -144,7 +144,7 @@ def run_simulation_with_input(N_GPe, N_STN, gpe_params_file, STN_params_file, sy
     GPe.I = 0 * pA
     net.run(200*ms)
 
-    GPe.I = gpe_params_converted['I'] 
+    GPe.I = 12 * pA
     net.run(300*ms)
 
     GPe.I = 0 * pA
@@ -211,7 +211,6 @@ def run_simulation_without_input(N_GPe, N_STN, gpe_params_file, STN_params_file,
     net = Network(GPe, STN, syn_GPe_STN, dv_monitor_gpe, dv_monitor_STN, spike_monitor_gpe, spike_monitor_STN)
 
     # Initial run without input
-    GPe.I = 0 * pA
     net.run(700*ms)
 
     # Process the results
@@ -279,23 +278,13 @@ def run_simulation_with_inh_ext_input(
     # Set up monitors for GPe and STN neuron groups
     dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
     dv_monitor_STN = StateMonitor(STN, ['v', 'u'], record=True)
-    spike_monitor_gpe = SpikeMonitor(GPe, variables='v')
+    spike_monitor_gpe = SpikeMonitor(GPe)
     spike_monitor_STN = SpikeMonitor(STN)
 
     # Create a network and add components
     net = Network(GPe, STN, Striatum, Cortex, syn_GPe_STN, syn_Str_GPe, dv_monitor_gpe, dv_monitor_STN, spike_monitor_gpe, spike_monitor_STN)
 
-    GPe.I_inh = 300 * pA  
-    # GPe.v = gpe_params_converted['E_L'] 
-    GPe.I = 0 * pA 
-    STN.I = 0 * pA
-    net.run(200*ms)
-    
-    GPe.I = gpe_params_converted['I'] 
-    net.run(300*ms)
-
-    GPe.I = 0 * pA  
-    net.run(200*ms)
+    net.run(700*ms)
 
     v = dv_monitor_STN.v
     u = dv_monitor_STN.u
@@ -450,6 +439,7 @@ def plot_raster(results):
     plt.title('GPe Population Raster Plot')
     plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
+    plt.xlim(0, 700)
 
     # STN Neuron
     plt.subplot(2, 1, 2)
@@ -457,6 +447,7 @@ def plot_raster(results):
     plt.title('STN Population Raster Plot')
     plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
+    plt.xlim(0, 700)
 
     plt.tight_layout()
     plt.show()
