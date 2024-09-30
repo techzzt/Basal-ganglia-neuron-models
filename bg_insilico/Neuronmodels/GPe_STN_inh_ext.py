@@ -20,7 +20,6 @@ class GPeSTNSynapse:
         self.params = params
 
     def create_synapse(self):
-        # Create the synapse model where GPe is pre-synaptic and STN is post-synaptic
 
         # Striatum → GPe Synapse
         syn_Str_GPe = Synapses(self.Striatum, self.GPe, model='''
