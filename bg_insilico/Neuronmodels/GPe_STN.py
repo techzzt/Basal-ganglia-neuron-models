@@ -10,59 +10,6 @@ class NeuronModel:
     def create_neurons(self):
         raise NotImplementedError("Subclasses should implement this method.")
 
-class GPeModel(NeuronModel):
-    def create_neurons(self):
-        # Define the GPe neuron model based on the params
-        eqs_GPe = '''
-        dv/dt = (-g_L*(v-E_L) + g_L*Delta_T*exp((v-vt)/Delta_T) - u + I)/C : volt
-        du/dt = (a*(v-E_L) - u)/tau_w : amp
-        g_L    : siemens
-        E_L    : volt
-        Delta_T: volt
-        vt     : volt
-        vr     : volt 
-        tau_w  : second
-        th     : volt
-        a      : siemens
-        d      : amp
-        C      : farad
-        I      : amp
-        '''
-        self.neurons = NeuronGroup(self.N, eqs_GPe, threshold='v >= th', reset='v = vr; u += d', method='euler')
-
-        # Initialize parameters from the JSON params
-        for param, value in self.params.items():
-            setattr(self.neurons, param, value)
-
-        return self.neurons
-
-class STNModel(NeuronModel):
-    def create_neurons(self):
-        # Define the STN neuron model based on the params
-        eqs_STN = '''
-        dv/dt = (-g_L*(v-E_L) + g_L*Delta_T*exp((v-vt)/Delta_T) - u + I + I_syn)/C : volt
-        du/dt = (a*(v-E_L) - u)/tau_w : amp
-        g_L    : siemens
-        E_L    : volt
-        Delta_T: volt
-        vt     : volt
-        vr     : volt 
-        tau_w  : second
-        th     : volt
-        a      : siemens
-        d      : amp
-        C      : farad
-        I      : amp        
-        I_syn  : amp
-        '''
-        self.neurons = NeuronGroup(self.N, eqs_STN, threshold='v >= th', reset='v = vr; u += d', method='euler')
-
-        # Initialize parameters from the JSON params
-        for param, value in self.params.items():
-            setattr(self.neurons, param, value)
-
-        return self.neurons
-
 class GPeSTNSynapse:
     def __init__(self, GPe, STN, params):
         self.GPe = GPe
@@ -70,25 +17,25 @@ class GPeSTNSynapse:
         self.params = params
 
     def create_synapse(self):
-        # Create the synapse model between GPe and STN
+        # Create the synapse model where GPe is pre-synaptic and STN is post-synaptic
         
         syn_GPe_STN = Synapses(self.GPe, self.STN, model='''
             g0 : siemens
-            tau_syn : second
+            g: siemens
             E_GABA : volt
-            dg/dt = -g/tau_syn : siemens
-            I_syn_post = g * (E_GABA - v_post) : amp (summed)
+            w : 1
+            I_syn_post = w * g * (E_GABA - v_post) : amp (summed)
             ''', 
             
             on_pre='''
             g += g0 
             ''')
         
-        syn_GPe_STN.connect(p=0.2)  # Connect with probability 0.2
+        syn_GPe_STN.connect(p=0.2) 
+        syn_GPe_STN.w = 'rand()' 
         syn_GPe_STN.g0 = self.params['g0']
-        syn_GPe_STN.tau_syn = self.params['tau_syn']
+        # syn_GPe_STN.tau_syn = self.params['tau_syn']
         syn_GPe_STN.E_GABA = self.params['E_GABA']
         # syn_GPe_STN.delay = self.params['delay']
 
         return syn_GPe_STN
-
