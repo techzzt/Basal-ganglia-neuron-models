@@ -17,14 +17,14 @@ class GPeSTNSynapse:
         self.params = params
 
     def create_synapse(self):
-        # Create the synapse model where GPe is pre-synaptic and STN is post-synaptic
         
         syn_GPe_STN = Synapses(self.GPe, self.STN, model='''
             g0 : siemens
-            g: siemens
             E_GABA : volt
             w : 1
+            tau_syn : second
             I_syn_post = w * g * (E_GABA - v_post) : amp (summed)
+            dg/dt = -g / tau_syn : siemens (clock-driven)
             ''', 
             
             on_pre='''
@@ -34,7 +34,7 @@ class GPeSTNSynapse:
         syn_GPe_STN.connect(p=0.2) 
         syn_GPe_STN.w = 'rand()' 
         syn_GPe_STN.g0 = self.params['g0']
-        # syn_GPe_STN.tau_syn = self.params['tau_syn']
+        syn_GPe_STN.tau_syn = self.params['tau_syn']
         syn_GPe_STN.E_GABA = self.params['E_GABA']
         # syn_GPe_STN.delay = self.params['delay']
 
