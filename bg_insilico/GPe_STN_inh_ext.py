@@ -48,7 +48,6 @@ class GPeSTNSynapse:
             w : 1
             tau_syn : second
             I_syn_post = w * g * (E_GABA - v_post) : amp (summed)
-            I_syn_pre = w * g * (E_GABA - v_pre) : amp (summed)
             dg/dt = -g / tau_syn : siemens (clock-driven)
             ''', 
             on_pre='''
