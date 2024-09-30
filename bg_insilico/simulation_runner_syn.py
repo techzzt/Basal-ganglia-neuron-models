@@ -16,7 +16,7 @@ def load_params(json_file):
     model_name = data['model']
     
     # Extract 'N' from params
-    N = params.pop('N')['value']  # Extract the value of N and remove it from the params
+    N = params.pop('N')['value'] 
     return N, params, model_name
 
 def convert_units(params):
@@ -24,7 +24,6 @@ def convert_units(params):
     for param, info in params.items():
         value = info['value']
         unit = info['unit']
-        # Convert units according to the specifications
         if unit == 'nS':
             value *= nS
         elif unit == 'mV':
@@ -286,7 +285,6 @@ def run_simulation_with_inh_ext_input(
     # Create a network and add components
     net = Network(GPe, STN, Striatum, Cortex, syn_GPe_STN, syn_Str_GPe, dv_monitor_gpe, dv_monitor_STN, spike_monitor_gpe, spike_monitor_STN)
 
-    # Initial run with input from Striatum to GPe (inhibitory) and Cortex to STN (excitatory)
     GPe.I_inh = 300 * pA  
     # GPe.v = gpe_params_converted['E_L'] 
     GPe.I = 0 * pA 
@@ -299,10 +297,9 @@ def run_simulation_with_inh_ext_input(
     GPe.I = 0 * pA  
     net.run(200*ms)
 
-    # Process the results (same post-processing as in the run_simulation_without_input)
     v = dv_monitor_STN.v
     u = dv_monitor_STN.u
-    vr = STN_params_converted['vr'].item()  # Convert 'vr' to a scalar value for easy access
+    vr = STN_params_converted['vr'].item()
     for i in range(len(v)):
         for j in range(len(v[0])):
             if u[i][j] < 0:
@@ -384,17 +381,17 @@ def plot_results_with_weight_matrix(results, N_GPe, N_STN):
     plt.figure(figsize=(10, 8))
     
     # Extract weights from the results
-    synapses = results['synapse']  # Make sure you have access to the synapse object
-    weights = synapses.w  # Get the weights of the synapses
-    connected_pre = synapses.i  # Indices of pre-synaptic neurons
-    connected_post = synapses.j  # Indices of post-synaptic neurons
+    synapses = results['synapse'] 
+    weights = synapses.w 
+    connected_pre = synapses.i  
+    connected_post = synapses.j  
 
     # Create an empty weight matrix
     weight_matrix = np.zeros((N_GPe, N_STN))
 
     # Populate the weight matrix with the corresponding weights
     for pre, post, weight in zip(connected_pre, connected_post, weights):
-        weight_matrix[pre, post] = weight  # Assign the weight to the correct position
+        weight_matrix[pre, post] = weight  #
 
     # Plot synapse weights
     plt.imshow(weight_matrix, aspect='auto', cmap='viridis')
