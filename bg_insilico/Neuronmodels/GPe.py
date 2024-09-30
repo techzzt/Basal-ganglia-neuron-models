@@ -14,7 +14,7 @@ class GPe(NeuronModel):
     def create_neurons(self):
         # Define the GPe neuron model based on the params
         eqs_GPe = '''
-        dv/dt = (-g_L*(v-E_L) + g_L*Delta_T*exp((v-vt)/Delta_T) - u + I)/C : volt
+        dv/dt = (-g_L*(v-E_L) + g_L*Delta_T*exp((v-vt)/Delta_T) - u + I - I_inh - I_syn)/C : volt
         du/dt = (a*(v-E_L) - u)/tau_w : amp
         g_L    : siemens
         E_L    : volt
@@ -27,11 +27,12 @@ class GPe(NeuronModel):
         d      : amp
         C      : farad
         I      : amp
+        I_inh  : amp
+        I_syn  : amp
         '''
-        self.neurons = NeuronGroup(self.N, eqs_GPe, threshold='v > th', reset='v = vr; u += d', method='euler')
+        self.neurons = NeuronGroup(self.N, eqs_GPe, threshold='v >= th', reset='v = vr; u += d', method='euler')
 
         # Initialize parameters from the JSON params
         for param, value in self.params.items():
             setattr(self.neurons, param, value)
-
         return self.neurons
