@@ -35,10 +35,10 @@ FSN | Striatum | | | FSI [1], FS[3] | GABA |
 ChiN | Striatum |  | | | ACh |
 prototypic | GPe | [2], [3] refer to [1] | consider ChAT in GPe [5] | GPe-T1 | GABA |
 Arkypallidal | GPe | [2], [3] refer to [1] | | GPe-TA | GABA |
-PV+ | STN | not seperate STN type [1] | | | | 
-PV- | STN |  | | | |
-PV+ | GPi |  | | | |
-SST+ | GPi |  | | | |
+PV+ | STN | not seperate STN type [1] | | | glu | 
+PV- | STN |  | | | glu |
+PV+ | GPi |  | | | GABA |
+SST+ | GPi |  | | | GABA |
 PV+ | SNr | not seperate SNr type [1] <br> spike cut off refer to [1], and set I arbitarily [2] | | | GABA [6] |
 SST+ | SNr |  | | | GABA |
 GABAergic | SNc |  | | | |
