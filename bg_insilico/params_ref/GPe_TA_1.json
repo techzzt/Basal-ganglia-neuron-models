@@ -12,7 +12,7 @@
         "a": {"value": 2.5, "unit": "nS"},
         "d": {"value": 70, "unit": "pA"},
         "C": {"value": 40, "unit": "pF"},
-        "I": {"value": 12, "unit": "pA"}
+        "I": {"value": 0, "unit": "pA"}
     },
     "reference": {
         "title": "Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model"
