@@ -7,7 +7,7 @@
         "a": {"value": 0.2, "unit": "1/second"},
         "b": {"value": 0.025, "unit": "1/second"},
         "d": {"value": 0, "unit": "volt/second"},
-        "I": {"value": 1000, "unit": "volt/second"}
+        "I": {"value": 0, "unit": "volt/second"}
     },
     "reference": {
         "title": "..."

@@ -12,7 +12,7 @@
         "a": {"value": 8, "unit": "nS"},
         "d": {"value": 3, "unit": "pA"},
         "C": {"value": 115, "unit": "pF"},
-        "I": {"value": 10, "unit": "pA"}
+        "I": {"value": 0, "unit": "pA"}
     },
     "reference": {
         "title": "Modeling Basal Ganglia Microcircuits using Spiking Neurons",

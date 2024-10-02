@@ -12,7 +12,7 @@
         "a": {"value": 4, "unit": "nS"},
         "d": {"value": 120, "unit": "pA"},
         "C": {"value": 130, "unit": "pF"},
-        "I": {"value": 400, "unit": "pA"}
+        "I": {"value": 0, "unit": "pA"}
     },
     "reference": {
         "title": "Firing patterns in the adaptive exponential integrate-and-fire model"

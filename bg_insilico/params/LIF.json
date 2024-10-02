@@ -7,7 +7,7 @@
         "th": {"value": -45, "unit": "mV"},
         "E_L": {"value": -85.4, "unit": "mV"},
         "C": {"value": 157, "unit": "pF"},
-        "I": {"value": 300, "unit": "pA"}
+        "I": {"value": 0, "unit": "pA"}
     },
     "reference": {
         "title": "Transient Response of Basal Ganglia Network in Healthy and Low-Dopamine State",
