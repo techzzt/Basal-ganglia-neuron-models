@@ -4,7 +4,7 @@
         "N": {"value": 100, "unit": ""},
         "g_L": {"value": 10, "unit": "nS"},
         "vr": {"value": -70, "unit": "mV"},
-        "vt": {"value": -64, "unit": "mV"},
+        "th": {"value": -64, "unit": "mV"},
         "E_L": {"value": -80.2, "unit": "mV"},
         "C": {"value": 60, "unit": "pF"},
         "I": {"value": 0, "unit": "pA"}
