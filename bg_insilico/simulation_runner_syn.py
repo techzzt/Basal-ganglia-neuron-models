@@ -8,6 +8,7 @@ from Neuronmodels.STN import STN
 import matplotlib.pyplot as plt
 import importlib
 import numpy as np
+import plotly.graph_objects as go
 
 def load_params(json_file):
     with open(json_file, 'r') as f:
@@ -41,6 +42,7 @@ def convert_units(params):
         converted_params[param] = value
     return converted_params
 
+### Simulation part 
 def run_simulation(N_1, N_2, params_file_1, params_file_2, synapse_params, model_class_1, model_class_2, synapse_class):
     
     # Load parameters for the two neuron groups (without N)
@@ -176,116 +178,68 @@ def run_simulation_with_input(N_GPe, N_STN, gpe_params_file, STN_params_file, sy
         'synapse': syn_GPe_STN  
     }
 
-def run_simulation_without_input(N_GPe, N_STN, gpe_params_file, STN_params_file, synapse_params, model_class_gpe, model_class_STN, synapse_class):
-    # Load GPe and STN parameters from the JSON files (without N)
-    _, gpe_params, gpe_model_name = load_params(gpe_params_file)
-    _, STN_params, STN_model_name = load_params(STN_params_file)
-
-    # Convert units for the neuron models
-    gpe_params_converted = convert_units(gpe_params)
-    STN_params_converted = convert_units(STN_params)
-
-    # Dynamically load neuron models using the provided class names
-    model_module_gpe = importlib.import_module(f'Neuronmodels.{model_class_gpe}')
-    model_module_STN = importlib.import_module(f'Neuronmodels.{model_class_STN}')
-    
-    # Initialize the neuron models
-    gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted)
-    STN_model = getattr(model_module_STN, model_class_STN)(N=N_STN, params=STN_params_converted)
-
-    GPe = gpe_model.create_neurons()
-    STN = STN_model.create_neurons()
-
-    # Set up the synapses between GPe and STN
-    synapse = importlib.import_module(f'Neuronmodels.{synapse_class}')
-    synapse_instance = synapse.GPeSTNSynapse(GPe, STN, synapse_params)
-    syn_GPe_STN = synapse_instance.create_synapse()
-
-    # Set up monitors for both neuron groups
-    dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
-    dv_monitor_STN = StateMonitor(STN, ['v', 'u'], record=True)
-    spike_monitor_gpe = SpikeMonitor(GPe)
-    spike_monitor_STN = SpikeMonitor(STN)
-
-    # Create a network
-    net = Network(GPe, STN, syn_GPe_STN, dv_monitor_gpe, dv_monitor_STN, spike_monitor_gpe, spike_monitor_STN)
-
-    # Initial run without input
-    net.run(700*ms)
-
-    # Process the results
-    v = dv_monitor_STN.v
-    u = dv_monitor_STN.u
-    
-    vr = STN_params_converted['vr']
-    vr = vr.item()  
-    for i in range(len(v)):
-        for j in range(len(v[0])):
-            if u[i][j] < 0:
-                v[i][j] = clip(v[i][j], vr - 15 * mV, 20 * mV)
-            else:
-                v[i][j] = vr
-    
-    # Retrieve synapse weights
-    weights = np.array(syn_GPe_STN.w) 
-   
-    # Return results for plotting and analysis
-    return {
-        'gpe_times': dv_monitor_gpe.t / ms,
-        'gpe_membrane_potential': dv_monitor_gpe.v[0] / mV,
-        'STN_times': dv_monitor_STN.t / ms,
-        'STN_membrane_potential': dv_monitor_STN.v[0] / mV,
-        'gpe_spikes': spike_monitor_gpe.count,
-        'STN_spikes': spike_monitor_STN.count,
-        'spike_monitor_gpe': spike_monitor_gpe,  
-        'spike_monitor_STN': spike_monitor_STN,  
-        'synapse': syn_GPe_STN,
-        'weights': weights    
-    }
-
 def run_simulation_with_inh_ext_input(
-    N_GPe, N_STN, gpe_params_file, STN_params_file, synapse_params, 
-    model_class_gpe, model_class_STN, synapse_class, input_condition='slow_wave'):
+    N_GPe, N_STN, N_Striatum, gpe_params_file, STN_params_file, striatum_params_file, synapse_params, 
+    model_class_gpe, model_class_STN, model_class_striatum, synapse_class, input_condition='slow_wave'):
 
     _, gpe_params, gpe_model_name = load_params(gpe_params_file)
     _, STN_params, STN_model_name = load_params(STN_params_file)
+    _, striatum_params, striatum_model_name = load_params(striatum_params_file)
 
     gpe_params_converted = convert_units(gpe_params)
     STN_params_converted = convert_units(STN_params)
+    striatum_params_converted = convert_units(striatum_params)
 
     model_module_gpe = importlib.import_module(f'Neuronmodels.{model_class_gpe}')
     model_module_STN = importlib.import_module(f'Neuronmodels.{model_class_STN}')
+    model_module_striatum = importlib.import_module(f'Neuronmodels.{model_class_striatum}')
 
     # Initialize the neuron models
     gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted)
     STN_model = getattr(model_module_STN, model_class_STN)(N=N_STN, params=STN_params_converted)
+    striatum_model = getattr(model_module_striatum, model_class_striatum)(N=N_Striatum, params=striatum_params_converted)
 
-    # Create neurons for GPe and STN
+    # Create neurons for GPe, STN, and Striatum
     GPe = gpe_model.create_neurons()
     STN = STN_model.create_neurons()
+    Striatum = striatum_model.create_neurons()
 
-    # Create Striatum and Cortex neuron groups
-    N_Striatum = N_GPe
+    # Create Cortex neuron group
     N_Cortex = N_STN  
-    Striatum = NeuronGroup(N_Striatum, 'v : 1', threshold='v > 1', reset='v = 0')
-    Cortex = NeuronGroup(N_Cortex, 'v : 1', threshold='v > 1', reset='v = 0')
+    Cortex = PoissonGroup(N_Cortex, rates= 10 * Hz)  # Cortex input as Poisson spikes
+    
+    # Define input rate pattern (0 Hz -> 200 Hz -> 0 Hz)
+    @network_operation(dt=1*ms)
+    def input_rate(t):
+        if 200*ms <= t <= 500*ms:
+            return 200  # High activity between 200 and 500 ms
+        else:
+            return 0    # No activity otherwise
 
-    # Set up the synapses between GPe and STN, including Striatum and Cortex inputs
+    # Set up synapses (inhibitory and excitatory)
     synapse = importlib.import_module(f'Neuronmodels.{synapse_class}')
     synapse_instance = synapse.GPeSTNSynapse(GPe, STN, Striatum, Cortex, synapse_params)
-    syn_Str_GPe, syn_GPe_STN = synapse_instance.create_synapse()
+    
+    # Synapses from Cortex to Striatum and STN, as well as from GPe to STN
+    syn_GPe_STN, syn_Cortex_Striatum, syn_Cortex_STN = synapse_instance.create_synapse()
 
     # Set up monitors for GPe and STN neuron groups
     dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
     dv_monitor_STN = StateMonitor(STN, ['v', 'u'], record=True)
+    dv_monitor_striatum = StateMonitor(Striatum, 'v', record=True)  # Monitor Striatum membrane potential
     spike_monitor_gpe = SpikeMonitor(GPe)
     spike_monitor_STN = SpikeMonitor(STN)
+    spike_monitor_cortex = SpikeMonitor(Cortex)  # Monitor Cortex spikes
 
     # Create a network and add components
-    net = Network(GPe, STN, Striatum, Cortex, syn_GPe_STN, syn_Str_GPe, dv_monitor_gpe, dv_monitor_STN, spike_monitor_gpe, spike_monitor_STN)
+    net = Network(GPe, STN, Striatum, Cortex, syn_GPe_STN, 
+                  syn_Cortex_Striatum, syn_Cortex_STN, dv_monitor_gpe, 
+                  dv_monitor_STN, dv_monitor_striatum, spike_monitor_gpe, 
+                  spike_monitor_STN, spike_monitor_cortex, input_rate)
 
     net.run(700*ms)
 
+    # Post-process STN membrane potential based on u and reset conditions
     v = dv_monitor_STN.v
     u = dv_monitor_STN.u
     vr = STN_params_converted['vr'].item()
@@ -305,16 +259,22 @@ def run_simulation_with_inh_ext_input(
         'gpe_membrane_potential': dv_monitor_gpe.v[0] / mV,
         'STN_times': dv_monitor_STN.t / ms,
         'STN_membrane_potential': dv_monitor_STN.v[0] / mV,
+        'striatum_times': dv_monitor_striatum.t / ms,
+        'striatum_membrane_potential': dv_monitor_striatum.v[0] / mV,
         'gpe_spikes': spike_monitor_gpe.count,
         'STN_spikes': spike_monitor_STN.count,
+        # 'striatum_spikes': dv_monitor_striatum.count,  # Add Striatum spike counts
+        'cortex_spikes': spike_monitor_cortex.count,
         'spike_monitor_gpe': spike_monitor_gpe,  
         'spike_monitor_STN': spike_monitor_STN,
+        'spike_monitor_striatum': dv_monitor_striatum,
+        'spike_monitor_cortex': spike_monitor_cortex,
         'synapse_GPe_STN': syn_GPe_STN,
-        'synapse_Str_GPe': syn_Str_GPe,
         'weights': weights    
     }
 
 
+### Visualization part 
 ### Visualization post spike pattern with input 
 def plot_results_pre_post(results):
     plt.figure(figsize=(10, 6))
@@ -451,3 +411,42 @@ def plot_raster(results):
 
     plt.tight_layout()
     plt.show()
+
+def plot_neuron_connections_3D(neuron_positions, connections):
+    # Create figure
+    fig = go.Figure()
+
+    # Add neuron nodes
+    for idx, pos in enumerate(neuron_positions):
+        fig.add_trace(go.Scatter3d(
+            x=[pos[0]], y=[pos[1]], z=[pos[2]],
+            mode='markers',
+            marker=dict(size=5, color='blue'),
+            name=f'Neuron {idx}'
+        ))
+
+    # Add synapse connections as lines
+    for connection in connections:
+        source, target = connection
+        x_values = [neuron_positions[source][0], neuron_positions[target][0]]
+        y_values = [neuron_positions[source][1], neuron_positions[target][1]]
+        z_values = [neuron_positions[source][2], neuron_positions[target][2]]
+        fig.add_trace(go.Scatter3d(
+            x=x_values, y=y_values, z=z_values,
+            mode='lines',
+            line=dict(width=2, color='green'),
+            name=f'Connection {source} -> {target}'
+        ))
+
+    # Set axis titles and layout
+    fig.update_layout(
+        scene=dict(
+            xaxis_title='X Axis',
+            yaxis_title='Y Axis',
+            zaxis_title='Z Axis'
+        ),
+        title="3D Neuron Connections"
+    )
+    
+    # Show the plot
+    fig.show()
