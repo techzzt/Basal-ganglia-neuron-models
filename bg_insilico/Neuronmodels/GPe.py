@@ -29,7 +29,7 @@ du/dt = (a * (v - E_L) - u) / tau_w : amp
 
 I_syn = I_GABA : amp
 
-I_GABA_rec : amp
+I_GABA : amp
 g_L    : siemens
 E_L    : volt
 Delta_T: volt
@@ -44,10 +44,10 @@ I      : amp
 '''
 
 class NeuronModel:
-    def __init__(self, N, params):
+    def __init__(self, N, params, neuron_type='E'):
         # Parse the parameters from the params dictionary
-        self.N = N
-        self.params = params
+        super().__init__(N, params)
+        self.neuron_type = neuron_type  # Store neuron type ('E' or 'I')
         self.neurons = None
 
     def create_neurons(self):
