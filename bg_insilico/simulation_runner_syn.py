@@ -195,65 +195,47 @@ def run_simulation_with_inh_ext_input(
     model_module_striatum = importlib.import_module(f'Neuronmodels.{model_class_striatum}')
 
     # Initialize the neuron models
-    gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted)
-    STN_model = getattr(model_module_STN, model_class_STN)(N=N_STN, params=STN_params_converted)
-    striatum_model = getattr(model_module_striatum, model_class_striatum)(N=N_Striatum, params=striatum_params_converted)
+    gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted, neuron_type="I")
+    STN_model = getattr(model_module_STN, model_class_STN)(N=N_STN, params=STN_params_converted, neuron_type="E")
+    striatum_model = getattr(model_module_striatum, model_class_striatum)(N=N_Striatum, params=striatum_params_converted, neuron_type="E")
 
     # Create neurons for GPe, STN, and Striatum
     GPe = gpe_model.create_neurons()
     STN = STN_model.create_neurons()
     Striatum = striatum_model.create_neurons()
 
-    # Create Cortex neuron group
-    N_Cortex = N_STN  
-    Cortex = PoissonGroup(N_Cortex, rates= 10 * Hz)  # Cortex input as Poisson spikes
+    # Create Cortex neuron group as a PoissonGroup
+    N_Cortex = N_STN  # Set the number of Cortex neurons equal to the number of STN neurons
+    # Create a TimedArray to control external current input to STN neurons
+    rates = TimedArray([0, 100, 0] * Hz, dt=300*ms)  # Define the input pattern over time
+    Cortex = PoissonGroup(N_Cortex, rates=10*Hz)
     
-    # Define input rate pattern (0 Hz -> 200 Hz -> 0 Hz)
-    @network_operation(dt=1*ms)
-    def input_rate(t):
-        if 200*ms <= t <= 500*ms:
-            return 200  # High activity between 200 and 500 ms
-        else:
-            return 0    # No activity otherwise
+    # Set up synapses (inhibitory and excitatory) using an imported synapse model
+    synapse_module = importlib.import_module(f'Neuronmodels.{synapse_class}')
+    synapse_instance = synapse_module.GPeSTNSynapse(GPe, STN, Striatum, Cortex, synapse_params)
 
-    # Set up synapses (inhibitory and excitatory)
-    synapse = importlib.import_module(f'Neuronmodels.{synapse_class}')
-    synapse_instance = synapse.GPeSTNSynapse(GPe, STN, Striatum, Cortex, synapse_params)
-    
-    # Synapses from Cortex to Striatum and STN, as well as from GPe to STN
-    syn_GPe_STN, syn_Cortex_Striatum, syn_Cortex_STN = synapse_instance.create_synapse()
+    # Create synapses from GPe to STN, Cortex to Striatum, and Cortex to STN
+    syn_STN_GPe, syn_Striatum_GPe, syn_Cortex_Striatum, syn_Cortex_STN, syn_GPe_STN = synapse_instance.create_synapse()
 
-    # Set up monitors for GPe and STN neuron groups
+    # Set up monitors to track membrane potentials and spikes in each neuron group
     dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
     dv_monitor_STN = StateMonitor(STN, ['v', 'u'], record=True)
-    dv_monitor_striatum = StateMonitor(Striatum, 'v', record=True)  # Monitor Striatum membrane potential
+    dv_monitor_striatum = StateMonitor(Striatum, 'v', record=True)
     spike_monitor_gpe = SpikeMonitor(GPe)
     spike_monitor_STN = SpikeMonitor(STN)
-    spike_monitor_cortex = SpikeMonitor(Cortex)  # Monitor Cortex spikes
+    spike_monitor_cortex = SpikeMonitor(Cortex)
+    spike_monitor_striatum = SpikeMonitor(Striatum)
 
-    # Create a network and add components
-    net = Network(GPe, STN, Striatum, Cortex, syn_GPe_STN, 
-                  syn_Cortex_Striatum, syn_Cortex_STN, dv_monitor_gpe, 
+    # Create a network and add components to it
+    net = Network(GPe, STN, Striatum, Cortex, syn_STN_GPe, syn_Striatum_GPe,
+                  syn_Cortex_Striatum, syn_Cortex_STN, syn_GPe_STN, dv_monitor_gpe, 
                   dv_monitor_STN, dv_monitor_striatum, spike_monitor_gpe, 
-                  spike_monitor_STN, spike_monitor_cortex, input_rate)
+                  spike_monitor_STN, spike_monitor_cortex, spike_monitor_striatum)
 
+    # Run the network simulation
     net.run(700*ms)
 
-    # Post-process STN membrane potential based on u and reset conditions
-    v = dv_monitor_STN.v
-    u = dv_monitor_STN.u
-    vr = STN_params_converted['vr'].item()
-    for i in range(len(v)):
-        for j in range(len(v[0])):
-            if u[i][j] < 0:
-                v[i][j] = clip(v[i][j], vr - 15 * mV, 20 * mV)
-            else:
-                v[i][j] = vr
-
-    # Retrieve synapse weights
-    weights = np.array(syn_GPe_STN.w)
-
-    # Return results for plotting and analysis
+    # Return results for analysis
     return {
         'gpe_times': dv_monitor_gpe.t / ms,
         'gpe_membrane_potential': dv_monitor_gpe.v[0] / mV,
@@ -263,14 +245,11 @@ def run_simulation_with_inh_ext_input(
         'striatum_membrane_potential': dv_monitor_striatum.v[0] / mV,
         'gpe_spikes': spike_monitor_gpe.count,
         'STN_spikes': spike_monitor_STN.count,
-        # 'striatum_spikes': dv_monitor_striatum.count,  # Add Striatum spike counts
         'cortex_spikes': spike_monitor_cortex.count,
-        'spike_monitor_gpe': spike_monitor_gpe,  
+        'spike_monitor_gpe': spike_monitor_gpe,
         'spike_monitor_STN': spike_monitor_STN,
-        'spike_monitor_striatum': dv_monitor_striatum,
-        'spike_monitor_cortex': spike_monitor_cortex,
-        'synapse_GPe_STN': syn_GPe_STN,
-        'weights': weights    
+        'spike_monitor_striatum': spike_monitor_striatum, 
+        'spike_monitor_cortex': spike_monitor_cortex 
     }
 
 
@@ -391,18 +370,34 @@ def plot_results_with_spikes(results, spike_monitor_gpe, spike_monitor_STN):
 
 ### Visualization with statemonitor result 
 def plot_raster(results):
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(16, 12))
 
-    # GPe Neuron
-    plt.subplot(2, 1, 1)
+    # 1. Cortex Neuron
+    plt.subplot(4, 1, 1)
+    plt.scatter(results['spike_monitor_cortex'].t/ms, results['spike_monitor_cortex'].i, s=2, color='red')
+    plt.title('Cortex Population Raster Plot')
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Neuron Index')
+    plt.xlim(0, 700)
+
+    # 2. Striatum Neuron
+    plt.subplot(4, 1, 2)
+    plt.scatter(results['spike_monitor_striatum'].t/ms, results['spike_monitor_striatum'].i, s=2, color='orange')
+    plt.title('Striatum Population Raster Plot')
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Neuron Index')
+    plt.xlim(0, 700)
+
+    # 3. GPe Neuron
+    plt.subplot(4, 1, 3)
     plt.scatter(results['spike_monitor_gpe'].t/ms, results['spike_monitor_gpe'].i, s=2, color='blue')
     plt.title('GPe Population Raster Plot')
     plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
     plt.xlim(0, 700)
 
-    # STN Neuron
-    plt.subplot(2, 1, 2)
+    # 4. STN Neuron
+    plt.subplot(4, 1, 4)
     plt.scatter(results['spike_monitor_STN'].t/ms, results['spike_monitor_STN'].i, s=2, color='green')
     plt.title('STN Population Raster Plot')
     plt.xlabel('Time (ms)')
