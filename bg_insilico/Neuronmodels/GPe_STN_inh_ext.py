@@ -19,65 +19,69 @@ class GPeSTNSynapse:
         self.params = params
 
     def create_synapse(self):
+        self.params['Mg2'] = 1.0 
         # Inhibitory synapse from GPe to STN
         syn_GPe_STN = Synapses(self.GPe, self.STN, model='''
             g0 : siemens
-            E_GABA : volt
+            E_AMPA : volt
             w : 1
-            tau_syn : second
-            I_syn_GPe_STN : amp  # Renamed synaptic variable
-            dg/dt = -g / tau_syn : siemens (clock-driven)
-            I_out_GPe_STN = w * g * (E_GABA - v_post) : amp  # Renamed output variable
+            tau_AMPA : second
+            dg/dt = -g / tau_AMPA : siemens (clock-driven)
+            I_AMPA_syn = w * g * (E_AMPA - v_post) : amp  # Output current variable
+            I_NMDA_syn = w * g * (E_AMPA - v_post) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp
+            Mg2 : 1
             ''', 
             on_pre='''
             g += g0 
             ''')
-        
-        syn_GPe_STN.connect(p=0.2) 
+
+        syn_GPe_STN.connect(p=0.5) 
         syn_GPe_STN.w = 'rand()' 
         syn_GPe_STN.g0 = self.params['g0']
-        syn_GPe_STN.tau_syn = self.params['tau_syn']
-        syn_GPe_STN.E_GABA = self.params['E_GABA']
-        
-        # Excitatory synapse from Cortex to Striatum
+        syn_GPe_STN.tau_AMPA = self.params['ampa_tau_syn']  # Synaptic time constant for GABA
+        syn_GPe_STN.E_AMPA = self.params['ampa_E_rev']     # Reversal potential for GABA
+
+        # Excitatory synapse from Cortex to Striatum (MSN)
         syn_Cortex_Striatum = Synapses(self.Cortex, self.Striatum, model='''
             g0_striatum : siemens
             E_AMPA : volt
             w : 1
             tau_AMPA : second
-            I_syn_Cortex_Striatum : amp  # Renamed synaptic variable
             dg/dt = -g / tau_AMPA : siemens (clock-driven)
-            I_out_Cortex_Striatum = w * g * (E_AMPA - v_post) : amp  # Renamed output variable
-            ''', 
+            I_AMPA_syn = w * g * (E_AMPA - v_post) : amp  # Output current variable
+            I_NMDA_syn = w * g * (E_AMPA - v_post) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp
+            Mg2 : 1
+            ''',
             on_pre='''
             g += g0_striatum
             ''')
 
-        syn_Cortex_Striatum.connect(p=0.5)
-        syn_Cortex_Striatum.w = 'rand() * 0.1'
+        syn_Cortex_Striatum.connect(p=0.7)
+        syn_Cortex_Striatum.w = 'rand()'
         syn_Cortex_Striatum.g0_striatum = self.params['striatum_g0']
         syn_Cortex_Striatum.E_AMPA = self.params['striatum_ampa_E_rev']
         syn_Cortex_Striatum.tau_AMPA = self.params['striatum_ampa_tau_syn']
-        
+
         # Excitatory synapse from Cortex to STN
         syn_Cortex_STN = Synapses(self.Cortex, self.STN, model='''
             g0_stn : siemens
             E_AMPA : volt
             w : 1
             tau_AMPA : second
-            I_syn_Cortex_STN : amp  # Renamed synaptic variable
             dg/dt = -g / tau_AMPA : siemens (clock-driven)
-            I_out_Cortex_STN = w * g * (E_AMPA - v_post) : amp  # Renamed output variable
-            ''', 
+            I_AMPA_syn = w * g * (E_AMPA - v_post) : amp  # Output current variable
+            I_NMDA_syn = w * g * (E_AMPA - v_post) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp
+            Mg2 : 1
+            ''',
             on_pre='''
             g += g0_stn
             ''')
 
-        syn_Cortex_STN.connect(p=0.5)
-        syn_Cortex_STN.w = 'rand() * 0.1'
-        syn_Cortex_STN.g0_stn = self.params['stn_ampa_g0']
-        syn_Cortex_STN.E_AMPA = self.params['stn_ampa_E_rev']
-        syn_Cortex_STN.tau_AMPA = self.params['stn_ampa_tau_syn']
+        syn_Cortex_STN.connect(p=0.7)
+        syn_Cortex_STN.w = 'rand()'
+        syn_Cortex_STN.g0_stn = self.params['cortex_stn_g0']  # Updated key to match params dictionary
+        syn_Cortex_STN.E_AMPA = self.params['cortex_stn_ampa_E_rev']
+        syn_Cortex_STN.tau_AMPA = self.params['cortex_stn_ampa_tau_syn']
 
         return syn_GPe_STN, syn_Cortex_Striatum, syn_Cortex_STN
 
