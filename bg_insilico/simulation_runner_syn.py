@@ -203,26 +203,13 @@ def run_simulation_with_inh_ext_input(
     GPe = gpe_model.create_neurons()
     STN = STN_model.create_neurons()
     Striatum = striatum_model.create_neurons()
-    # GPe.v =  -55.1 * mV  # Set GPe initial potential
-    # STN.v = -80.2 * mV  # Set STN initial potential
-    # Striatum.v =  -78.2 * mV  # Set Striatum initial potential
 
     # Create Cortex neuron group as a PoissonGroup
     N_Cortex = N_STN  # Set the number of Cortex neurons equal to the number of STN neurons
-    
-    # Create a TimedArray to control external current input to STN neurons
-    def cortex_rates(t):
-        if t < 200*ms:
-            return 0*Hz
-        
-        elif 200*ms <= t < 500*ms:
-            return 200*Hz
-        
-        else:
-            return 0*Hz
+    sigma = 3 * Hz 
     
     # rates = TimedArray([0 * Hz, 200 * Hz, 0 * Hz], dt=300*ms)  # 0 Hz from 0-200 ms, 200 Hz from 200-500 ms, 0 Hz after
-    Cortex = PoissonGroup(N_Cortex, rates='(t >= 200*ms) * (t < 500*ms) * 448*Hz')
+    Cortex = PoissonGroup(N_Cortex, rates='10*Hz + (t >= 200*ms) * (t < 400*ms) * 100*Hz + sigma * randn()')
 
     """
     # https://brian.discourse.group/t/synapse-problem-with-brunel-wang-2001-example/1026
@@ -320,7 +307,13 @@ def run_simulation_with_inh_ext_input(
                   spike_monitor_STN, spike_monitor_cortex, spike_monitor_striatum)
 
     # Run the network simulation
+    simulation_duration = 1000 * ms
     net.run(1000*ms)
+    
+    gpe_firing_rate = spike_monitor_gpe.count / (simulation_duration / second)
+    STN_firing_rate = spike_monitor_STN.count / (simulation_duration / second)
+    cortex_firing_rate = spike_monitor_cortex.count / (simulation_duration / second)
+    striatum_firing_rate = spike_monitor_striatum.count / (simulation_duration / second)
 
     # Return results for analysis
     return {
@@ -334,6 +327,12 @@ def run_simulation_with_inh_ext_input(
         'gpe_spikes': spike_monitor_gpe.count,
         'STN_spikes': spike_monitor_STN.count,
         'cortex_spikes': spike_monitor_cortex.count,
+        'firing_rates': {
+            'gpe': gpe_firing_rate,
+            'STN': STN_firing_rate,
+            'cortex': cortex_firing_rate,
+            'striatum': striatum_firing_rate
+        },
         'spike_monitor_gpe': spike_monitor_gpe,
         'spike_monitor_STN': spike_monitor_STN,
         'spike_monitor_striatum': spike_monitor_striatum, 
@@ -499,7 +498,7 @@ def plot_raster(results):
     plt.title('Cortex Population Raster Plot')
     plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
-    plt.xlim(0, 700)
+    plt.xlim(0, 1000)
 
     # 2. Striatum Neuron
     plt.subplot(4, 1, 2)
@@ -507,7 +506,7 @@ def plot_raster(results):
     plt.title('Striatum Population Raster Plot')
     plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
-    plt.xlim(0, 700)
+    plt.xlim(0, 1000)
 
     # 3. GPe Neuron
     plt.subplot(4, 1, 3)
@@ -515,7 +514,7 @@ def plot_raster(results):
     plt.title('GPe Population Raster Plot')
     plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
-    plt.xlim(0, 700)
+    plt.xlim(0, 1000)
 
     # 4. STN Neuron
     plt.subplot(4, 1, 4)
@@ -523,7 +522,7 @@ def plot_raster(results):
     plt.title('STN Population Raster Plot')
     plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
-    plt.xlim(0, 700)
+    plt.xlim(0, 1000)
 
     plt.tight_layout()
     plt.show()
