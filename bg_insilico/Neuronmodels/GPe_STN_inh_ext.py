@@ -38,7 +38,7 @@ class GPeSTNSynapse:
             Mg2 : 1
             ''', 
             on_pre='''
-            v_post += w * mV
+            v_post += w * mV; g_a += g0_a; g_n += g0_n
             ''')
 
         syn_STN_GPe.connect() 
@@ -61,10 +61,10 @@ class GPeSTNSynapse:
             I_syn_syn = I_GABA_syn : amp 
             ''', 
             on_pre='''
-            v_post += w * mV
+            v_post += w * mV; g_g += g0_g
             ''')
 
-        syn_Striatum_GPe.connect() 
+        syn_Striatum_GPe.connect(p = 0.25) 
         syn_Striatum_GPe.w = 'rand()' 
         syn_Striatum_GPe.g0_g = self.params['g0_g']
         syn_Striatum_GPe.tau_GABA = self.params['gaba_tau_syn']  
@@ -88,11 +88,11 @@ class GPeSTNSynapse:
             Mg2 : 1
             ''',
             on_pre='''
-            v_post += w * mV
+            v_post += w * mV; g_a += g0_a; g_n += g0_n
             ''')
 
         syn_Cortex_Striatum.connect()
-        syn_Cortex_Striatum.w = 3.0
+        syn_Cortex_Striatum.w = 'rand()'
         syn_Cortex_Striatum.g0_n = self.params['cs_g0_n']
         syn_Cortex_Striatum.g0_a = self.params['cs_g0_a']
         syn_Cortex_Striatum.tau_AMPA = self.params['cs_ampa_tau_syn']
@@ -117,7 +117,7 @@ class GPeSTNSynapse:
             I_syn_syn = I_AMPA_syn + I_NMDA_syn : amp 
             ''',
             on_pre='''
-            v_post += w * mV
+            v_post += w * mV; g_a += g0_a; g_n += g0_n
             ''')
 
         syn_Cortex_STN.connect()
@@ -140,7 +140,7 @@ class GPeSTNSynapse:
             I_syn_syn = I_GABA_syn : amp 
             ''', 
             on_pre='''
-            v_post += w * mV
+            v_post += w * mV; g_g += g0_g
             ''')
 
         syn_GPe_STN.connect()
