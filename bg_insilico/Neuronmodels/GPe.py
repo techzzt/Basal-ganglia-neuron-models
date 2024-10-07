@@ -1,35 +1,16 @@
 from brian2 import *
 
 # Define the equations for the neuron populations
-eqs_E = '''
-dv / dt = (- g_L * (v - E_L) + g_L * Delta_T * exp((v - vt) / Delta_T) - u +I - I_syn) / C : volt (unless refractory)
+eqs = '''
+dv/dt = (- g_L * (v - E_L) + g_L * Delta_T * exp((v - vt) / Delta_T) - u + I - I_syn) / C : volt
 du/dt = (a * (v - E_L) - u) / tau_w : amp
 
-I_syn = I_AMPA + I_NMDA : amp
+I_syn = I_AMPA + I_NMDA + I_GABA : amp
 
 I_AMPA : amp
 I_NMDA : amp
-
-g_L    : siemens
-E_L    : volt
-Delta_T: volt
-vt     : volt
-vr     : volt 
-tau_w  : second
-th     : volt
-a      : siemens
-d      : amp
-C      : farad
-I      : amp
-'''
-
-eqs_I = '''
-dv / dt = (- g_L * (v - E_L) + g_L * Delta_T * exp((v - vt) / Delta_T) - u + I - I_syn) / C : volt (unless refractory)
-du/dt = (a * (v - E_L) - u) / tau_w : amp
-
-I_syn = I_GABA : amp
-
 I_GABA : amp
+
 g_L    : siemens
 E_L    : volt
 Delta_T: volt
@@ -42,6 +23,7 @@ d      : amp
 C      : farad
 I      : amp
 '''
+
 
 class NeuronModel:
     def __init__(self, N, params, neuron_type='E'):
@@ -63,10 +45,6 @@ class GPe(NeuronModel):
 
     def create_neurons(self):
         # Define the GPe neuron model based on the params
-        if self.neuron_type == 'E':
-            eqs = eqs_E
-        else:
-            eqs = eqs_I
             
         self.neurons = NeuronGroup(self.N, eqs, threshold='v >= th', reset='v = vr; u += d', method='euler')
 

@@ -1,12 +1,12 @@
 from brian2 import *
 
 # Define the equations for the neuron populations
-eqs_E = '''
+eqs = '''
 dv / dt = (k*1*pF/ms/mV*(v-vr)*(v-vt) - u*pF + I - I_syn) / C : volt (unless refractory)
 du/dt = a * (b * (v - vr) - u) : volt/second
 
-I_syn = I_AMPA + I_NMDA : amp
-
+I_syn = I_AMPA + I_NMDA + I_GABA: amp
+I_GABA  : amp
 I_AMPA : amp
 I_NMDA : amp
 a : 1/second
@@ -22,25 +22,6 @@ I      : amp
 d       : volt/second
 '''
 
-eqs_I = '''
-dv / dt = (k*1*pF/ms/mV*(v-vr)*(v-vt) - u*pF + I - I_syn) / C : volt (unless refractory)
-du/dt = a * (b * (v - vr) - u) / tau_w : amp
-
-I_syn = I_GABA : amp
-
-I_GABA  : amp
-a : 1/second
-b : volt/second
-k : 1
-E_L    : volt
-vt     : volt
-vr     : volt 
-tau_w  : second
-th     : volt
-C      : farad
-I      : amp
-d       : volt/second
-'''
 
 class NeuronModel:
     def __init__(self, N, params, neuron_type='E'):
@@ -62,11 +43,6 @@ class Striatum(NeuronModel):
 
     def create_neurons(self):
         # Define the neuron model based on the type
-        if self.neuron_type == 'E':
-            eqs = eqs_E
-        else:
-            eqs = eqs_I
-
         # Create the neuron group using euler integration
         self.neurons = NeuronGroup(self.N, eqs, threshold='v >= th', reset='v = vr; u += d', method='euler')
 

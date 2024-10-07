@@ -32,16 +32,17 @@ class GPeSTNSynapse:
             tau_NMDA : second
             dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
             dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
-            I_AMPA_syn = w * g_a * (E_AMPA - v_post) : amp  # Output current variable
-            I_NMDA_syn = w * g_n * (E_NMDA - v_post) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
+            I_AMPA_syn = w * g_a * (E_AMPA - v) : amp  # Output current variable
+            I_NMDA_syn = w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
+            I_syn_syn = I_AMPA_syn + I_NMDA_syn : amp 
             Mg2 : 1
             ''', 
             on_pre='''
-            g_a += g0_a; g_n += g0_n 
+            v_post += w * mV
             ''')
 
         syn_STN_GPe.connect() 
-        syn_STN_GPe.w = 'rand() * 0.1' 
+        syn_STN_GPe.w = 'rand() * 0.7' 
         syn_STN_GPe.g0_n = self.params['g0_n']
         syn_STN_GPe.g0_a = self.params['g0_a']
         syn_STN_GPe.tau_AMPA = self.params['ampa_tau_syn']  
@@ -56,10 +57,11 @@ class GPeSTNSynapse:
             w : 1
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-            I_GABA_syn = w * g_g * (E_GABA - v_post) : amp  # Output current variable
+            I_GABA_syn = w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_syn_syn = I_GABA_syn : amp 
             ''', 
             on_pre='''
-            g_g += g0_g
+            v_post += w * mV
             ''')
 
         syn_Striatum_GPe.connect() 
@@ -79,23 +81,25 @@ class GPeSTNSynapse:
             tau_NMDA : second
             dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
             dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
-            I_AMPA_syn = w * g_a * (E_AMPA - v_post) : amp  # Output current variable
-            I_NMDA_syn = w * g_n * (E_NMDA - v_post) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
+            I_AMPA_syn = w * g_a * (E_AMPA - v) * s_AMPA_ext: amp  # Output current variable
+            I_NMDA_syn = w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
+            ds_AMPA_ext / dt = - s_AMPA_ext / tau_AMPA : 1
+            I_syn_syn = I_AMPA_syn + I_NMDA_syn : amp 
             Mg2 : 1
             ''',
             on_pre='''
-            g_a += g0_a; g_n += g0_n 
+            v_post += w * mV
             ''')
 
         syn_Cortex_Striatum.connect()
-        syn_Cortex_Striatum.w = 'rand()'
+        syn_Cortex_Striatum.w = 3.0
         syn_Cortex_Striatum.g0_n = self.params['cs_g0_n']
         syn_Cortex_Striatum.g0_a = self.params['cs_g0_a']
         syn_Cortex_Striatum.tau_AMPA = self.params['cs_ampa_tau_syn']
         syn_Cortex_Striatum.tau_NMDA = self.params['cs_nmda_tau_syn']
         syn_Cortex_Striatum.E_AMPA = self.params['cs_ampa_E_rev']
         syn_Cortex_Striatum.E_NMDA = self.params['cs_nmda_E_rev']
-
+        
         # Excitatory synapse from Cortex to STN
         syn_Cortex_STN = Synapses(self.Cortex, self.STN, model='''
             g0_a : siemens
@@ -107,12 +111,13 @@ class GPeSTNSynapse:
             tau_NMDA : second
             dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
             dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
-            I_AMPA_syn = w * g_a * (E_AMPA - v_post) : amp  
-            I_NMDA_syn = w * g_n * (E_NMDA - v_post) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
+            I_AMPA_syn = w * g_a * (E_AMPA - v) : amp  
+            I_NMDA_syn = w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
             Mg2 : 1
+            I_syn_syn = I_AMPA_syn + I_NMDA_syn : amp 
             ''',
             on_pre='''
-            g_a += g0_a; g_n += g0_n
+            v_post += w * mV
             ''')
 
         syn_Cortex_STN.connect()
@@ -131,10 +136,11 @@ class GPeSTNSynapse:
             w : 1
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-            I_GABA_syn = w * g_g * (E_GABA - v_post) : amp  # Output current variable
+            I_GABA_syn = w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_syn_syn = I_GABA_syn : amp 
             ''', 
             on_pre='''
-            g_g += g0_g
+            v_post += w * mV
             ''')
 
         syn_GPe_STN.connect()
