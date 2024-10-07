@@ -11,10 +11,12 @@ class NeuronModel:
         raise NotImplementedError("Subclasses should implement this method.")
 
 class GPeSTNSynapse:
-    def __init__(self, GPe, STN, Striatum, Cortex, params):
+    def __init__(self, GPe, STN, MSND1, MSND2, SNr, Cortex, params):
         self.GPe = GPe
         self.STN = STN     
-        self.Striatum = Striatum
+        self.MSND1 = MSND1
+        self.MSND2 = MSND2
+        self.SNr = SNr
         self.Cortex = Cortex
         self.params = params
 
@@ -42,7 +44,7 @@ class GPeSTNSynapse:
             ''')
 
         syn_STN_GPe.connect() 
-        syn_STN_GPe.w = 'rand() * 0.7' 
+        syn_STN_GPe.w = 1
         syn_STN_GPe.g0_n = self.params['g0_n']
         syn_STN_GPe.g0_a = self.params['g0_a']
         syn_STN_GPe.tau_AMPA = self.params['ampa_tau_syn']  
@@ -51,7 +53,7 @@ class GPeSTNSynapse:
         syn_STN_GPe.E_NMDA  = self.params['nmda_E_rev']     
         
         # Inhibitory synapse from EXT to GPe
-        syn_Striatum_GPe = Synapses(self.Striatum, self.GPe, model='''
+        syn_MSND2_GPe = Synapses(self.MSND2, self.GPe, model='''
             g0_g : siemens
             E_GABA : volt
             w : 1
@@ -64,14 +66,14 @@ class GPeSTNSynapse:
             v_post += w * mV; g_g += g0_g
             ''')
 
-        syn_Striatum_GPe.connect(p = 0.25) 
-        syn_Striatum_GPe.w = 'rand()' 
-        syn_Striatum_GPe.g0_g = self.params['g0_g']
-        syn_Striatum_GPe.tau_GABA = self.params['gaba_tau_syn']  
-        syn_Striatum_GPe.E_GABA = self.params['gaba_E_rev']    
-        
-        # Excitatory synapse from Cortex to Striatum (MSN)
-        syn_Cortex_Striatum = Synapses(self.Cortex, self.Striatum, model='''
+        syn_MSND2_GPe.connect(p = 0.25) 
+        syn_MSND2_GPe.w = 1
+        syn_MSND2_GPe.g0_g = self.params['g0_g']
+        syn_MSND2_GPe.tau_GABA = self.params['gaba_tau_syn']  
+        syn_MSND2_GPe.E_GABA = self.params['gaba_E_rev']    
+    
+        # Excitatory synapse from Cortex to MSND1
+        syn_Cortex_MSND1 = Synapses(self.Cortex, self.MSND1, model='''
             g0_a : siemens
             g0_n : siemens
             E_AMPA : volt
@@ -91,14 +93,44 @@ class GPeSTNSynapse:
             v_post += w * mV; g_a += g0_a; g_n += g0_n
             ''')
 
-        syn_Cortex_Striatum.connect()
-        syn_Cortex_Striatum.w = 'rand()'
-        syn_Cortex_Striatum.g0_n = self.params['cs_g0_n']
-        syn_Cortex_Striatum.g0_a = self.params['cs_g0_a']
-        syn_Cortex_Striatum.tau_AMPA = self.params['cs_ampa_tau_syn']
-        syn_Cortex_Striatum.tau_NMDA = self.params['cs_nmda_tau_syn']
-        syn_Cortex_Striatum.E_AMPA = self.params['cs_ampa_E_rev']
-        syn_Cortex_Striatum.E_NMDA = self.params['cs_nmda_E_rev']
+        syn_Cortex_MSND1.connect(p = 0.4)
+        syn_Cortex_MSND1.w = 1
+        syn_Cortex_MSND1.g0_n = self.params['cs1_g0_n']
+        syn_Cortex_MSND1.g0_a = self.params['cs1_g0_a']
+        syn_Cortex_MSND1.tau_AMPA = self.params['cs1_ampa_tau_syn']
+        syn_Cortex_MSND1.tau_NMDA = self.params['cs1_nmda_tau_syn']
+        syn_Cortex_MSND1.E_AMPA = self.params['cs1_ampa_E_rev']
+        syn_Cortex_MSND1.E_NMDA = self.params['cs1_nmda_E_rev']
+            
+        # Excitatory synapse from Cortex to Striatum (MSN)
+        syn_Cortex_MSND2 = Synapses(self.Cortex, self.MSND2, model='''
+            g0_a : siemens
+            g0_n : siemens
+            E_AMPA : volt
+            E_NMDA : volt 
+            w : 1
+            tau_AMPA : second
+            tau_NMDA : second
+            dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
+            dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
+            I_AMPA_syn = w * g_a * (E_AMPA - v) * s_AMPA_ext: amp  # Output current variable
+            I_NMDA_syn = w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
+            ds_AMPA_ext / dt = - s_AMPA_ext / tau_AMPA : 1
+            I_syn_syn = I_AMPA_syn + I_NMDA_syn : amp 
+            Mg2 : 1
+            ''',
+            on_pre='''
+            v_post += w * mV; g_a += g0_a; g_n += g0_n
+            ''')
+
+        syn_Cortex_MSND2.connect(p = 0.75)
+        syn_Cortex_MSND2.w = 1
+        syn_Cortex_MSND2.g0_n = self.params['cs_g0_n']
+        syn_Cortex_MSND2.g0_a = self.params['cs_g0_a']
+        syn_Cortex_MSND2.tau_AMPA = self.params['cs_ampa_tau_syn']
+        syn_Cortex_MSND2.tau_NMDA = self.params['cs_nmda_tau_syn']
+        syn_Cortex_MSND2.E_AMPA = self.params['cs_ampa_E_rev']
+        syn_Cortex_MSND2.E_NMDA = self.params['cs_nmda_E_rev']
         
         # Excitatory synapse from Cortex to STN
         syn_Cortex_STN = Synapses(self.Cortex, self.STN, model='''
@@ -120,8 +152,8 @@ class GPeSTNSynapse:
             v_post += w * mV; g_a += g0_a; g_n += g0_n
             ''')
 
-        syn_Cortex_STN.connect()
-        syn_Cortex_STN.w = 'rand()'
+        syn_Cortex_STN.connect(p = 0.75)
+        syn_Cortex_STN.w = 1
         syn_Cortex_STN.g0_n = self.params['csn_g0_n']  
         syn_Cortex_STN.g0_a = self.params['csn_g0_a']  
         syn_Cortex_STN.tau_AMPA = self.params['csn_ampa_tau_syn']  
@@ -143,10 +175,79 @@ class GPeSTNSynapse:
             v_post += w * mV; g_g += g0_g
             ''')
 
-        syn_GPe_STN.connect()
-        syn_GPe_STN.w = 'rand()'
+        syn_GPe_STN.connect(p = 0.75)
+        syn_GPe_STN.w = 1
         syn_GPe_STN.g0_g = self.params['gsn_g0_g']  
         syn_GPe_STN.tau_GABA = self.params['gsn_gaba_tau_syn']  
         syn_GPe_STN.E_GABA = self.params['gsn_gaba_E_rev']
+        
+        # Inh synapse from GPe to SNr
+        syn_GPe_SNr = Synapses(self.GPe, self.SNr, model='''
+            g0_g : siemens
+            E_GABA : volt
+            w : 1
+            tau_GABA : second
+            dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
+            I_GABA_syn = w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_syn_syn = I_GABA_syn : amp 
+            ''', 
+            on_pre='''
+            v_post += w * mV; g_g += g0_g
+            ''')
 
-        return syn_STN_GPe, syn_Striatum_GPe, syn_Cortex_Striatum, syn_Cortex_STN, syn_GPe_STN
+        syn_GPe_SNr.connect(p = 0.75)
+        syn_GPe_SNr.w = 1
+        syn_GPe_SNr.g0_g = self.params['gsnr_g0_g']  
+        syn_GPe_SNr.tau_GABA = self.params['gsnr_gaba_tau_syn']  
+        syn_GPe_SNr.E_GABA = self.params['gsnr_gaba_E_rev']
+        
+        # Inh synapse from D1 to SNr
+        syn_MSND1_SNr = Synapses(self.MSND1, self.SNr, model='''
+            g0_g : siemens
+            E_GABA : volt
+            w : 1
+            tau_GABA : second
+            dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
+            I_GABA_syn = w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_syn_syn = I_GABA_syn : amp 
+            ''', 
+            on_pre='''
+            v_post += w * mV; g_g += g0_g
+            ''')
+
+        syn_MSND1_SNr.connect(p = 0.75)
+        syn_MSND1_SNr.w = 1
+        syn_MSND1_SNr.g0_g = self.params['d1snr_g0_g']  
+        syn_MSND1_SNr.tau_GABA = self.params['d1snr_gaba_tau_syn']  
+        syn_MSND1_SNr.E_GABA = self.params['d1snr_gaba_E_rev']
+
+        # Excitatory synapse from STN to STr
+        syn_STN_SNr = Synapses(self.STN, self.SNr, model='''
+            g0_a : siemens
+            g0_n : siemens
+            E_AMPA : volt
+            E_NMDA : volt 
+            w : 1
+            tau_AMPA : second
+            tau_NMDA : second
+            dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
+            dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
+            I_AMPA_syn = w * g_a * (E_AMPA - v) : amp  
+            I_NMDA_syn = w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
+            Mg2 : 1
+            I_syn_syn = I_AMPA_syn + I_NMDA_syn : amp 
+            ''',
+            on_pre='''
+            v_post += w * mV; g_a += g0_a; g_n += g0_n
+            ''')
+
+        syn_STN_SNr.connect(p = 0.5)
+        syn_STN_SNr.w = 1
+        syn_STN_SNr.g0_n = self.params['snsnr_g0_n']  
+        syn_STN_SNr.g0_a = self.params['snsnr_g0_a']  
+        syn_STN_SNr.tau_AMPA = self.params['snsnr_ampa_tau_syn']  
+        syn_STN_SNr.tau_NMDA = self.params['snsnr_nmda_tau_syn']  
+        syn_STN_SNr.E_AMPA = self.params['snsnr_ampa_E_rev']
+        syn_STN_SNr.E_NMDA = self.params['snsnr_nmda_E_rev']
+        
+        return syn_STN_GPe, syn_MSND2_GPe, syn_Cortex_MSND1, syn_Cortex_MSND2, syn_Cortex_STN, syn_GPe_STN, syn_GPe_SNr, syn_MSND1_SNr, syn_STN_SNr
