@@ -219,7 +219,7 @@ def run_simulation_with_inh_ext_input(
     sigma = 3 * Hz 
     
     # rates = TimedArray([0 * Hz, 200 * Hz, 0 * Hz], dt=300*ms)  # 0 Hz from 0-200 ms, 200 Hz from 200-500 ms, 0 Hz after
-    Cortex = PoissonGroup(N_Cortex, rates='10*Hz + (t >= 200*ms) * (t < 400*ms) * 100*Hz + sigma * randn()')
+    Cortex = PoissonGroup(N_Cortex, rates='100*Hz + (t >= 200*ms) * (t < 400*ms) * 300*Hz + sigma * randn()')
 
     """
     # https://brian.discourse.group/t/synapse-problem-with-brunel-wang-2001-example/1026
@@ -513,13 +513,13 @@ def plot_results_with_spikes(results, spike_monitor_gpe, spike_monitor_STN):
 
 ### Visualization with statemonitor result 
 def plot_raster(results):
-    plt.figure(figsize=(16, 12))
+    plt.figure(figsize=(7, 8))
 
     # 1. Cortex Neuron
     plt.subplot(6, 1, 1)
     plt.scatter(results['spike_monitor_cortex'].t/ms, results['spike_monitor_cortex'].i, s=2, color='red')
     plt.title('Cortex Population Raster Plot')
-    plt.xlabel('Time (ms)')
+    #plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
     plt.xlim(0, 1000)
 
@@ -527,7 +527,7 @@ def plot_raster(results):
     plt.subplot(6, 1, 2)
     plt.scatter(results['spike_monitor_msnd1'].t/ms, results['spike_monitor_msnd1'].i, s=2, color='orange')
     plt.title('MSND1 Population Raster Plot')
-    plt.xlabel('Time (ms)')
+    #plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
     plt.xlim(0, 1000)
     
@@ -535,7 +535,7 @@ def plot_raster(results):
     plt.subplot(6, 1, 3)
     plt.scatter(results['spike_monitor_msnd2'].t/ms, results['spike_monitor_msnd2'].i, s=2, color='orange')
     plt.title('MSND2 Population Raster Plot')
-    plt.xlabel('Time (ms)')
+    #plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
     plt.xlim(0, 1000)
 
@@ -543,7 +543,7 @@ def plot_raster(results):
     plt.subplot(6, 1, 4)
     plt.scatter(results['spike_monitor_gpe'].t/ms, results['spike_monitor_gpe'].i, s=2, color='blue')
     plt.title('GPe Population Raster Plot')
-    plt.xlabel('Time (ms)')
+    #plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
     plt.xlim(0, 1000)
 
@@ -551,7 +551,7 @@ def plot_raster(results):
     plt.subplot(6, 1, 5)
     plt.scatter(results['spike_monitor_STN'].t/ms, results['spike_monitor_STN'].i, s=2, color='green')
     plt.title('STN Population Raster Plot')
-    plt.xlabel('Time (ms)')
+    #plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
     plt.xlim(0, 1000)
 
@@ -559,7 +559,7 @@ def plot_raster(results):
     plt.subplot(6, 1, 6)
     plt.scatter(results['spike_monitor_snr'].t/ms, results['spike_monitor_snr'].i, s=2, color='green')
     plt.title('SNr Population Raster Plot')
-    plt.xlabel('Time (ms)')
+    #plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
     plt.xlim(0, 1000)
 
