@@ -9,7 +9,6 @@
         "th": {"value": 40, "unit": "mV"},
         "a": {"value": 0.01, "unit": "1/second"},
         "b": {"value": -20, "unit": "1/second"},
-        "c": {"value": -60, "unit": "mV"},
         "C": {"value": 15.2, "unit": "pF"},
         "d": {"value": 66.9, "unit": "volt/second"},
         "I": {"value": 0, "unit": "pA"}
