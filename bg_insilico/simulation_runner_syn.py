@@ -513,7 +513,7 @@ def plot_results_with_spikes(results, spike_monitor_gpe, spike_monitor_STN):
 
 ### Visualization with statemonitor result 
 def plot_raster(results):
-    plt.figure(figsize=(7, 8))
+    plt.figure(figsize=(9, 7))
 
     # 1. Cortex Neuron
     plt.subplot(6, 1, 1)
