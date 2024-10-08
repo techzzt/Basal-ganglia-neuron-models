@@ -26,31 +26,22 @@ class GPeSTNSynapse:
         # ext synapse from STN to GPe
         syn_STN_GPe = Synapses(self.STN, self.GPe, model='''
             g0_a : siemens
-            g0_n : siemens
             E_AMPA : volt
-            E_NMDA : volt 
             w : 1
             tau_AMPA : second
-            tau_NMDA : second
             dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
-            dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
             I_AMPA_syn = w * g_a * (E_AMPA - v) : amp  # Output current variable
-            I_NMDA_syn = w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
-            I_syn_syn = I_AMPA_syn + I_NMDA_syn : amp 
-            Mg2 : 1
+            I_syn_syn = I_AMPA_syn : amp 
             ''', 
             on_pre='''
-            v_post += w * mV; g_a += g0_a; g_n += g0_n
+            v_post += w * mV; g_a += g0_a
             ''')
 
         syn_STN_GPe.connect() 
         syn_STN_GPe.w = 1
-        syn_STN_GPe.g0_n = self.params['g0_n']
         syn_STN_GPe.g0_a = self.params['g0_a']
         syn_STN_GPe.tau_AMPA = self.params['ampa_tau_syn']  
-        syn_STN_GPe.tau_NMDA = self.params['nmda_tau_syn']  
         syn_STN_GPe.E_AMPA = self.params['ampa_E_rev']    
-        syn_STN_GPe.E_NMDA  = self.params['nmda_E_rev']     
         
         # Inhibitory synapse from EXT to GPe
         syn_MSND2_GPe = Synapses(self.MSND2, self.GPe, model='''
@@ -224,30 +215,21 @@ class GPeSTNSynapse:
         # Excitatory synapse from STN to STr
         syn_STN_SNr = Synapses(self.STN, self.SNr, model='''
             g0_a : siemens
-            g0_n : siemens
             E_AMPA : volt
-            E_NMDA : volt 
             w : 1
             tau_AMPA : second
-            tau_NMDA : second
             dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
-            dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
             I_AMPA_syn = w * g_a * (E_AMPA - v) : amp  
-            I_NMDA_syn = w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
-            Mg2 : 1
-            I_syn_syn = I_AMPA_syn + I_NMDA_syn : amp 
+            I_syn_syn = I_AMPA_syn : amp 
             ''',
             on_pre='''
-            v_post += w * mV; g_a += g0_a; g_n += g0_n
+            v_post += w * mV; g_a += g0_a
             ''')
 
         syn_STN_SNr.connect(p = 0.5)
         syn_STN_SNr.w = 1
-        syn_STN_SNr.g0_n = self.params['snsnr_g0_n']  
         syn_STN_SNr.g0_a = self.params['snsnr_g0_a']  
         syn_STN_SNr.tau_AMPA = self.params['snsnr_ampa_tau_syn']  
-        syn_STN_SNr.tau_NMDA = self.params['snsnr_nmda_tau_syn']  
         syn_STN_SNr.E_AMPA = self.params['snsnr_ampa_E_rev']
-        syn_STN_SNr.E_NMDA = self.params['snsnr_nmda_E_rev']
         
         return syn_STN_GPe, syn_MSND2_GPe, syn_Cortex_MSND1, syn_Cortex_MSND2, syn_Cortex_STN, syn_GPe_STN, syn_GPe_SNr, syn_MSND1_SNr, syn_STN_SNr
