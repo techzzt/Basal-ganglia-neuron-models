@@ -126,22 +126,18 @@ def run_simulation_with_currents(N, params, model_name, current_inputs):
     neuron_model = neuron_model_class(N, converted_params)
 
     # Create a network
-    network = Network(neuron_model.neurons)
-    
+    dv_monitor = StateMonitor(neuron_model.neurons, 'v', record=True)
+    spike_monitor = SpikeMonitor(neuron_model.neurons)
+    network = Network(neuron_model.neurons, dv_monitor, spike_monitor)
+
     # Store membrane potentials for all currents
-    membrane_potentials = {current: [] for current in current_inputs}  # Initialize with current values
-    total_duration = 1000 * ms  # Total simulation time
-    times = np.linspace(0, total_duration / ms, 1)  # Uniformly spaced time points
+    results = {'membrane_potential': {}}
 
     # Loop through the current inputs
     for current in current_inputs:
-        dv_monitor = StateMonitor(neuron_model.neurons, 'v', record=True)
-        spike_monitor = SpikeMonitor(neuron_model.neurons)
-        network.add([dv_monitor, spike_monitor])
-
         # Reset the current to 0 pA initially
         neuron_model.neurons.I = 0 * pA
-        network.run(duration=200 * ms)  # Initial period with no input
+        network.run(duration=200 * ms) 
 
         # Apply the current input for 200 ms
         neuron_model.neurons.I = current * pA
@@ -151,13 +147,14 @@ def run_simulation_with_currents(N, params, model_name, current_inputs):
         neuron_model.neurons.I = 0 * pA
         network.run(duration=600 * ms)
 
-        # Collect the membrane potential for the current input
-        membrane_potentials[current].append(dv_monitor.v[:])  # Append all recorded values
+        # Calculate average firing rate for all neurons
+        mem = dv_monitor.v[0] / mV,
 
-        # Remove monitors after each run to prevent accumulation
-        network.remove([dv_monitor, spike_monitor])
-
-    return times, membrane_potentials
+        # Store firing rates in results
+        # results['firing_rates'][current] = firing_rate
+        results['membrane_potential'][current] = mem
+        
+    return results
 
 def run_simulation_ctx(N, params, model_name):
     start_scope()
