@@ -297,19 +297,7 @@ def run_simulation_with_inh_ext_input(
     spike_monitor_msnd1 = SpikeMonitor(MSND1)
     spike_monitor_msnd2 = SpikeMonitor(MSND2)
     spike_monitor_snr= SpikeMonitor(SNr)
-    
-    # Process the results
-    v = dv_monitor_STN.v
-    u = dv_monitor_STN.u
 
-    vr = STN_params_converted['vr']
-    vr = vr.item()  
-    for i in range(len(v)):
-        for j in range(len(v[0])):
-            if u[i][j] < 0:
-                v[i][j] = clip(v[i][j], vr - 15 * mV, 20 * mV)
-            else:
-                v[i][j] = vr
     
     # Create a network and add components to it
     net = Network(GPe, STN, MSND1, MSND2, SNr, Cortex, syn_STN_GPe, syn_MSND2_GPe,

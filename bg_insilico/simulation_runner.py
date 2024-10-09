@@ -2,6 +2,7 @@ import json
 import numpy as np
 from brian2 import mV, pA, siemens, ms, farad, second, pF, nS, Hz, volt, ohm
 from brian2 import Network, StateMonitor, SpikeMonitor, PopulationRateMonitor, start_scope
+from brian2 import *
 import importlib
 import matplotlib.pyplot as plt 
 from result import Visualization
@@ -91,13 +92,140 @@ def run_simulation(N, params, model_name):
     Initialize_time = 200 * ms
     network.run(duration = Initialize_time)
 
-    neuron_model.neurons.I = increase_I 
+    neuron_model.neurons.I = 100 * pA  
     time_after_increase = 300 * ms 
     network.run(duration=time_after_increase)
     
     neuron_model.neurons.I = 0 * pA
     remaining_time = 1000 * ms - (Initialize_time + time_after_increase)
     network.run(duration = remaining_time)
+    
+    # Collect results
+    results = {
+        'times': dv_monitor.t / ms,
+        'membrane_potential': dv_monitor.v[0] / mV,
+        'current': current_monitor.I[0] / pA
+    }
+
+    return results
+
+def run_simulation_with_currents(N, params, model_name, current_inputs):
+    start_scope()
+    
+    # Load neuron model dynamically
+    module_path = f'models/{model_name}.py'
+    spec = importlib.util.spec_from_file_location(model_name, module_path)
+    model_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(model_module)
+    neuron_model_class = model_module.NeuronModel
+
+    # Convert parameters
+    converted_params = convert_units(params)
+
+    # Initialize neuron model
+    neuron_model = neuron_model_class(N, converted_params)
+
+    # Create a network
+    network = Network(neuron_model.neurons)
+    
+    # Store membrane potentials for all currents
+    membrane_potentials = {current: [] for current in current_inputs}  # Initialize with current values
+    total_duration = 1000 * ms  # Total simulation time
+    times = np.linspace(0, total_duration / ms, 1)  # Uniformly spaced time points
+
+    # Loop through the current inputs
+    for current in current_inputs:
+        dv_monitor = StateMonitor(neuron_model.neurons, 'v', record=True)
+        spike_monitor = SpikeMonitor(neuron_model.neurons)
+        network.add([dv_monitor, spike_monitor])
+
+        # Reset the current to 0 pA initially
+        neuron_model.neurons.I = 0 * pA
+        network.run(duration=200 * ms)  # Initial period with no input
+
+        # Apply the current input for 200 ms
+        neuron_model.neurons.I = current * pA
+        network.run(duration=200 * ms)
+
+        # Reset the current to 0 pA again for the remaining time
+        neuron_model.neurons.I = 0 * pA
+        network.run(duration=600 * ms)
+
+        # Collect the membrane potential for the current input
+        membrane_potentials[current].append(dv_monitor.v[:])  # Append all recorded values
+
+        # Remove monitors after each run to prevent accumulation
+        network.remove([dv_monitor, spike_monitor])
+
+    return times, membrane_potentials
+
+def run_simulation_ctx(N, params, model_name):
+    start_scope()
+
+    # Load neuron model dynamically
+    module_path = f'models/{model_name}.py'
+    spec = importlib.util.spec_from_file_location(model_name, module_path)
+    model_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(model_module)
+    neuron_model_class = model_module.NeuronModel
+
+    # Convert parameters
+    converted_params = convert_units(params)
+
+    # Handle input current
+    I_value = params['I']['value']
+    I_unit = params['I']['unit']
+    
+    if I_unit == 'pA':
+        initial_I = 0 * pA  
+        increase_I = I_value * pA  
+    elif I_unit == 'volt/second':
+        initial_I = 0 * volt/second  
+        increase_I = I_value * (volt / second) * 1e12  
+    else:
+        print(f"Unknown unit for I: {I_unit}")
+        initial_I = 0 * pA  
+        increase_I = initial_I  
+
+    converted_params['I'] = initial_I  
+
+    # Initialize neuron model
+    neuron_model = neuron_model_class(N, converted_params)
+    
+    # Set up monitors before initial run
+    dv_monitor = StateMonitor(neuron_model.neurons, 'v', record=True)
+    spike_monitor = SpikeMonitor(neuron_model.neurons)
+    current_monitor = StateMonitor(neuron_model.neurons, 'I', record=True)
+
+    # Create a Poisson input group
+    poisson_rate = 10 * Hz  # Adjust rate as needed
+    sigma = 3 * Hz 
+    input_group = PoissonGroup(N, rates='100*Hz + (t >= 200*ms) * (t < 400*ms) * 300*Hz + sigma * randn()')
+
+    # Synapse to connect Poisson input to neuron model
+    syn = Synapses(input_group, neuron_model.neurons, on_pre='v_post += 0.1 * mV')  # Adjust weight as needed
+    syn.connect()
+
+    # Add noise to the membrane potential equation
+    # Assuming your neuron model allows modifying the dv/dt equation with noise
+    # For example, if dv/dt = (rest_v - v)/tau + sigma * xi (xi = Gaussian noise term)
+    # Make sure to adjust 'sigma' and 'tau' based on your model's specific formulation
+
+    network = Network(neuron_model.neurons, dv_monitor, spike_monitor, current_monitor, input_group, syn)
+ 
+    # neuron_model.neurons.v[0] = -80 * mV
+
+    neuron_model.neurons.I = 0 * pA  
+    Initialize_time = 200 * ms
+    network.run(duration=Initialize_time)
+
+    neuron_model.neurons.I = 0 * pA  
+    time_after_increase = 300 * ms 
+    network.run(duration=time_after_increase)
+    
+    neuron_model.neurons.I = 0 * pA
+    remaining_time = 1000 * ms - (Initialize_time + time_after_increase)
+    network.run(duration=remaining_time)
     
     # Collect results
     results = {
@@ -151,7 +279,7 @@ def run_simulation_noise(N, params, model_name):
     
     network = Network(neuron_model.neurons, dv_monitor, spike_monitor, current_monitor, noise_monitor)
  
-    neuron_model.neurons.v[0] = -80 * mV
+    # neuron_model.neurons.v[0] = -80 * mV
 
     neuron_model.neurons.I = 0 * pA  
     Initialize_time = 200 * ms
@@ -179,26 +307,20 @@ def run_simulation_noise(N, params, model_name):
 
 
 def plot_results(results):
-    plt.figure(figsize = (15, 8))
+    plt.figure(figsize = (9, 4))
     times = results['times']
     membrane_potential = results['membrane_potential']
     current = results['current']
 
-    fig, axes = plt.subplots(2, 1, figsize=(10, 8))
+    # fig, axes = plt.subplots(2, 1, figsize=(10, 8))
 
-    axes[0].plot(times, membrane_potential)
-    axes[0].set_title('Membrane Potential')
-    axes[0].set_xlabel('Time (ms)')
-    axes[0].set_ylabel('Membrane Potential (mV)')
-    axes[0].set_ylim([-120, 0])
-    axes[0].set_xlim(left=0)
-
-    axes[1].plot(times, current)
-    axes[1].set_title('Current')
-    axes[1].set_xlabel('Time (ms)')
-    axes[1].set_ylabel('Current (pA)')
-    axes[1].set_xlim(left=0)
-
+    plt.plot(times, membrane_potential)
+    # plt.set_title('Membrane Potential')
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Membrane Potential (mV)')
+    # axes[0].set_ylim([-80, 20])
+    plt.xlim(left=0)
+    
     plt.tight_layout()
     plt.show()
 
