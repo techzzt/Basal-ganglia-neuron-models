@@ -148,10 +148,16 @@ def run_simulation_with_currents(N, params, model_name, current_inputs):
         network.run(duration=600 * ms)
 
         # Calculate average firing rate for all neurons
-        mem = dv_monitor.v[0] / mV,
+        mem = dv_monitor.v[0] / mV 
+        spike_times = spike_monitor.t / ms
+        dt = defaultclock.dt / ms
+        dv_times = dv_monitor.t / ms 
+        th = converted_params['th'] 
 
-        # Store firing rates in results
-        # results['firing_rates'][current] = firing_rate
+        for t in spike_times:
+            closest_idx = np.argmin(np.abs(dv_times - t)) 
+            mem[closest_idx] = th  
+
         results['membrane_potential'][current] = mem
         
     return results
@@ -169,23 +175,6 @@ def run_simulation_ctx(N, params, model_name):
     # Convert parameters
     converted_params = convert_units(params)
 
-    # Handle input current
-    I_value = params['I']['value']
-    I_unit = params['I']['unit']
-    
-    if I_unit == 'pA':
-        initial_I = 0 * pA  
-        increase_I = I_value * pA  
-    elif I_unit == 'volt/second':
-        initial_I = 0 * volt/second  
-        increase_I = I_value * (volt / second) * 1e12  
-    else:
-        print(f"Unknown unit for I: {I_unit}")
-        initial_I = 0 * pA  
-        increase_I = initial_I  
-
-    converted_params['I'] = initial_I  
-
     # Initialize neuron model
     neuron_model = neuron_model_class(N, converted_params)
     
@@ -195,7 +184,6 @@ def run_simulation_ctx(N, params, model_name):
     current_monitor = StateMonitor(neuron_model.neurons, 'I', record=True)
 
     # Create a Poisson input group
-    poisson_rate = 10 * Hz  # Adjust rate as needed
     sigma = 3 * Hz 
     input_group = PoissonGroup(N, rates='100*Hz + (t >= 200*ms) * (t < 400*ms) * 300*Hz + sigma * randn()')
 
@@ -203,31 +191,27 @@ def run_simulation_ctx(N, params, model_name):
     syn = Synapses(input_group, neuron_model.neurons, on_pre='v_post += 0.1 * mV')  # Adjust weight as needed
     syn.connect()
 
-    # Add noise to the membrane potential equation
-    # Assuming your neuron model allows modifying the dv/dt equation with noise
-    # For example, if dv/dt = (rest_v - v)/tau + sigma * xi (xi = Gaussian noise term)
-    # Make sure to adjust 'sigma' and 'tau' based on your model's specific formulation
-
     network = Network(neuron_model.neurons, dv_monitor, spike_monitor, current_monitor, input_group, syn)
  
     # neuron_model.neurons.v[0] = -80 * mV
 
-    neuron_model.neurons.I = 0 * pA  
-    Initialize_time = 200 * ms
-    network.run(duration=Initialize_time)
-
-    neuron_model.neurons.I = 0 * pA  
-    time_after_increase = 300 * ms 
-    network.run(duration=time_after_increase)
-    
     neuron_model.neurons.I = 0 * pA
-    remaining_time = 1000 * ms - (Initialize_time + time_after_increase)
-    network.run(duration=remaining_time)
+    network.run(duration=1000 * ms)
     
+    membrane_potential = dv_monitor.v[0] / mV
+    spike_times = spike_monitor.t / ms
+    dt = defaultclock.dt / ms
+    dv_times = dv_monitor.t / ms  # Times recorded for membrane potential
+    th = converted_params['th']  # Threshold value
+
+    for t in spike_times:
+        closest_idx = np.argmin(np.abs(dv_times - t))  # Find the closest time index in dv_monitor
+        membrane_potential[closest_idx] = th  # Set the membrane potential at the closest time to the threshold value
+
     # Collect results
     results = {
         'times': dv_monitor.t / ms,
-        'membrane_potential': dv_monitor.v[0] / mV,
+        'membrane_potential': membrane_potential,
         'current': current_monitor.I[0] / pA
     }
 
