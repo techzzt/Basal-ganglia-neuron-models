@@ -75,7 +75,7 @@ class GPeSTNSynapse:
             dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
             dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
             I_AMPA_syn = w * g_a * (E_AMPA - v) : amp  # Output current variable
-            I_NMDA_syn = w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
+            I_NMDA_syn =  - 0.832 * w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
             I_syn_syn = I_AMPA_syn + I_NMDA_syn : amp 
             Mg2 : 1
             ''',
@@ -103,9 +103,10 @@ class GPeSTNSynapse:
             tau_NMDA : second
             dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
             dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
-            I_AMPA_syn = w * g_a * (E_AMPA - v) : amp  # Output current variable
+            I_AMPA_syn = w * g_a * (E_AMPA - v) * s_AMPA_ext: amp  # Output current variable
             I_NMDA_syn = w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
-            I_syn_syn = I_AMPA_syn + I_NMDA_syn : amp 
+            ds_AMPA_ext / dt = - s_AMPA_ext / tau_AMPA : 1
+            I_syn_syn = 0.208 * I_AMPA_syn + I_NMDA_syn : amp 
             Mg2 : 1
             ''',
             on_pre='''
