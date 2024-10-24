@@ -2,8 +2,9 @@ import json
 from brian2 import *
 from brian2 import profiling_summary
 
-from Neuronmodels.GPe_STN import GPeSTNSynapse
-from Neuronmodels.GPe import GPe
+from Neuronmodels.GPe_STN_inh_ext_dop import Synapse
+from Neuronmodels.GPeTA import GPeTA
+from Neuronmodels.GPeT1 import GPeT1
 from Neuronmodels.STN import STN
 import matplotlib.pyplot as plt
 import importlib
@@ -67,7 +68,7 @@ def run_simulation(N_1, N_2, params_file_1, params_file_2, synapse_params, model
     synapse_module = importlib.import_module(f'Neuronmodels.{synapse_class}')
 
     # Set up the synapses between the two neuron groups
-    synapse = synapse_module.GPeSTNSynapse(neurons_1, neurons_2, synapse_params)
+    synapse = synapse_module.Synapse(neurons_1, neurons_2, synapse_params)
     syn_generic = synapse.create_synapse()
 
     # Set up the monitors
@@ -130,7 +131,7 @@ def run_simulation_with_input(N_GPe, N_STN, gpe_params_file, STN_params_file, sy
 
     # Set up the synapses between GPe and STN
     synapse = importlib.import_module(f'Neuronmodels.{synapse_class}')
-    synapse_instance = synapse.GPeSTNSynapse(GPe, STN, synapse_params)
+    synapse_instance = synapse.Synapse(GPe, STN, synapse_params)
     syn_GPe_STN = synapse_instance.create_synapse()
 
     # Set up monitors for both neuron groups
@@ -179,36 +180,46 @@ def run_simulation_with_input(N_GPe, N_STN, gpe_params_file, STN_params_file, sy
     }
 
 def run_simulation_with_inh_ext_input(
-    N_GPe, N_STN, N_MSN, N_SNr, gpe_params_file, STN_params_file, msnd1_params_file, msnd2_params_file, snr_params_file, synapse_params, 
-    model_class_gpe, model_class_STN, model_class_msnd1, model_class_msnd2, model_class_snr, synapse_class, input_condition='slow_wave'):
+    N_FSN, N_GPe, N_STN, N_MSN, N_SNr, fsn_params_file, gpet1_params_file, gpeta_params_file, STN_params_file, msnd1_params_file, msnd2_params_file, snr_params_file, synapse_params, 
+    model_class_fsn, model_class_gpet1, model_class_gpeta, model_class_STN, model_class_msnd1, model_class_msnd2, model_class_snr, synapse_class, input_condition='slow_wave'):
 
-    _, gpe_params, gpe_model_name = load_params(gpe_params_file)
+    _, fsn_params, fsn_model_name = load_params(fsn_params_file)
+    _, gpet1_params, gpet1_model_name = load_params(gpet1_params_file)
+    _, gpeta_params, gpeta_model_name = load_params(gpeta_params_file)
     _, STN_params, STN_model_name = load_params(STN_params_file)
     _, msnd1_params, msnd1_model_name = load_params(msnd1_params_file)
     _, msnd2_params, msnd2_model_name = load_params(msnd2_params_file)
     _, snr_params, snr_model_name = load_params(snr_params_file)
 
-    gpe_params_converted = convert_units(gpe_params)
+    fsn_params_converted = convert_units(fsn_params)
+    gpet1_params_converted = convert_units(gpet1_params)
+    gpeta_params_converted = convert_units(gpeta_params)
     STN_params_converted = convert_units(STN_params)
     msnd1_params_converted = convert_units(msnd1_params)
     msnd2_params_converted = convert_units(msnd2_params)
     snr_params_converted = convert_units(snr_params)
 
-    model_module_gpe = importlib.import_module(f'Neuronmodels.{model_class_gpe}')
+    model_module_fsn = importlib.import_module(f'Neuronmodels.{model_class_fsn}')
+    model_module_gpet1 = importlib.import_module(f'Neuronmodels.{model_class_gpet1}')
+    model_module_gpeta = importlib.import_module(f'Neuronmodels.{model_class_gpeta}')
     model_module_STN = importlib.import_module(f'Neuronmodels.{model_class_STN}')
     model_module_msnd1 = importlib.import_module(f'Neuronmodels.{model_class_msnd1}')
     model_module_msnd2 = importlib.import_module(f'Neuronmodels.{model_class_msnd2}')
     model_module_snr = importlib.import_module(f'Neuronmodels.{model_class_snr}')
 
     # Initialize the neuron models
-    gpe_model = getattr(model_module_gpe, model_class_gpe)(N=N_GPe, params=gpe_params_converted, neuron_type="E")
+    fsn_model = getattr(model_module_fsn, model_class_fsn)(N=N_FSN, params=fsn_params_converted, neuron_type="E")
+    gpet1_model = getattr(model_module_gpet1, model_class_gpet1)(N=N_GPe, params=gpet1_params_converted, neuron_type="E")
+    gpeta_model = getattr(model_module_gpeta, model_class_gpeta)(N=N_GPe, params=gpeta_params_converted, neuron_type="E")
     STN_model = getattr(model_module_STN, model_class_STN)(N=N_STN, params=STN_params_converted, neuron_type="E")
     msnd1_model = getattr(model_module_msnd1, model_class_msnd1)(N=N_MSN, params=msnd1_params_converted, neuron_type="E")
     msnd2_model = getattr(model_module_msnd2, model_class_msnd2)(N=N_MSN, params=msnd2_params_converted, neuron_type="E")
     snr_model = getattr(model_module_snr, model_class_snr)(N=N_SNr, params=snr_params_converted, neuron_type="E")
 
     # Create neurons for GPe, STN, and MSND2
-    GPe = gpe_model.create_neurons()
+    FSN = fsn_model.create_neurons()
+    GPeT1 = gpet1_model.create_neurons()
+    GPeTA = gpeta_model.create_neurons()
     STN = STN_model.create_neurons()
     MSND1 = msnd1_model.create_neurons()
     MSND2 = msnd2_model.create_neurons()
@@ -280,18 +291,22 @@ def run_simulation_with_inh_ext_input(
 
     # Set up synapses (inhibitory and excitatory) using an imported synapse model
     synapse_module = importlib.import_module(f'Neuronmodels.{synapse_class}')
-    synapse_instance = synapse_module.GPeSTNSynapse(GPe, STN, MSND1, MSND2, SNr, Cortex, synapse_params)
+    synapse_instance = synapse_module.Synapse(FSN, GPeT1, GPeTA, STN, MSND1, MSND2, SNr, Cortex, synapse_params)
 
     # Create synapses from GPe to STN, Cortex to MSND2, and Cortex to STN
-    syn_STN_GPe, syn_MSND2_GPe, syn_Cortex_MSND1, syn_Cortex_MSND2, syn_Cortex_STN, syn_GPe_STN, syn_GPe_SNr, syn_MSND1_SNr, syn_STN_SNr = synapse_instance.create_synapse()
+    syn_Cortex_FSN, syn_Cortex_MSND1, syn_Cortex_MSND2, syn_Cortex_STN, syn_FSN_FSN, syn_FSN_MSND1, syn_FSN_MSND2, syn_MSND1_SNr, syn_MSND1_MSND1, syn_MSND1_MSND2, syn_MSND2_MSND2, syn_MSND2_MSND1, syn_MSND2_GPeT1, syn_STN_GPeT1, syn_STN_GPeTA, syn_STN_SNr, syn_GPeT1_FSN, syn_GPeT1_STN, syn_GPeT1_SNr, syn_GPeT1_GPeT1, syn_GPeT1_GPeTA, syn_GPeTA_GPeT1, syn_GPeTA_GPeTA, syn_GPeTA_FSN, syn_GPeTA_MSND1, syn_GPeTA_MSND2 = synapse_instance.create_synapse()
     
     # Set up monitors to track membrane potentials and spikes in each neuron group
-    dv_monitor_gpe = StateMonitor(GPe, 'v', record=True)
+    dv_monitor_fsn = StateMonitor(FSN, 'v', record=True)
+    dv_monitor_gpet1 = StateMonitor(GPeT1, 'v', record=True)
+    dv_monitor_gpeta = StateMonitor(GPeTA, 'v', record=True)
     dv_monitor_STN = StateMonitor(STN, ['v', 'u', 'I_syn'], record=True)
     dv_monitor_msnd1= StateMonitor(MSND1, 'v', record=True)
     dv_monitor_msnd2= StateMonitor(MSND2, 'v', record=True)
     dv_monitor_snr= StateMonitor(SNr, 'v', record=True)
-    spike_monitor_gpe = SpikeMonitor(GPe)
+    spike_monitor_fsn = SpikeMonitor(FSN)
+    spike_monitor_gpet1 = SpikeMonitor(GPeT1)
+    spike_monitor_gpeta = SpikeMonitor(GPeTA)
     spike_monitor_STN = SpikeMonitor(STN)
     spike_monitor_cortex = SpikeMonitor(Cortex)
     spike_monitor_msnd1 = SpikeMonitor(MSND1)
@@ -300,16 +315,17 @@ def run_simulation_with_inh_ext_input(
 
     
     # Create a network and add components to it
-    net = Network(GPe, STN, MSND1, MSND2, SNr, Cortex, syn_STN_GPe, syn_MSND2_GPe,
-                  syn_Cortex_MSND1, syn_Cortex_MSND2, syn_Cortex_STN, syn_GPe_STN, syn_GPe_SNr, syn_MSND1_SNr, syn_STN_SNr, dv_monitor_gpe, 
-                  dv_monitor_STN, dv_monitor_msnd1, dv_monitor_msnd2, dv_monitor_snr, spike_monitor_gpe, 
+    net = Network(FSN, GPeT1, GPeTA, STN, MSND1, MSND2, SNr, Cortex, syn_Cortex_FSN, syn_Cortex_MSND1, syn_Cortex_MSND2, syn_Cortex_STN, syn_FSN_FSN, syn_FSN_MSND1, syn_FSN_MSND2, syn_MSND1_SNr, syn_MSND1_MSND1, syn_MSND1_MSND2, syn_MSND2_MSND2, syn_MSND2_MSND1, syn_MSND2_GPeT1, syn_STN_GPeT1, syn_STN_GPeTA, syn_STN_SNr, syn_GPeT1_FSN, syn_GPeT1_STN, syn_GPeT1_SNr, syn_GPeT1_GPeT1, syn_GPeT1_GPeTA, syn_GPeTA_GPeT1, syn_GPeTA_GPeTA, syn_GPeTA_FSN, syn_GPeTA_MSND1, syn_GPeTA_MSND2, 
+                  dv_monitor_fsn, dv_monitor_gpet1, dv_monitor_gpeta, dv_monitor_STN, dv_monitor_msnd1, dv_monitor_msnd2, dv_monitor_snr, spike_monitor_fsn, spike_monitor_gpet1, spike_monitor_gpeta, 
                   spike_monitor_STN, spike_monitor_cortex, spike_monitor_msnd1, spike_monitor_msnd2, spike_monitor_snr)
 
     # Run the network simulation
     simulation_duration = 1000 * ms
     net.run(1000*ms)
     
-    gpe_firing_rate = spike_monitor_gpe.count / (simulation_duration / second)
+    fsn_firing_rate = spike_monitor_fsn.count / (simulation_duration / second)
+    gpet1_firing_rate = spike_monitor_gpet1.count / (simulation_duration / second)
+    gpeta_firing_rate = spike_monitor_gpeta.count / (simulation_duration / second)
     STN_firing_rate = spike_monitor_STN.count / (simulation_duration / second)
     cortex_firing_rate = spike_monitor_cortex.count / (simulation_duration / second)
     msnd1_firing_rate = spike_monitor_msnd1.count / (simulation_duration / second)
@@ -318,9 +334,14 @@ def run_simulation_with_inh_ext_input(
 
     # Return results for analysis
     return {
-        'gpe_times': dv_monitor_gpe.t / ms,
-        'gpe_membrane_potential': dv_monitor_gpe.v[0] / mV,
-        'STN_times': dv_monitor_STN.t / ms,
+        'fsn_times': dv_monitor_fsn.t / ms,
+        'fsn_membrane_potential': dv_monitor_fsn.v[0] / mV,
+        'gpet1_times': dv_monitor_gpet1.t / ms,
+        'gpeta_times': dv_monitor_gpeta.t / ms,
+        'gpet1_membrane_potential': dv_monitor_gpet1.v[0] / mV,
+        'gpet1_times': dv_monitor_gpet1.t / ms,
+        'gpeta_membrane_potential': dv_monitor_gpeta.v[0] / mV,
+        'gpeta_times': dv_monitor_gpeta.t / ms,
         'STN_membrane_potential': dv_monitor_STN.v[0] / mV,
         'STN_I_syn': dv_monitor_STN.I_syn[0] / nA,   
         'msnd1_times': dv_monitor_msnd1.t / ms,
@@ -328,21 +349,27 @@ def run_simulation_with_inh_ext_input(
         'snr_times': dv_monitor_snr.t / ms,
         'msnd1_membrane_potential': dv_monitor_msnd1.v[0] / mV,
         'msnd2_membrane_potential': dv_monitor_msnd2.v[0] / mV,
-        'gpe_spikes': spike_monitor_gpe.count,
+        'fsn_spikes': spike_monitor_fsn.count,
+        'gpet1_spikes': spike_monitor_gpet1.count,
+        'gpeta_spikes': spike_monitor_gpeta.count,
         'STN_spikes': spike_monitor_STN.count,
         'MSND1_spikes': spike_monitor_msnd1.count,
         'MSND2_spikes': spike_monitor_msnd2.count,        
         'SNr_spikes': spike_monitor_snr.count,
         'cortex_spikes': spike_monitor_cortex.count,
         'firing_rates': {
-            'gpe': gpe_firing_rate,
+            'fsn': fsn_firing_rate,
+            'gpet1': gpet1_firing_rate,
+            'gpeta': gpeta_firing_rate,
             'STN': STN_firing_rate,
             'cortex': cortex_firing_rate,
             'msnd1': msnd1_firing_rate,
             'msnd2': msnd2_firing_rate,
             'snr': snr_firing_rate
         },
-        'spike_monitor_gpe': spike_monitor_gpe,
+        'spike_monitor_fsn': spike_monitor_fsn,
+        'spike_monitor_gpet1': spike_monitor_gpet1,
+        'spike_monitor_gpeta': spike_monitor_gpeta,
         'spike_monitor_STN': spike_monitor_STN,
         'spike_monitor_msnd1': spike_monitor_msnd1, 
         'spike_monitor_msnd2': spike_monitor_msnd2, 
@@ -501,10 +528,10 @@ def plot_results_with_spikes(results, spike_monitor_gpe, spike_monitor_STN):
 
 ### Visualization with statemonitor result 
 def plot_raster(results):
-    plt.figure(figsize=(9, 7))
+    plt.figure(figsize=(9, 15))
 
     # 1. Cortex Neuron
-    plt.subplot(6, 1, 1)
+    plt.subplot(8, 1, 1)
     plt.scatter(results['spike_monitor_cortex'].t/ms, results['spike_monitor_cortex'].i, s=2, color='red')
     plt.title('Cortex Population Raster Plot')
     #plt.xlabel('Time (ms)')
@@ -512,7 +539,7 @@ def plot_raster(results):
     plt.xlim(0, 1000)
 
     # 2. MSND1 Neuron
-    plt.subplot(6, 1, 2)
+    plt.subplot(8, 1, 2)
     plt.scatter(results['spike_monitor_msnd1'].t/ms, results['spike_monitor_msnd1'].i, s=2, color='orange')
     plt.title('MSND1 Population Raster Plot')
     #plt.xlabel('Time (ms)')
@@ -520,31 +547,47 @@ def plot_raster(results):
     plt.xlim(0, 1000)
     
     # 3. MSND2 Neuron
-    plt.subplot(6, 1, 3)
+    plt.subplot(8, 1, 3)
     plt.scatter(results['spike_monitor_msnd2'].t/ms, results['spike_monitor_msnd2'].i, s=2, color='orange')
     plt.title('MSND2 Population Raster Plot')
     #plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
     plt.xlim(0, 1000)
 
-    # 4. GPe Neuron
-    plt.subplot(6, 1, 4)
-    plt.scatter(results['spike_monitor_gpe'].t/ms, results['spike_monitor_gpe'].i, s=2, color='blue')
-    plt.title('GPe Population Raster Plot')
+    # 4. FSM Neuron
+    plt.subplot(8, 1, 4)
+    plt.scatter(results['spike_monitor_fsn'].t/ms, results['spike_monitor_fsn'].i, s=2, color='orange')
+    plt.title('FSN Population Raster Plot')
     #plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
     plt.xlim(0, 1000)
 
-    # 5. STN Neuron
-    plt.subplot(6, 1, 5)
+    # 5. GPe Neuron
+    plt.subplot(8, 1, 5)
+    plt.scatter(results['spike_monitor_gpet1'].t/ms, results['spike_monitor_gpet1'].i, s=2, color='blue')
+    plt.title('GPeT1 Population Raster Plot')
+    #plt.xlabel('Time (ms)')
+    plt.ylabel('Neuron Index')
+    plt.xlim(0, 1000)
+    
+    # 6. GPe Neuron
+    plt.subplot(8, 1, 6)
+    plt.scatter(results['spike_monitor_gpeta'].t/ms, results['spike_monitor_gpeta'].i, s=2, color='blue')
+    plt.title('GPeTA Population Raster Plot')
+    #plt.xlabel('Time (ms)')
+    plt.ylabel('Neuron Index')
+    plt.xlim(0, 1000)
+   
+    # 7. STN Neuron
+    plt.subplot(8, 1, 7)
     plt.scatter(results['spike_monitor_STN'].t/ms, results['spike_monitor_STN'].i, s=2, color='green')
     plt.title('STN Population Raster Plot')
     #plt.xlabel('Time (ms)')
     plt.ylabel('Neuron Index')
     plt.xlim(0, 1000)
 
-    # 6. SNr Neuron
-    plt.subplot(6, 1, 6)
+    # 8. SNr Neuron
+    plt.subplot(8, 1, 8)
     plt.scatter(results['spike_monitor_snr'].t/ms, results['spike_monitor_snr'].i, s=2, color='green')
     plt.title('SNr Population Raster Plot')
     #plt.xlabel('Time (ms)')
