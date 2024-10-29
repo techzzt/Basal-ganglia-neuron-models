@@ -20,7 +20,6 @@ neuron models should be put under ```./bg_insilico```
 - models/model{}.py: define quadratic integrate and fire model (AdEx, LIF, QIF, HH, Izh)
 - params: parameter list with json format
 - simulation_runner.py: generate neuron model, spike mornitoring
-- simulation_runner.py: generate neuron model, spike mornitoring with various I 
 - test.ipynb: define params, simulation
 
 
