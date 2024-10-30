@@ -18,6 +18,7 @@ def load_params(json_file):
     N = params.pop('N')['value'] 
     return N, params, model_name
 
+
 def convert_units(params):
     converted_params = {}
     for param, info in params.items():
@@ -40,18 +41,42 @@ def convert_units(params):
         converted_params[param] = value
     return converted_params
 
+
 def run_simulation_with_inh_ext_input(neuron_configs, synapse_params, synapse_class, simulation_duration=1000*ms):
     neurons = {}
     monitors = {}
     
+    cortex_config = next((config for config in neuron_configs if config['name'] == 'Cortex'), None)
+
     for config in neuron_configs:
         if config.get('neuron_type') == 'poisson':
-            # generate cortex - poisson 
-            neurons[config['name']] = PoissonGroup(
-                config['N'], 
-                rates=config.get('rate_equation', '50*Hz')
-            )
-            monitors[f'{config["name"]}_spikes'] = SpikeMonitor(neurons[config['name']])
+            # multiple cortex
+            if isinstance(config.get('target_rates'), dict):
+                neurons['Cortex'] = PoissonGroup(
+                    config['N'],
+                    rates=config['target_rates'].get('default', {}).get(
+                        'equation',
+                        '50*Hz + (t >= 200*ms) * (t < 400*ms) * 200*Hz + 3*Hz * randn()'
+                    )
+                )
+                monitors['Cortex_spikes'] = SpikeMonitor(neurons['Cortex'])
+                
+                # cell - cortex
+                for target, rate_info in config['target_rates'].items():
+                    if target != 'default':
+                        cortex_name = f"Cortex_{target}"
+                        neurons[cortex_name] = PoissonGroup(
+                            config['N'], 
+                            rates=rate_info['equation']
+                        )
+                        monitors[f'{cortex_name}_spikes'] = SpikeMonitor(neurons[cortex_name])
+            else:
+                # single cortex
+                neurons[config['name']] = PoissonGroup(
+                    config['N'], 
+                    rates=config.get('rate_equation', '50*Hz')
+                )
+                monitors[f'{config["name"]}_spikes'] = SpikeMonitor(neurons[config['name']])
             
         else:  # regular neurons
             try:
@@ -66,14 +91,12 @@ def run_simulation_with_inh_ext_input(neuron_configs, synapse_params, synapse_cl
                 )
                 
                 neurons[config['name']] = model.create_neurons()
-                # 일반 뉴런은 voltage monitor와 spike monitor 모두 생성
                 monitors[f'{config["name"]}_v'] = StateMonitor(neurons[config['name']], 'v', record=True)
                 monitors[f'{config["name"]}_spikes'] = SpikeMonitor(neurons[config['name']])
             except KeyError as e:
                 print(f"Error processing neuron config for {config['name']}: Missing {e}")
                 raise
 
-    # make synapse 
     synapse_module = importlib.import_module(f'Neuronmodels.{synapse_class}')
     synapse_instance = synapse_module.Synapse(neurons, synapse_params)
     synapse_connections = synapse_instance.create_synapse()
@@ -81,7 +104,7 @@ def run_simulation_with_inh_ext_input(neuron_configs, synapse_params, synapse_cl
     # network
     net_components = (
         list(neurons.values()) + 
-        list(synapse_connections) +  # 튜플을 직접 리스트로 변환
+        list(synapse_connections) +  
         list(monitors.values())
     )    
     net = Network(*net_components)
