@@ -11,17 +11,17 @@ class NeuronModel:
         raise NotImplementedError("Subclasses should implement this method.")
 
 class Synapse:
-    def __init__(self, FSN, GPeT1, GPeTA, STN, MSND1, MSND2, SNr, Cortex, params):
-        self.FSN = FSN
-        self.GPeT1 = GPeT1
-        self.GPeTA = GPeTA
-        self.STN = STN     
-        self.MSND1 = MSND1
-        self.MSND2 = MSND2
-        self.SNr = SNr
-        self.Cortex = Cortex
+    def __init__(self, neurons, params):
+        self.FSN = neurons['FSN']
+        self.GPeT1 = neurons['GPeT1']
+        self.GPeTA = neurons['GPeTA']
+        self.STN = neurons['STN']
+        self.MSND1 = neurons['MSND1']
+        self.MSND2 = neurons['MSND2']
+        self.SNr = neurons['SNr']
+        self.Cortex = neurons['Cortex']
         self.params = params
-
+        
     def create_synapse(self):
         self.params['Mg2'] = 1.0 
 
