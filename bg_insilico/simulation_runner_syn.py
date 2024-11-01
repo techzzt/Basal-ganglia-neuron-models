@@ -93,7 +93,7 @@ def run_simulation_with_inh_ext_input(
     sigma = 3 * Hz 
     
     # rates = TimedArray([0 * Hz, 200 * Hz, 0 * Hz], dt=300*ms)  # 0 Hz from 0-200 ms, 200 Hz from 200-500 ms, 0 Hz after
-    Cortex = PoissonGroup(N_Cortex, rates='10*Hz + (t >= 200*ms) * (t < 400*ms) * 100*Hz + sigma * randn()')
+    Cortex = PoissonGroup(N_Cortex, rates='50*Hz + (t >= 200*ms) * (t < 400*ms) * 200*Hz + sigma * randn()')
 
     # Set up synapses (inhibitory and excitatory) using an imported synapse model
     synapse_module = importlib.import_module(f'Neuronmodels.{synapse_class}')
@@ -214,7 +214,7 @@ def plot_results_with_weight_matrix(results, N_GPe, N_STN):
 
 ### Visualization with statemonitor result 
 def plot_raster(results):
-    plt.figure(figsize=(9, 15))
+    plt.figure(figsize=(8, 12))
 
     # 1. Cortex Neuron
     plt.subplot(8, 1, 1)

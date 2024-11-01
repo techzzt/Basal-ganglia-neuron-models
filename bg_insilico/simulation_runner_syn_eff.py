@@ -128,26 +128,33 @@ def run_simulation_with_inh_ext_input(neuron_configs, synapse_params, synapse_cl
 
 ### Visualization spike 
 def plot_raster(results, plot_order=None):
-    """
-    plot_order: 시각화할 뉴런의 순서를 지정하는 리스트
-    """
+    spike_monitors = {
+        name.replace('_spikes', ''): monitor 
+        for name, monitor in results['monitors'].items() 
+        if '_spikes' in name and not '_' in name.split('_spikes')[0]
+    }
+    
     if plot_order is None:
-        plot_order = list(results['neurons'].keys())
+        plot_order = list(spike_monitors.keys())
+        
+    n_plots = len(plot_order)
     
-    plt.figure(figsize=(9, 3*len(plot_order)))
+    # Create figure
+    fig, axes = plt.subplots(n_plots, 1, figsize=(12, 3*n_plots))
+    if n_plots == 1:
+        axes = [axes]
     
-    colors = plt.cm.tab10(np.linspace(0, 1, len(plot_order)))
+    # Plot each population
+    for i, pop_name in enumerate(plot_order):
+        if pop_name in spike_monitors:
+            monitor = spike_monitors[pop_name]
+            axes[i].scatter(monitor.t/ms, monitor.i, s=1)
+            axes[i].set_title(f'{pop_name} Raster Plot')
+            axes[i].set_ylabel('Neuron index')
+            axes[i].set_xlim(0, 1000)
     
-    for idx, neuron_name in enumerate(plot_order):
-        plt.subplot(len(plot_order), 1, idx+1)
-        spike_monitor = results['monitors'][f'{neuron_name}_spikes']
-        plt.scatter(spike_monitor.t/ms, spike_monitor.i, s=2, color=colors[idx])
-        plt.title(f'{neuron_name} Population Raster Plot')
-        plt.ylabel('Neuron Index')
-        plt.xlim(0, 1000)
-    
-    plt.xlabel('Time (ms)')
-    plt.tight_layout()
+    axes[-1].set_xlabel('Time (ms)')
+    plt.subplots_adjust(hspace=0.5)
     plt.show()
 
 ### Visualization membrane potential 
