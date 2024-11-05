@@ -38,7 +38,7 @@ class Synapse:
             on_pre='''
             v_post += w * mV; g_a += g0_a''', delay = self.params['csfs_delay'] * ms)
 
-        syn_Cortex_FSN.connect(p = 0.8) # 바꾸기 
+        syn_Cortex_FSN.connect() 
         syn_Cortex_FSN.w = 1
         syn_Cortex_FSN.g0_a = self.params['csfs_g0_a']
         syn_Cortex_FSN.tau_AMPA = self.params['csfs_ampa_tau_syn']
@@ -64,7 +64,7 @@ class Synapse:
             v_post += w * mV; g_a += g0_a; g_n += g0_n
             ''', delay = self.params['cs1_delay'] * ms)
 
-        syn_Cortex_MSND1.connect(p = 0.8)
+        syn_Cortex_MSND1.connect()
         syn_Cortex_MSND1.w = 1
         syn_Cortex_MSND1.g0_n = self.params['cs1_g0_n']
         syn_Cortex_MSND1.g0_a = self.params['cs1_g0_a']
@@ -94,7 +94,7 @@ class Synapse:
             v_post += w * mV; g_a += g0_a; g_n += g0_n
             ''', delay = self.params['cs2_delay'] * ms)
 
-        syn_Cortex_MSND2.connect(p = 0.75)
+        syn_Cortex_MSND2.connect()
         syn_Cortex_MSND2.w = 1
         syn_Cortex_MSND2.g0_n = self.params['cs2_g0_n']
         syn_Cortex_MSND2.g0_a = self.params['cs2_g0_a']
@@ -123,7 +123,7 @@ class Synapse:
             v_post += w * mV; g_a += g0_a; g_n += g0_n
             ''', delay = self.params['csn_delay'] * ms)
 
-        syn_Cortex_STN.connect(p = 0.75)
+        syn_Cortex_STN.connect()
         syn_Cortex_STN.w = 1
         syn_Cortex_STN.g0_n = self.params['csn_g0_n']  
         syn_Cortex_STN.g0_a = self.params['csn_g0_a']  
@@ -146,7 +146,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['fsfs_delay'] * ms)
 
-        syn_FSN_FSN.connect(p = 0.2) # 바꾸기 
+        syn_FSN_FSN.connect(p = 0.74) 
         syn_FSN_FSN.w = 1
         syn_FSN_FSN.g0_g = self.params['fsfs_g0_g']
         syn_FSN_FSN.tau_GABA = self.params['fsfs_gaba_tau_syn']  
@@ -166,7 +166,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['fsd1_delay'] * ms)
 
-        syn_FSN_MSND1.connect(p = 0.2) # 바꾸기 
+        syn_FSN_MSND1.connect(p = 0.27)
         syn_FSN_MSND1.w = 1
         syn_FSN_MSND1.g0_g = self.params['fsd1_g0_g']
         syn_FSN_MSND1.tau_GABA = self.params['fsd1_gaba_tau_syn']  
@@ -186,7 +186,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['fsd2_delay'] * ms)
 
-        syn_FSN_MSND2.connect(p = 0.2) # 바꾸기 
+        syn_FSN_MSND2.connect(p = 0.18)  
         syn_FSN_MSND2.w = 1
         syn_FSN_MSND2.g0_g = self.params['fsd2_g0_g']
         syn_FSN_MSND2.tau_GABA = self.params['fsd2_gaba_tau_syn']  
@@ -206,7 +206,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['d1snr_delay'] * ms)
 
-        syn_MSND1_SNr.connect(p = 0.01)
+        syn_MSND1_SNr.connect(p = 0.1)
         syn_MSND1_SNr.w = 1
         syn_MSND1_SNr.g0_g = self.params['d1snr_g0_g']  
         syn_MSND1_SNr.tau_GABA = self.params['d1snr_gaba_tau_syn']  
@@ -225,7 +225,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['dd_delay'] * ms)
 
-        syn_MSND1_MSND1.connect(p = 0.01)
+        syn_MSND1_MSND1.connect(p = 0.18)
         syn_MSND1_MSND1.w = 1
         syn_MSND1_MSND1.g0_g = self.params['d1d1_g0_g']  
         syn_MSND1_MSND1.tau_GABA = self.params['d1d1_gaba_tau_syn']  
@@ -244,7 +244,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['dd_delay'] * ms)
 
-        syn_MSND1_MSND2.connect(p = 0.01) # 바꾸기 
+        syn_MSND1_MSND2.connect(p = 0.03)  
         syn_MSND1_MSND2.w = 1
         syn_MSND1_MSND2.g0_g = self.params['d1d2_g0_g']  
         syn_MSND1_MSND2.tau_GABA = self.params['d1d2_gaba_tau_syn']  
@@ -264,7 +264,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['dd_delay'] * ms)
 
-        syn_MSND2_MSND2.connect(p = 0.2) # 바꾸기
+        syn_MSND2_MSND2.connect(p = 0.18) 
         syn_MSND2_MSND2.w = 1
         syn_MSND2_MSND2.g0_g = self.params['d2d2_g0_g']
         syn_MSND2_MSND2.tau_GABA = self.params['d2d2_gaba_tau_syn']  
@@ -284,7 +284,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['dd_delay'] * ms)
 
-        syn_MSND2_MSND1.connect(p = 0.2) # 바꾸기
+        syn_MSND2_MSND1.connect(p = 0.14)
         syn_MSND2_MSND1.w = 1
         syn_MSND2_MSND1.g0_g = self.params['d2d1_g0_g']
         syn_MSND2_MSND1.tau_GABA = self.params['d2d1_gaba_tau_syn']  
@@ -324,7 +324,7 @@ class Synapse:
             v_post += w * mV; g_a += g0_a
             ''', delay = self.params['snt1_delay'] * ms)
 
-        syn_STN_GPeT1.connect(p = 0.75) # 바꾸기 
+        syn_STN_GPeT1.connect(p = 0.1) # 바꾸기 
         syn_STN_GPeT1.w = 1
         syn_STN_GPeT1.g0_a = self.params['snt1_g0_a']  
         syn_STN_GPeT1.tau_AMPA = self.params['snt1_ampa_tau_syn']  
@@ -344,7 +344,7 @@ class Synapse:
             v_post += w * mV; g_a += g0_a
             ''')
 
-        syn_STN_GPeTA.connect(p = 0.75) # 바꾸기 
+        syn_STN_GPeTA.connect(p = 0.1) # 바꾸기 
         syn_STN_GPeTA.w = 1
         syn_STN_GPeTA.g0_a = self.params['snta_g0_a']  
         syn_STN_GPeTA.tau_AMPA = self.params['snta_ampa_tau_syn']  
@@ -384,7 +384,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['g1fs_delay'] * ms)
 
-        syn_GPeT1_FSN.connect(p = 0.05) # 바꾸기 
+        syn_GPeT1_FSN.connect(p = 0.01) 
         syn_GPeT1_FSN.w = 1
         syn_GPeT1_FSN.g0_g = self.params['g1fs_g0_g']  
         syn_GPeT1_FSN.tau_GABA = self.params['g1fs_gaba_tau_syn']  
@@ -404,7 +404,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['g1sn_delay'] * ms)
 
-        syn_GPeT1_STN.connect(p = 0.05)
+        syn_GPeT1_STN.connect(p = 0.03)
         syn_GPeT1_STN.w = 1
         syn_GPeT1_STN.g0_g = self.params['g1sn_g0_g']  
         syn_GPeT1_STN.tau_GABA = self.params['g1sn_gaba_tau_syn']  
@@ -424,7 +424,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['g1snr_delay'] * ms)
 
-        syn_GPeT1_SNr.connect(p = 0.05)
+        syn_GPeT1_SNr.connect(p = 0.03)
         syn_GPeT1_SNr.w = 1
         syn_GPeT1_SNr.g0_g = self.params['g1snr_g0_g']  
         syn_GPeT1_SNr.tau_GABA = self.params['g1snr_gaba_tau_syn']  
@@ -444,7 +444,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['g1g1_delay'] * ms)
 
-        syn_GPeT1_GPeT1.connect(p = 0.05) # 바꾸기 
+        syn_GPeT1_GPeT1.connect(p = 0.02) 
         syn_GPeT1_GPeT1.w = 1
         syn_GPeT1_GPeT1.g0_g = self.params['g1g1_g0_g']  
         syn_GPeT1_GPeT1.tau_GABA = self.params['g1g1_gaba_tau_syn']  
@@ -464,7 +464,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['g1ga_delay'] * ms)
 
-        syn_GPeT1_GPeTA.connect(p = 0.05) # 바꾸기 
+        syn_GPeT1_GPeTA.connect(p = 0.02) 
         syn_GPeT1_GPeTA.w = 1
         syn_GPeT1_GPeTA.g0_g = self.params['g1ga_g0_g']  
         syn_GPeT1_GPeTA.tau_GABA = self.params['g1ga_gaba_tau_syn']  
@@ -484,7 +484,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['gag1_delay'] * ms)
 
-        syn_GPeTA_GPeT1.connect(p = 0.05) # 바꾸기 
+        syn_GPeTA_GPeT1.connect(p = 0.02) 
         syn_GPeTA_GPeT1.w = 1
         syn_GPeTA_GPeT1.g0_g = self.params['gag1_g0_g']  
         syn_GPeTA_GPeT1.tau_GABA = self.params['gag1_gaba_tau_syn']  
@@ -504,7 +504,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['gag1_delay'] * ms)
 
-        syn_GPeTA_GPeTA.connect(p = 0.05) # 바꾸기 
+        syn_GPeTA_GPeTA.connect(p = 0.02) 
         syn_GPeTA_GPeTA.w = 1
         syn_GPeTA_GPeTA.g0_g = self.params['gaga_g0_g']  
         syn_GPeTA_GPeTA.tau_GABA = self.params['gaga_gaba_tau_syn']  
@@ -524,7 +524,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['gafs_delay'] * ms)
 
-        syn_GPeTA_FSN.connect(p = 0.05) # 바꾸기 
+        syn_GPeTA_FSN.connect(p = 0.03) 
         syn_GPeTA_FSN.w = 1
         syn_GPeTA_FSN.g0_g = self.params['gafs_g0_g']  
         syn_GPeTA_FSN.tau_GABA = self.params['gafs_gaba_tau_syn']  
@@ -544,7 +544,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['gad1_delay'] * ms)
 
-        syn_GPeTA_MSND1.connect(p = 0.05) # 바꾸기 
+        syn_GPeTA_MSND1.connect(p = 0.03)
         syn_GPeTA_MSND1.w = 1
         syn_GPeTA_MSND1.g0_g = self.params['gad1_g0_g']  
         syn_GPeTA_MSND1.tau_GABA = self.params['gad1_gaba_tau_syn']  
@@ -564,7 +564,7 @@ class Synapse:
             v_post += w * mV; g_g += g0_g
             ''', delay = self.params['gad2_delay'] * ms)
 
-        syn_GPeTA_MSND2.connect(p = 0.05) # 바꾸기 
+        syn_GPeTA_MSND2.connect(p = 0.03) 
         syn_GPeTA_MSND2.w = 1
         syn_GPeTA_MSND2.g0_g = self.params['gad2_g0_g']  
         syn_GPeTA_MSND2.tau_GABA = self.params['gad2_gaba_tau_syn']  
