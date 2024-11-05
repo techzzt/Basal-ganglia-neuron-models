@@ -1,6 +1,6 @@
 from brian2 import *
 
-from Neuronmodels import STN, GPeTA, GPeT1, FSN, MSND1, MSND2, SNr, Synapse
+from Neuronmodels import STN, GPeTA, GPeT1, FSN, MSND1, MSND2, SNr
 
 import matplotlib.pyplot as plt
 import importlib
@@ -34,7 +34,7 @@ def convert_units(params):
             value *= pF
         elif unit == 'pA':
             value *= pA
-        elif unit == 'Hz':
+        elif unit == 'Hz': 
             value *= Hz
         elif unit == 'Ohm':
             value *= ohm
@@ -43,6 +43,7 @@ def convert_units(params):
 
 
 def run_simulation_with_inh_ext_input(neuron_configs, synapse_params, synapse_class, simulation_duration=1000*ms):
+    start_scope()
     neurons = {}
     monitors = {}
     
@@ -56,7 +57,7 @@ def run_simulation_with_inh_ext_input(neuron_configs, synapse_params, synapse_cl
                     config['N'],
                     rates=config['target_rates'].get('default', {}).get(
                         'equation',
-                        '50*Hz + (t >= 200*ms) * (t < 400*ms) * 200*Hz + 3*Hz * randn()'
+                        '0*Hz + (t >= 200*ms) * (t < 400*ms) * 200*Hz + 3*Hz * randn()'
                     )
                 )
                 monitors['Cortex_spikes'] = SpikeMonitor(neurons['Cortex'])
