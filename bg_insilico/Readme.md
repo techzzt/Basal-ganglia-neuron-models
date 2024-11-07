@@ -8,6 +8,9 @@ First to setup the environment, install the requirements with
 
 + `pip install -r requirements.txt`
 
+All parameters and files set up at the 'config/params.json' file 
+- change dopamine, synapse, N, neuron input condition 
+
 Navigate into `bg_insilico/` and run
 + `python run.py`
 
