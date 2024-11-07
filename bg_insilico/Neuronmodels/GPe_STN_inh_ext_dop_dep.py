@@ -1,32 +1,16 @@
 from brian2 import *
+from module.models.synapse_models import SynapseBase
 
-class NeuronModel:
-    def __init__(self, N, params):
-        # Parse the parameters from the params dictionary
-        self.N = N
-        self.params = params
-        self.neurons = None
-
-    def create_neurons(self):
-        raise NotImplementedError("Subclasses should implement this method.")
-
-class Synapse:
+class GPe_STN_inh_ext_dop_dep(SynapseBase):
     def __init__(self, neurons, params):
-        self.FSN = neurons['FSN']
-        self.GPeT1 = neurons['GPeT1']
-        self.GPeTA = neurons['GPeTA']
-        self.STN = neurons['STN']
-        self.MSND1 = neurons['MSND1']
-        self.MSND2 = neurons['MSND2']
-        self.SNr = neurons['SNr']
-        self.Cortex = neurons['Cortex']
-        self.params = params
+        super().__init__(neurons, params)
+        self.params['Mg2'] = {'value': 1.0, 'unit': '1'}
         
     def create_synapse(self):
-        self.params['Mg2'] = 1.0 
+        synapses = []
 
         # Excitatory synapse from Cortex to FSN
-        syn_Cortex_FSN = Synapses(self.Cortex, self.FSN, model='''
+        syn_Cortex_FSN = Synapses(self.Cortex_FSN, self.FSN, model='''
             g0_a : siemens
             E_AMPA : volt
             w : 1
@@ -36,16 +20,17 @@ class Synapse:
             I_syn_syn = I_AMPA_syn : amp 
             ''',
             on_pre='''
-            v_post += w * mV; g_a += g0_a''', delay = self.params['csfs_delay'] * ms)
-
-        syn_Cortex_FSN.connect() 
+            v_post += w * mV; g_a += g0_a''',         
+            delay=self._get_param('csfs_delay'))
+        syn_Cortex_FSN.connect()
         syn_Cortex_FSN.w = 1
-        syn_Cortex_FSN.g0_a = self.params['csfs_g0_a']
-        syn_Cortex_FSN.tau_AMPA = self.params['csfs_ampa_tau_syn']
-        syn_Cortex_FSN.E_AMPA = self.params['csfs_ampa_E_rev']
-        
+        syn_Cortex_FSN.g0_a = self._get_param('csfs_g0_a')
+        syn_Cortex_FSN.tau_AMPA = self._get_param('csfs_ampa_tau_syn')
+        syn_Cortex_FSN.E_AMPA = self._get_param('csfs_ampa_E_rev')
+        synapses.append(syn_Cortex_FSN)
+
         # Excitatory synapse from Cortex to MSND1
-        syn_Cortex_MSND1 = Synapses(self.Cortex, self.MSND1, model='''
+        syn_Cortex_MSND1 = Synapses(self.Cortex_MSND1, self.MSND1, model='''
             g0_a : siemens
             g0_n : siemens
             E_AMPA : volt
@@ -62,19 +47,21 @@ class Synapse:
             ''',
             on_pre='''
             v_post += w * mV; g_a += g0_a; g_n += g0_n
-            ''', delay = self.params['cs1_delay'] * ms)
-
+            ''',             
+        delay=self._get_param('cs1_delay'))
         syn_Cortex_MSND1.connect()
         syn_Cortex_MSND1.w = 1
-        syn_Cortex_MSND1.g0_n = self.params['cs1_g0_n']
-        syn_Cortex_MSND1.g0_a = self.params['cs1_g0_a']
-        syn_Cortex_MSND1.tau_AMPA = self.params['cs1_ampa_tau_syn']
-        syn_Cortex_MSND1.tau_NMDA = self.params['cs1_nmda_tau_syn']
-        syn_Cortex_MSND1.E_AMPA = self.params['cs1_ampa_E_rev']
-        syn_Cortex_MSND1.E_NMDA = self.params['cs1_nmda_E_rev']
+        syn_Cortex_MSND1.g0_n = self._get_param('cs1_g0_n')
+        syn_Cortex_MSND1.g0_a = self._get_param('cs1_g0_a')
+        syn_Cortex_MSND1.tau_AMPA = self._get_param('cs1_ampa_tau_syn')
+        syn_Cortex_MSND1.tau_NMDA = self._get_param('cs1_nmda_tau_syn')
+        syn_Cortex_MSND1.E_AMPA = self._get_param('cs1_ampa_E_rev')
+        syn_Cortex_MSND1.E_NMDA = self._get_param('cs1_nmda_E_rev')
+        synapses.append(syn_Cortex_MSND1)
+    
             
         # Excitatory synapse from Cortex to Striatum (MSN)
-        syn_Cortex_MSND2 = Synapses(self.Cortex, self.MSND2, model='''
+        syn_Cortex_MSND2 = Synapses(self.Cortex_MSND2, self.MSND2, model='''
             g0_a : siemens
             g0_n : siemens
             E_AMPA : volt
@@ -92,19 +79,20 @@ class Synapse:
             ''',
             on_pre='''
             v_post += w * mV; g_a += g0_a; g_n += g0_n
-            ''', delay = self.params['cs2_delay'] * ms)
-
+            ''',  
+            delay=self._get_param('cs2_delay'))
         syn_Cortex_MSND2.connect()
         syn_Cortex_MSND2.w = 1
-        syn_Cortex_MSND2.g0_n = self.params['cs2_g0_n']
-        syn_Cortex_MSND2.g0_a = self.params['cs2_g0_a']
-        syn_Cortex_MSND2.tau_AMPA = self.params['cs2_ampa_tau_syn']
-        syn_Cortex_MSND2.tau_NMDA = self.params['cs2_nmda_tau_syn']
-        syn_Cortex_MSND2.E_AMPA = self.params['cs2_ampa_E_rev']
-        syn_Cortex_MSND2.E_NMDA = self.params['cs2_nmda_E_rev']
+        syn_Cortex_MSND2.g0_n = self._get_param('cs2_g0_n')
+        syn_Cortex_MSND2.g0_a = self._get_param('cs2_g0_a')
+        syn_Cortex_MSND2.tau_AMPA = self._get_param('cs2_ampa_tau_syn')
+        syn_Cortex_MSND2.tau_NMDA = self._get_param('cs2_nmda_tau_syn')
+        syn_Cortex_MSND2.E_AMPA = self._get_param('cs2_ampa_E_rev')
+        syn_Cortex_MSND2.E_NMDA = self._get_param('cs2_nmda_E_rev')
+        synapses.append(syn_Cortex_MSND2)
         
         # Excitatory synapse from Cortex to STN
-        syn_Cortex_STN = Synapses(self.Cortex, self.STN, model='''
+        syn_Cortex_STN = Synapses(self.Cortex_STN, self.STN, model='''
             g0_a : siemens
             g0_n : siemens
             E_AMPA : volt
@@ -121,16 +109,17 @@ class Synapse:
             ''',
             on_pre='''
             v_post += w * mV; g_a += g0_a; g_n += g0_n
-            ''', delay = self.params['csn_delay'] * ms)
-
+            ''', 
+        delay=self._get_param('csn_delay'))
         syn_Cortex_STN.connect()
         syn_Cortex_STN.w = 1
-        syn_Cortex_STN.g0_n = self.params['csn_g0_n']  
-        syn_Cortex_STN.g0_a = self.params['csn_g0_a']  
-        syn_Cortex_STN.tau_AMPA = self.params['csn_ampa_tau_syn']  
-        syn_Cortex_STN.tau_NMDA = self.params['csn_nmda_tau_syn']  
-        syn_Cortex_STN.E_AMPA = self.params['csn_ampa_E_rev']
-        syn_Cortex_STN.E_NMDA = self.params['csn_nmda_E_rev']
+        syn_Cortex_STN.g0_n = self._get_param('csn_g0_n')
+        syn_Cortex_STN.g0_a = self._get_param('csn_g0_a')
+        syn_Cortex_STN.tau_AMPA = self._get_param('csn_ampa_tau_syn')
+        syn_Cortex_STN.tau_NMDA = self._get_param('csn_nmda_tau_syn')
+        syn_Cortex_STN.E_AMPA = self._get_param('csn_ampa_E_rev')
+        syn_Cortex_STN.E_NMDA = self._get_param('csn_nmda_E_rev')
+        synapses.append(syn_Cortex_STN)
 
         # Inhibitory synapse from FSN to FSN
         syn_FSN_FSN = Synapses(self.FSN, self.FSN, model='''
@@ -144,13 +133,14 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['fsfs_delay'] * ms)
-
-        syn_FSN_FSN.connect(p = 0.74) 
+            ''',  delay=self._get_param('fsfs_delay'))
+        syn_FSN_FSN.connect(p=0.74)
         syn_FSN_FSN.w = 1
-        syn_FSN_FSN.g0_g = self.params['fsfs_g0_g']
-        syn_FSN_FSN.tau_GABA = self.params['fsfs_gaba_tau_syn']  
-        syn_FSN_FSN.E_GABA = self.params['fsfs_gaba_E_rev']    
+        syn_FSN_FSN.g0_g = self._get_param('fsfs_g0_g')
+        syn_FSN_FSN.tau_GABA = self._get_param('fsfs_gaba_tau_syn')
+        syn_FSN_FSN.E_GABA = self._get_param('fsfs_gaba_E_rev')
+        synapses.append(syn_FSN_FSN)
+
                 
         # Inhibitory synapse from FSN to D1
         syn_FSN_MSND1 = Synapses(self.FSN, self.MSND1, model='''
@@ -164,13 +154,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['fsd1_delay'] * ms)
-
-        syn_FSN_MSND1.connect(p = 0.27)
+            ''', delay=self._get_param('fsd1_delay'))
+        syn_FSN_MSND1.connect(p=0.27)
         syn_FSN_MSND1.w = 1
-        syn_FSN_MSND1.g0_g = self.params['fsd1_g0_g']
-        syn_FSN_MSND1.tau_GABA = self.params['fsd1_gaba_tau_syn']  
-        syn_FSN_MSND1.E_GABA = self.params['fsd1_gaba_E_rev']    
+        syn_FSN_MSND1.g0_g = self._get_param('fsd1_g0_g')
+        syn_FSN_MSND1.tau_GABA = self._get_param('fsd1_gaba_tau_syn')
+        syn_FSN_MSND1.E_GABA = self._get_param('fsd1_gaba_E_rev')
+        synapses.append(syn_FSN_MSND1)    
 
         # Inhibitory synapse from FSN to D2
         syn_FSN_MSND2 = Synapses(self.FSN, self.MSND2, model='''
@@ -184,13 +174,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['fsd2_delay'] * ms)
-
-        syn_FSN_MSND2.connect(p = 0.18)  
+            ''', delay=self._get_param('fsd2_delay'))
+        syn_FSN_MSND2.connect(p=0.18)
         syn_FSN_MSND2.w = 1
-        syn_FSN_MSND2.g0_g = self.params['fsd2_g0_g']
-        syn_FSN_MSND2.tau_GABA = self.params['fsd2_gaba_tau_syn']  
-        syn_FSN_MSND2.E_GABA = self.params['fsd2_gaba_E_rev']     
+        syn_FSN_MSND2.g0_g = self._get_param('fsd2_g0_g')
+        syn_FSN_MSND2.tau_GABA = self._get_param('fsd2_gaba_tau_syn')
+        syn_FSN_MSND2.E_GABA = self._get_param('fsd2_gaba_E_rev')
+        synapses.append(syn_FSN_MSND2)     
         
         # Inh synapse from D1 to SNr
         syn_MSND1_SNr = Synapses(self.MSND1, self.SNr, model='''
@@ -204,13 +194,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['d1snr_delay'] * ms)
-
-        syn_MSND1_SNr.connect(p = 0.1)
+            ''', delay=self._get_param('d1snr_delay'))
+        syn_MSND1_SNr.connect(p=0.1)
         syn_MSND1_SNr.w = 1
-        syn_MSND1_SNr.g0_g = self.params['d1snr_g0_g']  
-        syn_MSND1_SNr.tau_GABA = self.params['d1snr_gaba_tau_syn']  
-        syn_MSND1_SNr.E_GABA = self.params['d1snr_gaba_E_rev']
+        syn_MSND1_SNr.g0_g = self._get_param('d1snr_g0_g')
+        syn_MSND1_SNr.tau_GABA = self._get_param('d1snr_gaba_tau_syn')
+        syn_MSND1_SNr.E_GABA = self._get_param('d1snr_gaba_E_rev')
+        synapses.append(syn_MSND1_SNr)
 
         syn_MSND1_MSND1 = Synapses(self.MSND1, self.MSND1, model='''
             g0_g : siemens
@@ -223,13 +213,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['dd_delay'] * ms)
-
-        syn_MSND1_MSND1.connect(p = 0.18)
+            ''', delay=self._get_param('dd_delay'))
+        syn_MSND1_MSND1.connect(p=0.18)
         syn_MSND1_MSND1.w = 1
-        syn_MSND1_MSND1.g0_g = self.params['d1d1_g0_g']  
-        syn_MSND1_MSND1.tau_GABA = self.params['d1d1_gaba_tau_syn']  
-        syn_MSND1_MSND1.E_GABA = self.params['d1d1_gaba_E_rev']
+        syn_MSND1_MSND1.g0_g = self._get_param('d1d1_g0_g')
+        syn_MSND1_MSND1.tau_GABA = self._get_param('d1d1_gaba_tau_syn')
+        syn_MSND1_MSND1.E_GABA = self._get_param('d1d1_gaba_E_rev')
+        synapses.append(syn_MSND1_MSND1)
 
         syn_MSND1_MSND2 = Synapses(self.MSND1, self.MSND2, model='''
             g0_g : siemens
@@ -242,13 +232,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['dd_delay'] * ms)
-
-        syn_MSND1_MSND2.connect(p = 0.03)  
+            ''', delay=self._get_param('dd_delay'))
+        syn_MSND1_MSND2.connect(p=0.03)
         syn_MSND1_MSND2.w = 1
-        syn_MSND1_MSND2.g0_g = self.params['d1d2_g0_g']  
-        syn_MSND1_MSND2.tau_GABA = self.params['d1d2_gaba_tau_syn']  
-        syn_MSND1_MSND2.E_GABA = self.params['d1d2_gaba_E_rev']
+        syn_MSND1_MSND2.g0_g = self._get_param('d1d2_g0_g')
+        syn_MSND1_MSND2.tau_GABA = self._get_param('d1d2_gaba_tau_syn')
+        syn_MSND1_MSND2.E_GABA = self._get_param('d1d2_gaba_E_rev')
+        synapses.append(syn_MSND1_MSND2)
 
         # Inhibitory synapse from D2 to D2
         syn_MSND2_MSND2 = Synapses(self.MSND2, self.MSND2, model='''
@@ -262,13 +252,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['dd_delay'] * ms)
-
-        syn_MSND2_MSND2.connect(p = 0.18) 
+            ''', delay=self._get_param('dd_delay'))
+        syn_MSND2_MSND2.connect(p=0.18)
         syn_MSND2_MSND2.w = 1
-        syn_MSND2_MSND2.g0_g = self.params['d2d2_g0_g']
-        syn_MSND2_MSND2.tau_GABA = self.params['d2d2_gaba_tau_syn']  
-        syn_MSND2_MSND2.E_GABA = self.params['d2d2_gaba_E_rev']    
+        syn_MSND2_MSND2.g0_g = self._get_param('d2d2_g0_g')
+        syn_MSND2_MSND2.tau_GABA = self._get_param('d2d2_gaba_tau_syn')
+        syn_MSND2_MSND2.E_GABA = self._get_param('d2d2_gaba_E_rev')
+        synapses.append(syn_MSND2_MSND2)  
     
         # Inhibitory synapse from D2 to D1
         syn_MSND2_MSND1 = Synapses(self.MSND2, self.MSND1, model='''
@@ -282,13 +272,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['dd_delay'] * ms)
-
-        syn_MSND2_MSND1.connect(p = 0.14)
+            ''', delay=self._get_param('dd_delay'))
+        syn_MSND2_MSND1.connect(p=0.14)
         syn_MSND2_MSND1.w = 1
-        syn_MSND2_MSND1.g0_g = self.params['d2d1_g0_g']
-        syn_MSND2_MSND1.tau_GABA = self.params['d2d1_gaba_tau_syn']  
-        syn_MSND2_MSND1.E_GABA = self.params['d2d1_gaba_E_rev']   
+        syn_MSND2_MSND1.g0_g = self._get_param('d2d1_g0_g')
+        syn_MSND2_MSND1.tau_GABA = self._get_param('d2d1_gaba_tau_syn')
+        syn_MSND2_MSND1.E_GABA = self._get_param('d2d1_gaba_E_rev')
+        synapses.append(syn_MSND2_MSND1) 
 
         # Inhibitory synapse from EXT to GPeT1
         syn_MSND2_GPeT1 = Synapses(self.MSND2, self.GPeT1, model='''
@@ -302,13 +292,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['d2g1_delay'] * ms)
-
-        syn_MSND2_GPeT1.connect(p = 0.2) 
+            ''', delay=self._get_param('d2g1_delay'))
+        syn_MSND2_GPeT1.connect(p=0.2)
         syn_MSND2_GPeT1.w = 1
-        syn_MSND2_GPeT1.g0_g = self.params['d2g1_g0_g']
-        syn_MSND2_GPeT1.tau_GABA = self.params['d2g1_gaba_tau_syn']  
-        syn_MSND2_GPeT1.E_GABA = self.params['d2g1_gaba_E_rev']    
+        syn_MSND2_GPeT1.g0_g = self._get_param('d2g1_g0_g')
+        syn_MSND2_GPeT1.tau_GABA = self._get_param('d2g1_gaba_tau_syn')
+        syn_MSND2_GPeT1.E_GABA = self._get_param('d2g1_gaba_E_rev')
+        synapses.append(syn_MSND2_GPeT1) 
     
         # ext synapse from STN to GPeT1
         syn_STN_GPeT1 = Synapses(self.STN, self.GPeT1, model='''
@@ -322,13 +312,13 @@ class Synapse:
             ''',
             on_pre='''
             v_post += w * mV; g_a += g0_a
-            ''', delay = self.params['snt1_delay'] * ms)
-
-        syn_STN_GPeT1.connect(p = 0.1) # 바꾸기 
+            ''', delay=self._get_param('snt1_delay'))
+        syn_STN_GPeT1.connect(p=0.1)
         syn_STN_GPeT1.w = 1
-        syn_STN_GPeT1.g0_a = self.params['snt1_g0_a']  
-        syn_STN_GPeT1.tau_AMPA = self.params['snt1_ampa_tau_syn']  
-        syn_STN_GPeT1.E_AMPA = self.params['snt1_ampa_E_rev']
+        syn_STN_GPeT1.g0_a = self._get_param('snt1_g0_a')
+        syn_STN_GPeT1.tau_AMPA = self._get_param('snt1_ampa_tau_syn')
+        syn_STN_GPeT1.E_AMPA = self._get_param('snt1_ampa_E_rev')
+        synapses.append(syn_STN_GPeT1)
 
         # ext synapse from STN to GPeTA
         syn_STN_GPeTA = Synapses(self.STN, self.GPeTA, model='''
@@ -344,11 +334,12 @@ class Synapse:
             v_post += w * mV; g_a += g0_a
             ''')
 
-        syn_STN_GPeTA.connect(p = 0.1) # 바꾸기 
+        syn_STN_GPeTA.connect(p=0.1)
         syn_STN_GPeTA.w = 1
-        syn_STN_GPeTA.g0_a = self.params['snta_g0_a']  
-        syn_STN_GPeTA.tau_AMPA = self.params['snta_ampa_tau_syn']  
-        syn_STN_GPeTA.E_AMPA = self.params['snta_ampa_E_rev']
+        syn_STN_GPeTA.g0_a = self._get_param('snta_g0_a')
+        syn_STN_GPeTA.tau_AMPA = self._get_param('snta_ampa_tau_syn')
+        syn_STN_GPeTA.E_AMPA = self._get_param('snta_ampa_E_rev')
+        synapses.append(syn_STN_GPeTA)
 
        # Excitatory synapse from STN to STr
         syn_STN_SNr = Synapses(self.STN, self.SNr, model='''
@@ -362,13 +353,13 @@ class Synapse:
             ''',
             on_pre='''
             v_post += w * mV; g_a += g0_a
-            ''', delay = self.params['snsnr_delay'] * ms)
-
-        syn_STN_SNr.connect(p = 0.1)
+            ''', delay=self._get_param('snsnr_delay'))
+        syn_STN_SNr.connect(p=0.1)
         syn_STN_SNr.w = 1
-        syn_STN_SNr.g0_a = self.params['snsnr_g0_a']  
-        syn_STN_SNr.tau_AMPA = self.params['snsnr_ampa_tau_syn']  
-        syn_STN_SNr.E_AMPA = self.params['snsnr_ampa_E_rev']
+        syn_STN_SNr.g0_a = self._get_param('snsnr_g0_a')
+        syn_STN_SNr.tau_AMPA = self._get_param('snsnr_ampa_tau_syn')
+        syn_STN_SNr.E_AMPA = self._get_param('snsnr_ampa_E_rev')
+        synapses.append(syn_STN_SNr)
         
         # Inh synapse from GPeTA to FSN
         syn_GPeT1_FSN = Synapses(self.GPeT1, self.FSN, model='''
@@ -382,13 +373,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['g1fs_delay'] * ms)
-
-        syn_GPeT1_FSN.connect(p = 0.01) 
+            ''', delay=self._get_param('g1fs_delay'))
+        syn_GPeT1_FSN.connect(p=0.01)
         syn_GPeT1_FSN.w = 1
-        syn_GPeT1_FSN.g0_g = self.params['g1fs_g0_g']  
-        syn_GPeT1_FSN.tau_GABA = self.params['g1fs_gaba_tau_syn']  
-        syn_GPeT1_FSN.E_GABA = self.params['g1fs_gaba_E_rev']
+        syn_GPeT1_FSN.g0_g = self._get_param('g1fs_g0_g')
+        syn_GPeT1_FSN.tau_GABA = self._get_param('g1fs_gaba_tau_syn')
+        syn_GPeT1_FSN.E_GABA = self._get_param('g1fs_gaba_E_rev')
+        synapses.append(syn_GPeT1_FSN)
 
         # Inh synapse from GPeT1 to STN
         syn_GPeT1_STN = Synapses(self.GPeT1, self.STN, model='''
@@ -402,13 +393,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['g1sn_delay'] * ms)
-
-        syn_GPeT1_STN.connect(p = 0.03)
+            ''', delay=self._get_param('g1sn_delay'))
+        syn_GPeT1_STN.connect(p=0.03)
         syn_GPeT1_STN.w = 1
-        syn_GPeT1_STN.g0_g = self.params['g1sn_g0_g']  
-        syn_GPeT1_STN.tau_GABA = self.params['g1sn_gaba_tau_syn']  
-        syn_GPeT1_STN.E_GABA = self.params['g1sn_gaba_E_rev']
+        syn_GPeT1_STN.g0_g = self._get_param('g1sn_g0_g')
+        syn_GPeT1_STN.tau_GABA = self._get_param('g1sn_gaba_tau_syn')
+        syn_GPeT1_STN.E_GABA = self._get_param('g1sn_gaba_E_rev')
+        synapses.append(syn_GPeT1_STN)
         
         # Inh synapse from GPeT1 to SNr
         syn_GPeT1_SNr = Synapses(self.GPeT1, self.SNr, model='''
@@ -422,13 +413,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['g1snr_delay'] * ms)
-
-        syn_GPeT1_SNr.connect(p = 0.03)
+            ''', delay=self._get_param('g1snr_delay'))
+        syn_GPeT1_SNr.connect(p=0.03)
         syn_GPeT1_SNr.w = 1
-        syn_GPeT1_SNr.g0_g = self.params['g1snr_g0_g']  
-        syn_GPeT1_SNr.tau_GABA = self.params['g1snr_gaba_tau_syn']  
-        syn_GPeT1_SNr.E_GABA = self.params['g1snr_gaba_E_rev']
+        syn_GPeT1_SNr.g0_g = self._get_param('g1snr_g0_g')
+        syn_GPeT1_SNr.tau_GABA = self._get_param('g1snr_gaba_tau_syn')
+        syn_GPeT1_SNr.E_GABA = self._get_param('g1snr_gaba_E_rev')
+        synapses.append(syn_GPeT1_SNr)
         
         # Inh synapse from GPeT1 to T1
         syn_GPeT1_GPeT1 = Synapses(self.GPeT1, self.GPeT1, model='''
@@ -442,13 +433,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['g1g1_delay'] * ms)
-
-        syn_GPeT1_GPeT1.connect(p = 0.02) 
+            ''', delay=self._get_param('g1g1_delay'))
+        syn_GPeT1_GPeT1.connect(p=0.02)
         syn_GPeT1_GPeT1.w = 1
-        syn_GPeT1_GPeT1.g0_g = self.params['g1g1_g0_g']  
-        syn_GPeT1_GPeT1.tau_GABA = self.params['g1g1_gaba_tau_syn']  
-        syn_GPeT1_GPeT1.E_GABA = self.params['g1g1_gaba_E_rev']          
+        syn_GPeT1_GPeT1.g0_g = self._get_param('g1g1_g0_g')
+        syn_GPeT1_GPeT1.tau_GABA = self._get_param('g1g1_gaba_tau_syn')
+        syn_GPeT1_GPeT1.E_GABA = self._get_param('g1g1_gaba_E_rev')
+        synapses.append(syn_GPeT1_GPeT1)         
          
         # Inh synapse from GPeT1 to TA
         syn_GPeT1_GPeTA = Synapses(self.GPeT1, self.GPeTA, model='''
@@ -462,13 +453,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['g1ga_delay'] * ms)
-
-        syn_GPeT1_GPeTA.connect(p = 0.02) 
+            ''', delay=self._get_param('g1ga_delay'))
+        syn_GPeT1_GPeTA.connect(p=0.02)
         syn_GPeT1_GPeTA.w = 1
-        syn_GPeT1_GPeTA.g0_g = self.params['g1ga_g0_g']  
-        syn_GPeT1_GPeTA.tau_GABA = self.params['g1ga_gaba_tau_syn']  
-        syn_GPeT1_GPeTA.E_GABA = self.params['g1ga_gaba_E_rev']
+        syn_GPeT1_GPeTA.g0_g = self._get_param('g1ga_g0_g')
+        syn_GPeT1_GPeTA.tau_GABA = self._get_param('g1ga_gaba_tau_syn')
+        syn_GPeT1_GPeTA.E_GABA = self._get_param('g1ga_gaba_E_rev')
+        synapses.append(syn_GPeT1_GPeTA)
 
         # Inh synapse from GPeT1 to TA
         syn_GPeTA_GPeT1 = Synapses(self.GPeTA, self.GPeT1, model='''
@@ -482,13 +473,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['gag1_delay'] * ms)
-
-        syn_GPeTA_GPeT1.connect(p = 0.02) 
+            ''', delay=self._get_param('gag1_delay'))
+        syn_GPeTA_GPeT1.connect(p=0.02)
         syn_GPeTA_GPeT1.w = 1
-        syn_GPeTA_GPeT1.g0_g = self.params['gag1_g0_g']  
-        syn_GPeTA_GPeT1.tau_GABA = self.params['gag1_gaba_tau_syn']  
-        syn_GPeTA_GPeT1.E_GABA = self.params['gag1_gaba_E_rev']
+        syn_GPeTA_GPeT1.g0_g = self._get_param('gag1_g0_g')
+        syn_GPeTA_GPeT1.tau_GABA = self._get_param('gag1_gaba_tau_syn')
+        syn_GPeTA_GPeT1.E_GABA = self._get_param('gag1_gaba_E_rev')
+        synapses.append(syn_GPeTA_GPeT1)
         
         # Inh synapse from GPeTA to TA
         syn_GPeTA_GPeTA = Synapses(self.GPeTA, self.GPeTA, model='''
@@ -502,13 +493,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['gag1_delay'] * ms)
-
-        syn_GPeTA_GPeTA.connect(p = 0.02) 
+            ''', delay=self._get_param('gaga_delay'))
+        syn_GPeTA_GPeTA.connect(p=0.02)
         syn_GPeTA_GPeTA.w = 1
-        syn_GPeTA_GPeTA.g0_g = self.params['gaga_g0_g']  
-        syn_GPeTA_GPeTA.tau_GABA = self.params['gaga_gaba_tau_syn']  
-        syn_GPeTA_GPeTA.E_GABA = self.params['gaga_gaba_E_rev']
+        syn_GPeTA_GPeTA.g0_g = self._get_param('gaga_g0_g')
+        syn_GPeTA_GPeTA.tau_GABA = self._get_param('gaga_gaba_tau_syn')
+        syn_GPeTA_GPeTA.E_GABA = self._get_param('gaga_gaba_E_rev')
+        synapses.append(syn_GPeTA_GPeTA)
 
         # Inh synapse from GPeTA to FSN
         syn_GPeTA_FSN = Synapses(self.GPeTA, self.FSN, model='''
@@ -522,13 +513,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['gafs_delay'] * ms)
-
-        syn_GPeTA_FSN.connect(p = 0.03) 
+            ''', delay=self._get_param('gafs_delay'))
+        syn_GPeTA_FSN.connect(p=0.03)
         syn_GPeTA_FSN.w = 1
-        syn_GPeTA_FSN.g0_g = self.params['gafs_g0_g']  
-        syn_GPeTA_FSN.tau_GABA = self.params['gafs_gaba_tau_syn']  
-        syn_GPeTA_FSN.E_GABA = self.params['gafs_gaba_E_rev']
+        syn_GPeTA_FSN.g0_g = self._get_param('gafs_g0_g')
+        syn_GPeTA_FSN.tau_GABA = self._get_param('gafs_gaba_tau_syn')
+        syn_GPeTA_FSN.E_GABA = self._get_param('gafs_gaba_E_rev')
+        synapses.append(syn_GPeTA_FSN)
 
         # Inh synapse from GPeTA to D2
         syn_GPeTA_MSND1 = Synapses(self.GPeTA, self.MSND1, model='''
@@ -542,13 +533,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['gad1_delay'] * ms)
-
-        syn_GPeTA_MSND1.connect(p = 0.03)
+            ''', delay=self._get_param('gad1_delay'))
+        syn_GPeTA_MSND1.connect(p=0.03)
         syn_GPeTA_MSND1.w = 1
-        syn_GPeTA_MSND1.g0_g = self.params['gad1_g0_g']  
-        syn_GPeTA_MSND1.tau_GABA = self.params['gad1_gaba_tau_syn']  
-        syn_GPeTA_MSND1.E_GABA = self.params['gad1_gaba_E_rev']
+        syn_GPeTA_MSND1.g0_g = self._get_param('gad1_g0_g')
+        syn_GPeTA_MSND1.tau_GABA = self._get_param('gad1_gaba_tau_syn')
+        syn_GPeTA_MSND1.E_GABA = self._get_param('gad1_gaba_E_rev')
+        synapses.append(syn_GPeTA_MSND1)
 
         # Inh synapse from GPeTA to D2
         syn_GPeTA_MSND2 = Synapses(self.GPeTA, self.MSND2, model='''
@@ -562,13 +553,13 @@ class Synapse:
             ''', 
             on_pre='''
             v_post += w * mV; g_g += g0_g
-            ''', delay = self.params['gad2_delay'] * ms)
-
-        syn_GPeTA_MSND2.connect(p = 0.03) 
+            ''', delay=self._get_param('gad2_delay'))
+        syn_GPeTA_MSND2.connect(p=0.03)
         syn_GPeTA_MSND2.w = 1
-        syn_GPeTA_MSND2.g0_g = self.params['gad2_g0_g']  
-        syn_GPeTA_MSND2.tau_GABA = self.params['gad2_gaba_tau_syn']  
-        syn_GPeTA_MSND2.E_GABA = self.params['gad2_gaba_E_rev']
+        syn_GPeTA_MSND2.g0_g = self._get_param('gad2_g0_g')
+        syn_GPeTA_MSND2.tau_GABA = self._get_param('gad2_gaba_tau_syn')
+        syn_GPeTA_MSND2.E_GABA = self._get_param('gad2_gaba_E_rev')
+        synapses.append(syn_GPeTA_MSND2)
 
 
-        return syn_Cortex_FSN, syn_Cortex_MSND1, syn_Cortex_MSND2, syn_Cortex_STN, syn_FSN_FSN, syn_FSN_MSND1, syn_FSN_MSND2, syn_MSND1_SNr, syn_MSND1_MSND1, syn_MSND1_MSND2, syn_MSND2_MSND2, syn_MSND2_MSND1, syn_MSND2_GPeT1, syn_STN_GPeT1, syn_STN_GPeTA, syn_STN_SNr, syn_GPeT1_FSN, syn_GPeT1_STN, syn_GPeT1_SNr, syn_GPeT1_GPeT1, syn_GPeT1_GPeTA, syn_GPeTA_GPeT1, syn_GPeTA_GPeTA, syn_GPeTA_FSN, syn_GPeTA_MSND1, syn_GPeTA_MSND2
+        return synapses
