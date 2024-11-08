@@ -6,14 +6,17 @@ from datetime import datetime
 def plot_raster(spike_monitors):
 
     try:
-        n_plots = len(spike_monitors)
+        filtered_monitors = {name: monitor for name, monitor in spike_monitors.items() 
+                           if not name.lower().startswith('cortex_')}
+        
+        n_plots = len(filtered_monitors)
         
         fig, axes = plt.subplots(n_plots, 1, figsize=(12, 3*n_plots))
         if n_plots == 1:
             axes = [axes]
         
         # Neuron spike plotting 
-        for i, (name, monitor) in enumerate(spike_monitors.items()):
+        for i, (name, monitor) in enumerate(filtered_monitors.items()):
             axes[i].scatter(monitor.t/ms, monitor.i, s=1)
             axes[i].set_title(f'{name} Raster Plot')
             axes[i].set_ylabel('Neuron index')
