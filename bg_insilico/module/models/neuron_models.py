@@ -2,16 +2,14 @@ from brian2 import *
 import importlib
 import json
 
+# load parameter
 def load_params_from_file(params_file):
-    """JSON 파일에서 파라미터 로드"""
     try:
         with open(params_file, 'r') as f:
             data = json.load(f)
-            # params 키 아래의 파라미터들을 반환
             return data['params']
     except Exception as e:
-        print(f"파라미터 파일 로드 중 오류 발생: {str(e)}")
-        print(f"파일 경로: {params_file}")
+        print(f"Load Error: {str(e)}")
         raise
 
 def create_neurons(neuron_configs):
@@ -47,8 +45,8 @@ def create_neurons(neuron_configs):
         return neuron_groups
         
     except Exception as e:
-        print(f"뉴런 그룹 생성 중 오류 발생: {str(e)}")
-        print(f"문제가 발생한 설정: {config}")
+        print(f"Neuron Group Error: {str(e)}")
+        print(f"Setting: {config}")
         raise
 
 def generate_rate_equation(params):
