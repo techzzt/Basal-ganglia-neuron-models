@@ -8,14 +8,14 @@ def create_synapses(neuron_groups, synapse_params, synapse_class):
         module = importlib.import_module(f'Neuronmodels.{synapse_class}')
         synapse_class = getattr(module, synapse_class)
     except (ImportError, AttributeError) as e:
-        raise ImportError(f"시냅스 클래스 {synapse_class}를 로드할 수 없습니다: {str(e)}")
+        raise ImportError(f"Synapse Class {synapse_class} Error: {str(e)}")
     
     try:
         synapse_instance = synapse_class(neuron_groups, synapse_params)
         synapse_connections = synapse_instance.create_synapse()
         return synapse_connections
     except Exception as e:
-        raise Exception(f"시냅스 생성 중 오류 발생: {str(e)}")
+        raise Exception(f"Synapse Error: {str(e)}")
 
 class SynapseBase:
     def __init__(self, neurons, params):
