@@ -81,4 +81,5 @@ Dopaminergic (SNc) | - | - | - | - | -
 [6] The role of neurotransmitter systems in mediating deep brain stimulation effects in Parkinson’s disease
 
 --- 
-- McGregor, Matthew M., and Alexandra B. Nelson. "Circuit mechanisms of Parkinson’s disease." Neuron 101.6 (2019): 1042-1056.
+
+McGregor, Matthew M., and Alexandra B. Nelson. "Circuit mechanisms of Parkinson’s disease." Neuron 101.6 (2019): 1042-1056.
