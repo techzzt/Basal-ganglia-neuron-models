@@ -22,7 +22,7 @@
         {
             "name": "FSN",
             "N": 500,
-            "params_file": "./params_ref/FSN_1.json",
+            "params_file": "./params_ref/FSN_1_dop.json",
             "model_class": "FSN"
         },
         {
@@ -34,7 +34,7 @@
         {
             "name": "GPeTA",
             "N": 100,
-            "params_file": "./params_ref/GPe_TA_1.json",
+            "params_file": "./params_ref/GPe_TA_1_dop.json",
             "model_class": "GPeTA"
         },
         {
@@ -46,7 +46,7 @@
         {
             "name": "MSND1",
             "N": 10000,
-            "params_file": "./params_ref/MSN_D1_1.json",
+            "params_file": "./params_ref/MSN_D1_1_dop.json",
             "model_class": "MSND1"
         },
         {
@@ -58,12 +58,12 @@
         {
             "name": "SNr",
             "N": 250,
-            "params_file": "./params_ref/SNr_1.json",
+            "params_file": "./params_ref/SNr_1_dop.json",
             "model_class": "SNr"
         }
     ],
     
-    "synapse_class": "GPe_STN_inh_ext_dop_nor",
+    "synapse_class": "GPe_STN_inh_ext_dop_dep",
 
     "synapse_params": {
 
