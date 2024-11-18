@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import os
+import numpy as np 
 from brian2 import *
 from datetime import datetime
 
-def plot_raster(spike_monitors):
-
+def plot_raster(spike_monitors, sample_size=30):  
     try:
         filtered_monitors = {name: monitor for name, monitor in spike_monitors.items() 
                            if not name.lower().startswith('cortex_')}
@@ -15,13 +15,24 @@ def plot_raster(spike_monitors):
         if n_plots == 1:
             axes = [axes]
         
-        # Neuron spike plotting 
+        # Neuron spike plotting with random sampling
         for i, (name, monitor) in enumerate(filtered_monitors.items()):
-            axes[i].scatter(monitor.t/ms, monitor.i, s=1)
-            axes[i].set_title(f'{name} Raster Plot')
+            unique_neurons = np.unique(monitor.i)
+            actual_sample_size = min(sample_size, len(unique_neurons))
+            sampled_neurons = np.random.choice(unique_neurons, size=actual_sample_size, replace=False)
+            
+            mask = np.isin(monitor.i, sampled_neurons)
+            sampled_times = monitor.t[mask]
+            sampled_indices = monitor.i[mask]
+            
+            index_map = {old: new for new, old in enumerate(sorted(sampled_neurons))}
+            mapped_indices = np.array([index_map[idx] for idx in sampled_indices])
+            
+            axes[i].scatter(sampled_times/ms, mapped_indices, s=1)
+            axes[i].set_title(f'{name} Raster Plot (Sampled {actual_sample_size} neurons)')
             axes[i].set_ylabel('Neuron index')
             axes[i].set_xlim(0, 1000)
-        
+
         axes[-1].set_xlabel('Time (ms)')
         plt.subplots_adjust(hspace=0.5)
         
