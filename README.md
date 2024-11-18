@@ -83,3 +83,6 @@ Dopaminergic (SNc) | - | - | - | - | -
 --- 
 
 McGregor, Matthew M., and Alexandra B. Nelson. "Circuit mechanisms of Parkinson’s disease." Neuron 101.6 (2019): 1042-1056.
+
+Foster, Nicholas N., et al. "The mouse cortico–basal ganglia–thalamic network." Nature 598.7879 (2021): 188-194.
+
