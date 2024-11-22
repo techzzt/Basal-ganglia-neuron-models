@@ -110,7 +110,7 @@ class GPe_STN_inh_ext_dop_nor(SynapseBase):
             dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
             I_AMPA_syn = w * g_a * (E_AMPA - v) : amp
             I_NMDA_syn = w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57) : amp
-            I_syn_syn = 0.91 * I_AMPA_syn + I_NMDA_syn : amp
+            I_syn_syn = 1.09 * I_AMPA_syn + I_NMDA_syn : amp
             Mg2 : 1
             ''',
             on_pre='''
@@ -203,7 +203,7 @@ class GPe_STN_inh_ext_dop_nor(SynapseBase):
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
             I_GABA_syn = w * g_g * (E_GABA - v) : amp
-            I_syn_syn = 1.112 * I_GABA_syn : amp
+            I_syn_syn = 0.888 * I_GABA_syn : amp
             ''',
             on_pre='''
             v_post += w * mV
@@ -422,7 +422,7 @@ class GPe_STN_inh_ext_dop_nor(SynapseBase):
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
             I_GABA_syn = w * g_g * (E_GABA - v) : amp
-            I_syn_syn = 0.952 * I_GABA_syn : amp
+            I_syn_syn = 1.048 * I_GABA_syn : amp
             ''',
             on_pre='''
             v_post += w * mV

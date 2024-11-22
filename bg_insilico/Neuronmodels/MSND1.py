@@ -24,35 +24,35 @@ d       : volt/second
 
 
 class NeuronModel:
-    def __init__(self, N, params, neuron_type='E'):
+    def __init__(self, N, params):
         # Parse the parameters from the params dictionary
         super().__init__(N, params)
-        self.neuron_type = neuron_type  
         self.neurons = None
 
     def create_neurons(self):
         raise NotImplementedError("Subclasses should implement this method.")
 
 class MSND1(NeuronModel):
-    def __init__(self, N, params, neuron_type='E'):
+    def __init__(self, N, params):
         # Parse the parameters from the params dictionary
         self.N = N
         self.params = params
-        self.neuron_type = neuron_type  
         self.neurons = None
 
     def create_neurons(self):
         # Define the neuron model based on the type
-        self.neurons = NeuronGroup(self.N, eqs, threshold='v >= th', reset='v = vr; u += d', method='euler')
+        self.neurons = NeuronGroup(self.N, eqs, threshold='v > th', reset='v = vr; u += d', method='euler')
 
         # Initialize parameters with their proper units
-        self.neurons.v = self.params['vr'] 
-        self.neurons.vt = self.params['vt'] 
-        self.neurons.th = self.params['th'] 
-        self.neurons.C = self.params['C'] 
-        self.neurons.a = self.params['a'] / second  # Parameter a in 1/second
-        self.neurons.b = self.params['b'] * Hz # Parameter b in 1/second
-        self.neurons.I = self.params['I'] 
+        self.neurons.v = self.params['vr']['value'] * eval(self.params['vr']['unit'])
+        self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
+        self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
+        self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
+        self.neurons.k = self.params['k']['value'] 
+        self.neurons.a = self.params['a']['value'] / second
+        self.neurons.b = self.params['b']['value'] * (Hz) 
+        self.neurons.d = self.params['d']['value'] * mV / ms
+        self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
 
         return self.neurons
 
