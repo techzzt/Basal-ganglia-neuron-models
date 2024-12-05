@@ -2,14 +2,16 @@ from brian2 import *
 
 # Define the equations for the neuron populations
 eqs = '''
-dv/dt = (- g_L * (v - E_L) + g_L * Delta_T * exp((v - vt) / Delta_T) - u + I - I_syn) / C : volt
+dv/dt = (- g_L * (v - E_L) + g_L * Delta_T * exp((v - vt) / Delta_T) - u + I) / C : volt
 du/dt = (a * (v - E_L) - u) / tau_w : amp
-
-I_syn = I_AMPA + I_NMDA + I_GABA : amp
+I = Ispon + Istim + Isyn : amp
+Istim   : amp
+Ispon   : amp
+Isyn = I_AMPA + I_NMDA + I_GABA_GPeTA: amp
 
 I_AMPA : amp
 I_NMDA : amp
-I_GABA : amp
+I_GABA_GPeTA : amp
 
 g_L    : siemens
 E_L    : volt
@@ -21,7 +23,6 @@ th     : volt
 a      : siemens
 d      : amp
 C      : farad
-I      : amp
 '''
 
 
@@ -36,7 +37,6 @@ class NeuronModel:
 
 class GPeTA(NeuronModel):
     def __init__(self, N, params):
-        # Parse the parameters from the params dictionary
         self.N = N
         self.params = params
         self.neurons = None

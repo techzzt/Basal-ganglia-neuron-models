@@ -2,12 +2,14 @@ from brian2 import *
 
 # Define the equations for the neuron populations
 eqs = '''
-dv / dt = (k*1*pF/ms/mV*(v-vr)*(v-vt) - u*pF + I - I_syn) / C : volt (unless refractory)
+dv / dt = (k*1*pF/ms/mV*(v-vr)*(v-vt) - u*pF + I) / C : volt (unless refractory)
 du/dt = a * (b * (v - vr) - u) : volt/second
-
-I_syn = I_AMPA + I_NMDA + I_GABA: amp
-I_GABA  : amp
-I_AMPA : amp
+I = Ispon + Istim + Isyn : amp
+Istim   : amp
+Ispon   : amp
+Isyn = I_AMPA_FSN + I_NMDA + I_GABA_FSN: amp
+I_GABA_FSN  : amp
+I_AMPA_FSN : amp
 I_NMDA : amp
 a : 1/second
 b : 1/second
@@ -18,14 +20,12 @@ vr     : volt
 tau_w  : second
 th     : volt
 C      : farad
-I      : amp
-d       : volt/second
+d      : volt/second
 '''
 
 
 class NeuronModel:
     def __init__(self, N, params):
-        # Parse the parameters from the params dictionary
         super().__init__(N, params)
         self.neurons = None
 
