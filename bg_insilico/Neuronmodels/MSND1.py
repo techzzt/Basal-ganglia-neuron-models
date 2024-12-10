@@ -19,6 +19,7 @@ vt     : volt
 vr     : volt 
 tau_w  : second
 th     : volt
+c      : volt
 C      : farad
 d       : volt/second
 '''
@@ -41,7 +42,7 @@ class MSND1(NeuronModel):
 
     def create_neurons(self):
         # Define the neuron model based on the type
-        self.neurons = NeuronGroup(self.N, eqs, threshold='v > th', reset='v = vr; u += d', method='euler')
+        self.neurons = NeuronGroup(self.N, eqs, threshold='v > th', reset='v = c; u += d', method='euler')
 
         # Initialize parameters with their proper units
         self.neurons.v = self.params['vr']['value'] * eval(self.params['vr']['unit'])
@@ -53,6 +54,7 @@ class MSND1(NeuronModel):
         self.neurons.b = self.params['b']['value'] * (Hz) 
         self.neurons.d = self.params['d']['value'] * mV / ms
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
+        self.neurons.c = self.params['c']['value'] * eval(self.params['c']['unit'])
 
         return self.neurons
 
