@@ -10,6 +10,7 @@
         "a": {"value": 0.01, "unit": "1/second"},
         "b": {"value": -20, "unit": "1/second"},
         "C": {"value": 15.2, "unit": "pF"},
+        "c": {"value": -60, "unit": "mV"},
         "d": {"value": 90.984, "unit": "volt/second"},
         "I": {"value": 0, "unit": "pA"}
     },

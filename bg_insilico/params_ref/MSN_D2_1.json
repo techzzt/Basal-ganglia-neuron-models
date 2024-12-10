@@ -3,7 +3,7 @@
     "params": {
         "N": {"value": 100, "unit": ""},
         "k": {"value": 1, "unit": ""},
-        "u": {"value": 0, "unit": "1/second"},
+        "u": {"value": 0, "unit": "volt/second"},
         "vr": {"value": -80, "unit": "mV"},
         "vt": {"value": -29.7, "unit": "mV"},
         "th": {"value": 40, "unit": "mV"},
@@ -11,6 +11,7 @@
         "b": {"value": -20, "unit": "1/second"},
         "C": {"value": 15.2, "unit": "pF"},
         "d": {"value": 91, "unit": "volt/second"},
+        "c": {"value": -60, "unit": "mV"},
         "I": {"value": 0, "unit": "pA"}
     },
     "reference": {

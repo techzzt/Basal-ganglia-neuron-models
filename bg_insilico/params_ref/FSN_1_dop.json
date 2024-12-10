@@ -6,6 +6,7 @@
         "u": {"value": 0, "unit": "volt/second"},
         "vr": {"value": -68.419, "unit": "mV"},
         "vt": {"value": -50, "unit": "mV"},
+        "vb": {"value": -55, "unit": "mV"},   
         "th": {"value": 25, "unit": "mV"},
         "a": {"value": 0.2, "unit": "1/second"},
         "b": {"value": 0.025, "unit": "1/second"},
