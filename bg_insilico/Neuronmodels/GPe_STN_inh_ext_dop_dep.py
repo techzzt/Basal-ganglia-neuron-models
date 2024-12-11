@@ -21,7 +21,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             on_pre='''
             v_post += w * mV; g_a += g0_a''',         
             delay=self._get_param('csfs_delay'))
-        syn_Cortex_FSN.connect()
+        syn_Cortex_FSN.connect(p = 0.75)
         syn_Cortex_FSN.w = 1
         syn_Cortex_FSN.g0_a = self._get_param('csfs_g0_a')
         syn_Cortex_FSN.tau_AMPA = self._get_param('csfs_ampa_tau_syn')
@@ -48,7 +48,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             v_post += w * mV; g_a += g0_a; g_n += g0_n
             ''',             
         delay=self._get_param('cs1_delay'))
-        syn_Cortex_MSND1.connect()
+        syn_Cortex_MSND1.connect(p = 0.75)
         syn_Cortex_MSND1.w = 1
         syn_Cortex_MSND1.g0_n = self._get_param('cs1_g0_n')
         syn_Cortex_MSND1.g0_a = self._get_param('cs1_g0_a')
@@ -80,7 +80,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             v_post += w * mV; g_a += g0_a; g_n += g0_n
             ''',  
             delay=self._get_param('cs2_delay'))
-        syn_Cortex_MSND2.connect()
+        syn_Cortex_MSND2.connect(p = 0.75)
         syn_Cortex_MSND2.w = 1
         syn_Cortex_MSND2.g0_n = self._get_param('cs2_g0_n')
         syn_Cortex_MSND2.g0_a = self._get_param('cs2_g0_a')
@@ -110,7 +110,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             v_post += w * mV; g_a += g0_a; g_n += g0_n
             ''', 
         delay=self._get_param('csn_delay'))
-        syn_Cortex_STN.connect()
+        syn_Cortex_STN.connect(p = 0.75)
         syn_Cortex_STN.w = 1
         syn_Cortex_STN.g0_n = self._get_param('csn_g0_n')
         syn_Cortex_STN.g0_a = self._get_param('csn_g0_a')
@@ -130,7 +130,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_FSN_syn =  2.02 * w * g_g * (E_GABA - v) : amp  # Output current variable
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''',  delay=self._get_param('fsfs_delay'))
         syn_FSN_FSN.connect(p=0.74)
         syn_FSN_FSN.w = 1
@@ -150,7 +150,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_FSN_syn = w * g_g * (E_GABA - v) : amp  # Output current variable
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('fsd1_delay'))
         syn_FSN_MSND1.connect(p=0.27)
         syn_FSN_MSND1.w = 1
@@ -169,7 +169,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_FSN_syn = w * g_g * (E_GABA - v) : amp  # Output current variable
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('fsd2_delay'))
         syn_FSN_MSND2.connect(p=0.18)
         syn_FSN_MSND2.w = 1
@@ -188,7 +188,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_MSND1_syn = 1.448 * w * g_g * (E_GABA - v) : amp  # Output current variable
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('d1snr_delay'))
         syn_MSND1_SNr.connect(p=0.1)
         syn_MSND1_SNr.w = 1
@@ -206,7 +206,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_MSND1_syn = 0.295 * w * g_g * (E_GABA - v) : amp  # Output current variable
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('dd_delay'))
         syn_MSND1_MSND1.connect(p=0.18)
         syn_MSND1_MSND1.w = 1
@@ -224,7 +224,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_MSND1_syn =  0.295 * w * g_g * (E_GABA - v) : amp
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('dd_delay'))
         syn_MSND1_MSND2.connect(p=0.03)
         syn_MSND1_MSND2.w = 1
@@ -243,7 +243,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_MSND2_syn = 0.295 * w * g_g * (E_GABA - v) : amp  # Output current variable
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('dd_delay'))
         syn_MSND2_MSND2.connect(p=0.18)
         syn_MSND2_MSND2.w = 1
@@ -262,7 +262,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_MSND2_syn = 0.295 * w * g_g * (E_GABA - v) : amp  # Output current variable
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('dd_delay'))
         syn_MSND2_MSND1.connect(p=0.14)
         syn_MSND2_MSND1.w = 1
@@ -281,7 +281,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_MSND2_syn = 1.664 * w * g_g * (E_GABA - v) : amp 
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('d2g1_delay'))
         syn_MSND2_GPeT1.connect(p=0.2)
         syn_MSND2_GPeT1.w = 1
@@ -358,7 +358,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_GPeT1_syn = 1.42 * w * g_g * (E_GABA - v) : amp  
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('g1fs_delay'))
         syn_GPeT1_FSN.connect(p=0.01)
         syn_GPeT1_FSN.w = 1
@@ -377,7 +377,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_GPeT1_syn = 0.8 * w * g_g * (E_GABA - v) : amp  
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('g1sn_delay'))
         syn_GPeT1_STN.connect(p=0.03)
         syn_GPeT1_STN.w = 1
@@ -396,7 +396,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_GPeT1_syn = w * g_g * (E_GABA - v) : amp  
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('g1snr_delay'))
         syn_GPeT1_SNr.connect(p=0.03)
         syn_GPeT1_SNr.w = 1
@@ -415,7 +415,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_GPeT1_syn = 1.164 * w * g_g * (E_GABA - v) : amp  # Output current variable
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('g1g1_delay'))
         syn_GPeT1_GPeT1.connect(p=0.02)
         syn_GPeT1_GPeT1.w = 1
@@ -434,7 +434,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_GPeT1_syn = 1.164 * w * g_g * (E_GABA - v) : amp  # Output current variable
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('g1ga_delay'))
         syn_GPeT1_GPeTA.connect(p=0.02)
         syn_GPeT1_GPeTA.w = 1
@@ -453,7 +453,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_GPeTA_syn = 1.164 * w * g_g * (E_GABA - v) : amp  # Output current variable
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('gag1_delay'))
         syn_GPeTA_GPeT1.connect(p=0.02)
         syn_GPeTA_GPeT1.w = 1
@@ -472,7 +472,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_GPeTA_syn = 1.164 * w * g_g * (E_GABA - v) : amp 
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('gaga_delay'))
         syn_GPeTA_GPeTA.connect(p=0.02)
         syn_GPeTA_GPeTA.w = 1
@@ -491,7 +491,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_GPeTA_syn = 1.42 * w * g_g * (E_GABA - v) : amp 
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('gafs_delay'))
         syn_GPeTA_FSN.connect(p=0.03)
         syn_GPeTA_FSN.w = 1
@@ -510,7 +510,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_GPeTA_syn = 1.976 * w * g_g * (E_GABA - v) : amp
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('gad1_delay'))
         syn_GPeTA_MSND1.connect(p=0.03)
         syn_GPeTA_MSND1.w = 1
@@ -529,7 +529,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             I_GABA_GPeTA_syn = w * g_g * (E_GABA - v) : amp
             ''', 
             on_pre='''
-            v_post += w * mV; g_g += g0_g
+            g_g += g0_g
             ''', delay=self._get_param('gad2_delay'))
         syn_GPeTA_MSND2.connect(p=0.03)
         syn_GPeTA_MSND2.w = 1

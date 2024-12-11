@@ -7,7 +7,7 @@ du/dt = (a * (v - E_L) - u) / tau_w : amp
 I = Ispon + Istim + Isyn : amp
 Istim   : amp
 Ispon   : amp
-Isyn = -(I_AMPA_GPeT1 + I_NMDA + I_GABA_GPeT1): amp
+Isyn = I_AMPA_GPeT1 + I_NMDA + I_GABA_GPeT1: amp
 
 I_AMPA_GPeT1 : amp
 I_NMDA : amp
