@@ -1,3 +1,4 @@
+```
 "target_rates": {
     "FSN": {
         "equation": "((t / second) * (646 / 1000) + 3 * randn()) * Hz"
@@ -12,8 +13,9 @@
         "equation": "((t / second) * (170 / 1000) + 3 * randn()) * Hz"
     }
 }
+```
 
-
+```
 "target_rates": {
     "FSN": {
         "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 646*Hz + 3*Hz * randn()"
@@ -28,9 +30,9 @@
         "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 170*Hz + 3*Hz * randn()"
     }
 }
+```
 
-
-
+```
 "neuron_type": "poisson",
 "target_rates": {
     "FSN": {
@@ -46,4 +48,4 @@
         "equation": "((t / second) / 1000 * 170 + 3 * randn()) * Hz"
     }
 }
-        
+```     
