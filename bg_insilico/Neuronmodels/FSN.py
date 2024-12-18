@@ -47,7 +47,6 @@ class FSN(NeuronModel):
         )
 
         # Set parameters using the dictionary
-        self.neurons.v = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
