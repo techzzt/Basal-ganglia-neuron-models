@@ -16,7 +16,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             w : 1
             tau_AMPA : second
             dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
-            I_syn = w * g_a * (E_AMPA - v) : amp  # Output current variable
+            I_syn = w * g_a * (E_AMPA - v) : amp 
             ''',
             on_pre='''
             v_post += w * mV; g_a += g0_a''',         
@@ -70,9 +70,8 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             tau_NMDA : second
             dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
             dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
-            I_AMPA_syn = 1.2 * w * g_a * (E_AMPA - v) * s_AMPA_ext: amp 
+            I_AMPA_syn = 1.2 * w * g_a * (E_AMPA - v) : amp 
             I_NMDA_syn = w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp
-            ds_AMPA_ext / dt = - s_AMPA_ext / tau_AMPA : 1
             I_syn_syn = 0.208 * I_AMPA_syn + I_NMDA_syn : amp 
             Mg2 : 1
             ''',
@@ -127,7 +126,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             w : 1
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-            I_GABA_FSN_syn =  2.02 * w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_GABA_FSN_syn =  2.02 * w * g_g * (E_GABA - v) : amp  
             ''', 
             on_pre='''
             g_g += g0_g
@@ -147,7 +146,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             w : 1
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-            I_GABA_FSN_syn = w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_GABA_FSN_syn = w * g_g * (E_GABA - v) : amp 
             ''', 
             on_pre='''
             g_g += g0_g
@@ -166,7 +165,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             w : 1
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-            I_GABA_FSN_syn = w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_GABA_FSN_syn = w * g_g * (E_GABA - v) : amp 
             ''', 
             on_pre='''
             g_g += g0_g
@@ -185,7 +184,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             w : 1
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-            I_GABA_MSND1_syn = 1.448 * w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_GABA_MSND1_syn = 1.448 * w * g_g * (E_GABA - v) : amp  
             ''', 
             on_pre='''
             g_g += g0_g
@@ -203,7 +202,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             w : 1
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-            I_GABA_MSND1_syn = 0.295 * w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_GABA_MSND1_syn = 0.295 * w * g_g * (E_GABA - v) : amp 
             ''', 
             on_pre='''
             g_g += g0_g
@@ -240,7 +239,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             w : 1
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-            I_GABA_MSND2_syn = 0.295 * w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_GABA_MSND2_syn = 0.295 * w * g_g * (E_GABA - v) : amp 
             ''', 
             on_pre='''
             g_g += g0_g
@@ -259,7 +258,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             w : 1
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-            I_GABA_MSND2_syn = 0.295 * w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_GABA_MSND2_syn = 0.295 * w * g_g * (E_GABA - v) : amp  
             ''', 
             on_pre='''
             g_g += g0_g
@@ -450,7 +449,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             w : 1
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-            I_GABA_GPeTA_syn = 1.164 * w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_GABA_GPeTA_syn = 1.164 * w * g_g * (E_GABA - v) : amp 
             ''', 
             on_pre='''
             g_g += g0_g
