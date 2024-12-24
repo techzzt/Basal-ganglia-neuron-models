@@ -17,12 +17,6 @@ Izhikevich |$$\frac{dv}{dt} = \left(0.04 \, \frac{1}{\text{ms} \cdot \text{mV}}\
 ## ARGUMENTS
 neuron models should be put under ```./bg_insilico```
 
-- models/model{}.py: define quadratic integrate and fire model (AdEx, LIF, QIF, HH, Izh)
-- params: parameter list with json format
-- simulation_runner.py: generate neuron model, spike mornitoring
-- test.ipynb: define params, simulation
-
-
 #### Neuron Model Features
 Neuron type | Brain region | Parameter Description | References | Alternative terms | Neuron transmitter | Json
 --- | --- | --- | --- | --- | ---| ---
