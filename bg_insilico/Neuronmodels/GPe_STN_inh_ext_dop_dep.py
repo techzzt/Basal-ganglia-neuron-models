@@ -454,7 +454,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             on_pre='''
             g_g += g0_g
             ''', delay=self._get_param('gag1_delay'))
-        syn_GPeTA_GPeT1.connect(p=0.02)
+        syn_GPeTA_GPeT1.connect(p=0.05)
         syn_GPeTA_GPeT1.w = 1
         syn_GPeTA_GPeT1.g0_g = self._get_param('gag1_g0_g')
         syn_GPeTA_GPeT1.tau_GABA = self._get_param('gag1_gaba_tau_syn')

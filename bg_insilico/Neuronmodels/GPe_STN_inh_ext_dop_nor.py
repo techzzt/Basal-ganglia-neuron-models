@@ -16,8 +16,7 @@ class GPe_STN_inh_ext_dop_nor(SynapseBase):
             w : 1
             tau_AMPA : second
             dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
-            I_AMPA_syn = w * g_a * (E_AMPA - v) : amp
-            I_syn_syn = I_AMPA_syn : amp
+            I_syn = w * g_a * (E_AMPA - v) : amp 
             ''',
             on_pre='''
             v_post += w * mV
@@ -42,9 +41,9 @@ class GPe_STN_inh_ext_dop_nor(SynapseBase):
             tau_NMDA : second
             dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
             dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
-            I_AMPA_syn = w * g_a * (E_AMPA - v) : amp
-            I_NMDA_syn = 1.208 * w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp
-            I_syn_syn = I_AMPA_syn + I_NMDA_syn : amp
+            I_AMPA_syn = w * g_a * (E_AMPA - v) : amp  
+            I_NMDA_syn =  1.208 * w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp
+            I_syn = I_AMPA_syn + I_NMDA_syn : amp 
             Mg2 : 1
             ''',
             on_pre='''
@@ -74,7 +73,7 @@ class GPe_STN_inh_ext_dop_nor(SynapseBase):
             tau_NMDA : second
             dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
             dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
-            I_AMPA_syn = 1.2 * w * g_a * (E_AMPA - v): amp
+            I_AMPA_syn = 1.2 * w * g_a * (E_AMPA - v) : amp 
             I_NMDA_syn = w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp
             I_syn_syn = 0.948 * I_AMPA_syn + I_NMDA_syn : amp
             Mg2 : 1
@@ -482,7 +481,7 @@ class GPe_STN_inh_ext_dop_nor(SynapseBase):
             g_g += g0_g
             ''',
             delay=self._get_param('gag1_delay'))
-        syn_GPeTA_GPeT1.connect(p=0.02)
+        syn_GPeTA_GPeT1.connect(p=0.05)
         syn_GPeTA_GPeT1.w = 1
         syn_GPeTA_GPeT1.g0_g = self._get_param('gag1_g0_g')
         syn_GPeTA_GPeT1.tau_GABA = self._get_param('gag1_gaba_tau_syn')
