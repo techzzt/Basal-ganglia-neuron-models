@@ -411,7 +411,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             w : 1
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-            I_GABA_GPeT1_syn = 1.164 * w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_GABA_GPeT1_syn = 1.164 * w * g_g * (E_GABA - v) : amp  
             ''', 
             on_pre='''
             g_g += g0_g
@@ -430,7 +430,7 @@ class GPe_STN_inh_ext_dop_dep(SynapseBase):
             w : 1
             tau_GABA : second
             dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-            I_GABA_GPeT1_syn = 1.164 * w * g_g * (E_GABA - v) : amp  # Output current variable
+            I_GABA_GPeT1_syn = 1.164 * w * g_g * (E_GABA - v) : amp  
             ''', 
             on_pre='''
             g_g += g0_g
