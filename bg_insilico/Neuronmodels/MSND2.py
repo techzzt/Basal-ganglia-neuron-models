@@ -1,28 +1,6 @@
+import importlib
 from brian2 import *
-
-# Define the equations for the neuron populations
-eqs = '''
-dv / dt = (k*1*pF/ms/mV*(v-vr)*(v-vt) - u*pF + I) / C : volt (unless refractory)
-du/dt = a * (b * (v - vr) - u) : volt/second
-I = Ispon + Istim + Isyn : amp
-Istim   : amp
-Ispon   : amp
-Isyn = I_AMPA + I_NMDA + I_GABA_MSND2: amp
-I_GABA_MSND2  : amp
-I_AMPA : amp
-I_NMDA : amp
-a : 1/second
-b : 1/second
-k : 1
-E_L    : volt
-vt     : volt
-vr     : volt 
-tau_w  : second
-th     : volt
-c      : volt
-C      : farad
-d      : volt/second
-'''
+from module.models import QIF
 
 
 class NeuronModel:
@@ -35,13 +13,12 @@ class NeuronModel:
 
 class MSND2(NeuronModel):
     def __init__(self, N, params):
-        # Parse the parameters from the params dictionary
         self.N = N
         self.params = params
         self.neurons = None
 
     def create_neurons(self):
-        # Define the neuron model based on the type
+        eqs = QIF.eqs 
         self.neurons = NeuronGroup(self.N, eqs, threshold='v > th', reset='v = c; u += d', method='euler')
 
         # Initialize parameters with their proper units
@@ -57,4 +34,5 @@ class MSND2(NeuronModel):
 
         return self.neurons
 
+    
     

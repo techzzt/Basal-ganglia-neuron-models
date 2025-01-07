@@ -1,33 +1,10 @@
 from brian2 import *
+import importlib
+from module.models import AdEx
 
-# Define the equations for the neuron populations
-eqs = '''
-dv/dt = (-g_L * (v - E_L) + g_L * Delta_T * exp((v - vt) / Delta_T) - u + I) / C : volt
-du/dt = (a * (v - E_L) - u) / tau_w : amp
-I = Ispon + Istim + Isyn : amp
-Istim   : amp
-Ispon   : amp
-Isyn = I_AMPA_GPeT1 + I_NMDA + I_GABA_GPeT1: amp
-
-I_AMPA_GPeT1 : amp
-I_NMDA : amp
-I_GABA_GPeT1 : amp
-
-g_L    : siemens
-E_L    : volt
-Delta_T: volt
-vt     : volt
-vr     : volt 
-tau_w  : second
-th     : volt
-a      : siemens
-d      : amp
-C      : farad
-'''
 
 class NeuronModel:
     def __init__(self, N, params):
-        # Parse the parameters from the params dictionary
         super().__init__(N, params)
         self.neurons = None
 
@@ -42,7 +19,7 @@ class GPeT1(NeuronModel):
         self.neurons = None
 
     def create_neurons(self):
-        # Define the GPe neuron model based on the params
+        eqs = AdEx.eqs 
             
         self.neurons = NeuronGroup(self.N, eqs, threshold='v > th', reset='v = vr; u += d', method='euler')
 
