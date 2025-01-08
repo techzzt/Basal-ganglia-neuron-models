@@ -64,7 +64,7 @@
         }
     ],
     
-    "synapse_class": "GPe_STN_inh_ext_dop_dep",
+    "synapse_class": "Synapse",
 
     "synapse_params": {
         "ampa_beta":  {"value": 0.5, "unit": "1"},
