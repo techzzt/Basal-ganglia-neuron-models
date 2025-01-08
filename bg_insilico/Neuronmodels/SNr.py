@@ -1,29 +1,6 @@
 from brian2 import *
-
-# Define the equations for the neuron populations
-eqs = '''
-dv/dt = (- g_L * (v - E_L) + g_L * Delta_T * exp((v - vt) / Delta_T) - u + I) / C : volt
-du/dt = (a * (v - E_L) - u) / tau_w : amp
-I = Ispon + Istim + Isyn : amp
-Istim   : amp
-Ispon   : amp
-Isyn = I_AMPA + I_NMDA + I_GABA: amp
-I_AMPA : amp
-I_NMDA : amp
-I_GABA : amp
-
-g_L    : siemens
-E_L    : volt
-Delta_T: volt
-vt     : volt
-vr     : volt 
-tau_w  : second
-th     : volt
-a      : siemens
-d      : amp
-C      : farad
-'''
-
+import importlib
+from module.models import AdEx
 
 class NeuronModel:
     def __init__(self, N, params):
@@ -41,8 +18,8 @@ class SNr(NeuronModel):
         self.neurons = None
 
     def create_neurons(self):
+        eqs = AdEx.eqs 
 
-        # Create the neuron group using the appropriate equations
         self.neurons = NeuronGroup(self.N, eqs, threshold='v > th', reset='v = vr; u += d', method='euler')
         
         self.neurons.g_L = self.params['g_L']['value'] * eval(self.params['g_L']['unit'])
