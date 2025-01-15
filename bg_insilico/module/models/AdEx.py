@@ -1,17 +1,13 @@
 from brian2 import *
 
 eqs = '''
-dv/dt = (-g_L * (v - E_L) + g_L * Delta_T * exp((v - vt) / Delta_T) - u + I) / C : volt
+dv/dt = (-g_L * (v - E_L) + g_L * Delta_T * exp((v - vt) / Delta_T) - u + I - Isyn) / C : volt
 du/dt = (a * (v - E_L) - u) / tau_w : amp
-I = Ispon + Istim + Isyn : amp
-Istim   : amp
-Ispon   : amp
-Isyn = I_AMPA_GPeT1 + I_NMDA + I_GABA_GPeT1: amp
-
-I_AMPA_GPeT1 : amp
+I  : amp
+Isyn = I_AMPA + I_NMDA + I_GABA : amp
+I_AMPA : amp
 I_NMDA : amp
-I_GABA_GPeT1 : amp
-
+I_GABA : amp
 g_L    : siemens
 E_L    : volt
 Delta_T: volt
