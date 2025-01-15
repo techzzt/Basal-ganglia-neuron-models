@@ -15,3 +15,7 @@ Navigate into `bg_insilico/` and run
 + `python run.py`
 
 <img width="1089" alt="image" src="https://github.com/user-attachments/assets/3e137356-965e-453d-98f6-cd0d137e4b6e">
+
+
+
+reference code: https://brian.discourse.group/t/problem-with-biexponential-synaptic-currents-no-currents-recorded/737
