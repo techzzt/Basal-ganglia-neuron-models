@@ -9,17 +9,17 @@ def main():
     
     params = load_params(params_file)
     neuron_configs = params['neurons']
-    synapse_params = params['synapse_params']
-    cortex_inputs = params['cortex_inputs']
+    connections = params['connections']   
     synapse_class = params['synapse_class']
+    simulation_params = params['simulation']
 
     # Simulation 
     results = run_simulation_with_inh_ext_input(
         neuron_configs=neuron_configs,
-        synapse_params=synapse_params,
+        connections=connections,
         synapse_class=synapse_class,
-        cortex_inputs=cortex_inputs
-    )
+        simulation_params=simulation_params    
+        )
     
     print("Simulation completed successfully")
 
