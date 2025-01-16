@@ -2,23 +2,23 @@
     "neurons": [
         {
             "name": "Cortex",
-            "N": 200, 
+            "N": 100, 
             "neuron_type": "poisson",
             "target_rates": {
                 "FSN": {
-                    "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 646*Hz + 3*Hz * randn()"
+                    "equation": "((t / second) * (646 / 1000) + 3 * randn()) * Hz"
                 },
                 "MSND1": {
-                    "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 448*Hz + 3*Hz * randn()"
+                    "equation": "((t / second) * (448 / 1000) + 3 * randn()) * Hz"
                 },
                 "MSND2": {
-                    "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 592*Hz + 3*Hz * randn()"
+                    "equation": "((t / second) * (592 / 1000) + 3 * randn()) * Hz"
                 },
                 "STN": {
-                    "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 170*Hz + 3*Hz * randn()"
+                    "equation": "((t / second) * (170 / 1000) + 3 * randn()) * Hz"
                 }
             }
-},
+        },
 
         {
             "name": "FSN",
@@ -66,178 +66,371 @@
     
     "synapse_class": "Synapse",
 
-    "synapse_params": {
-        "ampa_beta":  {"value": 0.5, "unit": "1"},
-        "nmda_beta":  {"value": 0.5, "unit": "1"},
-        
-        "csfs_g0_a": {"value": 0.5, "unit": "nS"},
-        "csfs_ampa_tau_syn": {"value": 12, "unit": "ms"},
-        "csfs_ampa_E_rev": {"value": 0, "unit": "mV"},
-        "csfs_delay": {"value": 2.5, "unit": "ms"},
-    
-        "cs1_g0_a": {"value": 0.5, "unit": "nS"},
-        "cs1_g0_n": {"value": 0.11, "unit": "nS"},
-        "cs1_ampa_tau_syn": {"value": 12, "unit": "ms"},
-        "cs1_nmda_tau_syn": {"value": 160, "unit": "ms"},
-        "cs1_ampa_E_rev": {"value": 0, "unit": "mV"},
-        "cs1_nmda_E_rev": {"value": 0, "unit": "mV"},
-        "cs1_delay": {"value": 2.5, "unit": "ms"},
-        "cs1_ampa_beta": {"value": 1, "unit": "1"},
-        "cs1_nmda_beta": {"value": 0.168, "unit": "1"},
-
-        "cs2_g0_a": {"value": 0.5, "unit": "nS"},
-        "cs2_g0_n": {"value": 0.019, "unit": "nS"},
-        "cs2_ampa_tau_syn": {"value": 12, "unit": "ms"},
-        "cs2_nmda_tau_syn": {"value": 160, "unit": "ms"},
-        "cs2_ampa_E_rev": {"value": 0, "unit": "mV"},
-        "cs2_nmda_E_rev": {"value": 0, "unit": "mV"},
-        "cs2_delay": {"value": 2.5, "unit": "ms"},
-        "cs2_ampa_beta": {"value": 0.208, "unit": "1"},
-        "cs2_nmda_beta": {"value": 1, "unit": "1"},  
-        
-        "csn_g0_a": {"value": 0.25, "unit": "nS"},
-        "csn_g0_n": {"value": 0.00625, "unit": "nS"},
-        "csn_ampa_tau_syn": {"value": 4, "unit": "ms"},
-        "csn_nmda_tau_syn": {"value": 160, "unit": "ms"},
-        "csn_ampa_E_rev": {"value": 0, "unit": "mV"},
-        "csn_nmda_E_rev": {"value": 0, "unit": "mV"},
-        "csn_delay": {"value": 2.5, "unit": "ms"},
-        "csn_ampa_beta":{"value": 0.64, "unit": "1"},
-        "csn_nmda_beta": {"value": 1, "unit": "1"},
-
-        "fsfs_g0_g": {"value": 1, "unit": "nS"},
-        "fsfs_gaba_tau_syn": {"value": 6, "unit": "ms"},
-        "fsfs_gaba_E_rev": {"value": -74, "unit": "mV"},
-        "fsfs_delay": {"value": 1.7, "unit": "ms"},
-        "fsfs_gaba_beta": {"value": 2.02, "unit": "1"},
-
-        "fsd1_g0_g": {"value": 6, "unit": "nS"},
-        "fsd1_gaba_tau_syn": {"value": 11, "unit": "ms"},
-        "fsd1_gaba_E_rev": {"value": -74, "unit": "mV"},
-        "fsd1_delay": {"value": 1.7, "unit": "ms"},
-    
-        "fsd2_g0_g": {"value": 6, "unit": "nS"},
-        "fsd2_gaba_tau_syn": {"value": 11, "unit": "ms"},
-        "fsd2_gaba_E_rev": {"value": -74, "unit": "mV"},
-        "fsd2_delay": {"value": 1.7, "unit": "ms"},
-    
-        "d1snr_g0_g": {"value": 2, "unit": "nS"},
-        "d1snr_gaba_tau_syn": {"value": 5.2, "unit": "ms"},
-        "d1snr_gaba_E_rev": {"value": -80, "unit": "mV"},
-        "d1snr_delay": {"value": 7, "unit": "ms"},
-        "d1snr_gaba_beta": {"value": 1.448, "unit": "1"},
-
-        "d1d1_g0_g": {"value": 0.15, "unit": "nS"},
-        "d1d1_gaba_tau_syn": {"value": 8, "unit": "ms"},
-        "d1d1_gaba_E_rev": {"value": -74, "unit": "mV"},
-        "dd_delay": {"value": 1.7, "unit": "ms"},
-        "d1d1_gaba_beta": {"value": 0.295, "unit": "1"},
-
-        "d1d2_g0_g": {"value": 0.375, "unit": "nS"},
-        "d1d2_gaba_tau_syn": {"value": 8, "unit": "ms"},
-        "d1d2_gaba_E_rev": {"value": -74, "unit": "mV"},
-        "dd_delay": {"value": 1.7, "unit": "ms"},
-        "d1d2_gaba_beta": {"value": 0.295, "unit": "1"},
-
-        "d2d2_g0_g": {"value": 0.35, "unit": "nS"},
-        "d2d2_gaba_tau_syn": {"value": 8, "unit": "ms"},
-        "d2d2_gaba_E_rev": {"value": -74, "unit": "mV"},
-        "dd_delay": {"value": 1.7, "unit": "ms"},
-        "d2d2_gaba_beta": {"value": 0.295, "unit": "1"},
-
-        "d2d1_g0_g": {"value": 0.45, "unit": "nS"},
-        "d2d1_gaba_tau_syn": {"value": 8, "unit": "ms"},
-        "d2d1_gaba_E_rev": {"value": -74, "unit": "mV"},
-        "dd_delay": {"value": 1.7, "unit": "ms"},
-        "d2d1_gaba_beta": {"value": 0.295, "unit": "1"},
-
-        "d2g1_g0_g": {"value": 2, "unit": "nS"},
-        "d2g1_gaba_tau_syn": {"value": 6, "unit": "ms"},
-        "d2g1_gaba_E_rev": {"value": -65, "unit": "mV"},
-        "d2g1_delay": {"value": 7, "unit": "ms"},
-        "d2g1_gaba_beta": {"value": 1.664, "unit": "1"},
-    
-        "snt1_g0_a": {"value": 0.35, "unit": "nS"},
-        "snt1_ampa_tau_syn": {"value": 12, "unit": "ms"},
-        "snt1_ampa_E_rev": {"value": 0, "unit": "mV"},
-        "snt1_delay": {"value": 2, "unit": "ms"},
-        "snt1_ampa_beta": {"value": 1.36, "unit": "1"},
-
-        "snta_g0_a": {"value": 0.11, "unit": "nS"},
-        "snta_ampa_tau_syn": {"value": 4, "unit": "ms"},
-        "snta_ampa_E_rev": {"value": 0, "unit": "mV"},
-        "snta_ampa_beta": {"value": 1.36, "unit": "1"},
-
-        "snsnr_g0_a": {"value": 0.91, "unit": "nS"},
-        "snsnr_ampa_tau_syn": {"value": 12, "unit": "ms"},
-        "snsnr_ampa_E_rev": {"value": 0, "unit": "mV"},
-        "snsnr_delay": {"value": 4.5, "unit": "ms"},
-        "snsnr_ampa_beta": {"value": 1, "unit": "1"},
-
-        "g1fs_g0_g": {"value": 2, "unit": "nS"},
-        "g1fs_gaba_tau_syn": {"value": 17, "unit": "ms"},
-        "g1fs_gaba_E_rev": {"value": -74, "unit": "mV"},
-        "g1fs_delay": {"value": 7, "unit": "ms"},
-        "g1fs_gaba_beta": {"value": 1.42, "unit": "1"},
-
-        "g1sn_g0_g": {"value": 0.08, "unit": "nS"},
-        "g1sn_gaba_tau_syn": {"value": 8, "unit": "ms"},
-        "g1sn_gaba_E_rev": {"value": -84, "unit": "mV"},
-        "g1sn_delay": {"value": 1, "unit": "ms"},
-        "g1sn_gaba_beta": {"value": 0.8, "unit": "1"},
-
-        "g1snr_g0_g": {"value": 76, "unit": "nS"},
-        "g1snr_gaba_tau_syn": {"value": 2.1, "unit": "ms"},
-        "g1snr_gaba_E_rev": {"value": -72, "unit": "mV"},
-        "g1snr_delay": {"value": 3, "unit": "ms"},
-        "g1snr_gaba_beta": {"value": 1, "unit": "1"},
-
-        "g1g1_g0_g": {"value": 1.3, "unit": "nS"},
-        "g1g1_gaba_tau_syn": {"value": 5, "unit": "ms"},
-        "g1g1_gaba_E_rev": {"value": -65, "unit": "mV"},
-        "g1g1_delay": {"value": 1, "unit": "ms"},
-        "g1g1_gaba_beta": {"value": 1.164, "unit": "1"},
-
-        "g1ga_g0_g": {"value": 0.33, "unit": "nS"},
-        "g1ga_gaba_tau_syn": {"value": 5, "unit": "ms"},
-        "g1ga_gaba_E_rev": {"value": -65, "unit": "mV"},
-        "g1ga_delay": {"value": 1, "unit": "ms"},
-        "g1ga_gaba_beta": {"value": 1.164, "unit": "1"},
-
-        "gag1_g0_g": {"value": 1.3, "unit": "nS"},
-        "gag1_gaba_tau_syn": {"value": 5, "unit": "ms"},
-        "gag1_gaba_E_rev": {"value": -65, "unit": "mV"},
-        "gag1_delay": {"value": 1, "unit": "ms"},
-        "gag1_gaba_beta": {"value": 1.164, "unit": "1"},
-
-        "gaga_g0_g": {"value": 0.33, "unit": "nS"},
-        "gaga_gaba_tau_syn": {"value": 5, "unit": "ms"},
-        "gaga_gaba_E_rev": {"value": -65, "unit": "mV"},
-        "gaga_delay": {"value": 1, "unit": "ms"},
-        "gaga_gaba_beta": {"value": 1.164, "unit": "1"},
-
-        "gafs_g0_g": {"value": 0.51, "unit": "nS"},
-        "gafs_gaba_tau_syn": {"value": 66, "unit": "ms"},
-        "gafs_gaba_E_rev": {"value": -74, "unit": "mV"},
-        "gafs_delay": {"value": 7.0, "unit": "ms"},
-        "gafs_gaba_beta": {"value": 1.42, "unit": "1"},
-
-        "gad1_g0_g": {"value": 0.04, "unit": "nS"},
-        "gad1_gaba_tau_syn": {"value": 87, "unit": "ms"},
-        "gad1_gaba_E_rev": {"value": -74, "unit": "mV"},
-        "gad1_delay": {"value": 7.0, "unit": "ms"},
-        "gad1_gaba_beta": {"value": 1.976, "unit": "1"},
-
-        "gad2_g0_g": {"value": 0.08, "unit": "nS"},
-        "gad2_gaba_tau_syn": {"value": 76, "unit": "ms"},
-        "gad2_gaba_E_rev": {"value": -74, "unit": "mV"},
-        "gad2_delay": {"value": 7.0, "unit": "ms"},
-        "gad2_gaba_beta": {"value": 1, "unit": "1"}
-
+    "connections": {
+        "Cortex_to_FSN": {
+            "pre": "Cortex_FSN",
+            "post": "FSN",
+            "receptor_type": "AMPA",
+            "p": 0.8,
+            "params": {
+                "g0": {"value": 0.5, "unit": "nS"},
+                "tau_syn": {"value": 12, "unit": "ms"},
+                "E_rev": {"value": 0, "unit": "mV"},
+                "delay": {"value": 2.5, "unit": "ms"}
+            }
+        },
+        "Cortex_to_MSND1": {
+            "pre": "Cortex_MSND1",
+            "post": "MSND1",
+            "receptor_type": ["AMPA", "NMDA"],
+            "p": 0.8,
+            "params": {
+                "AMPA": {
+                    "g0": {"value": 0.5, "unit": "nS"},
+                    "tau_syn": {"value": 12, "unit": "ms"},
+                    "E_rev": {"value": 0, "unit": "mV"},
+                    "beta": {"value": 1, "unit": "1"}
+                },
+                "NMDA": {
+                    "g0": {"value": 0.11, "unit": "nS"},
+                    "tau_syn": {"value": 160, "unit": "ms"},
+                    "E_rev": {"value": 0, "unit": "mV"},
+                    "beta": {"value": 0.168, "unit": "1"}
+                },
+                "delay": {"value": 2.5, "unit": "ms"}
+            }
+        },
+        "Cortex_to_MSND2": {
+            "pre": "Cortex_MSND2",
+            "post": "MSND2",
+            "receptor_type": ["AMPA", "NMDA"],
+            "p": 0.75,
+            "params": {
+                "AMPA": {
+                    "g0": {"value": 0.5, "unit": "nS"},
+                    "tau_syn": {"value": 12, "unit": "ms"},
+                    "E_rev": {"value": 0, "unit": "mV"},
+                    "beta": {"value": 0.208, "unit": "1"}
+                },
+                "NMDA": {
+                    "g0": {"value": 0.019, "unit": "nS"},
+                    "tau_syn": {"value": 160, "unit": "ms"},
+                    "E_rev": {"value": 0, "unit": "mV"},
+                    "beta": {"value": 1, "unit": "1"}
+                },
+                "delay": {"value": 2.5, "unit": "ms"}
+            }
+        },
+        "Cortex_to_STN": {
+            "pre": "Cortex_STN",
+            "post": "STN",
+            "receptor_type": ["AMPA", "NMDA"],
+            "p": 0.75,
+            "params": {
+                "AMPA": {
+                    "g0": {"value": 0.25, "unit": "nS"},
+                    "tau_syn": {"value": 4, "unit": "ms"},
+                    "E_rev": {"value": 0, "unit": "mV"},
+                    "beta": {"value": 0.64, "unit": "1"}
+                },
+                "NMDA": {
+                    "g0": {"value": 0.00625, "unit": "nS"},
+                    "tau_syn": {"value": 160, "unit": "ms"},
+                    "E_rev": {"value": 0, "unit": "mV"},
+                    "beta": {"value": 1, "unit": "1"}
+                },
+                "delay": {"value": 2.5, "unit": "ms"}
+            }
+        },
+        "FSN_to_FSN": {
+            "pre": "FSN",
+            "post": "FSN",
+            "receptor_type": "GABA",
+            "p": 0.74,
+            "params": {
+                "g0": {"value": 1, "unit": "nS"},
+                "tau_syn": {"value": 6, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 1.7, "unit": "ms"},
+                "beta": {"value": 2.02, "unit": "1"}
+            }
+        },
+        "FSN_to_MSND1": {
+            "pre": "FSN",
+            "post": "MSND1",
+            "receptor_type": "GABA",
+            "p": 0.27,
+            "params": {
+                "g0": {"value": 6, "unit": "nS"},
+                "tau_syn": {"value": 11, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 1.7, "unit": "ms"},
+                "beta": {"value": 1, "unit": "1"}
+            }
+        },
+        "FSN_to_MSND2": {
+            "pre": "FSN",
+            "post": "MSND2",
+            "receptor_type": "GABA",
+            "p": 0.18,
+            "params": {
+                "g0": {"value": 6, "unit": "nS"},
+                "tau_syn": {"value": 11, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 1.7, "unit": "ms"},
+                "beta": {"value": 1, "unit": "1"}
+            }
+        },
+        "MSND1_to_SNr": {
+            "pre": "MSND1",
+            "post": "SNr",
+            "receptor_type": "GABA",
+            "p": 0.1,
+            "params": {
+                "g0": {"value": 2, "unit": "nS"},
+                "tau_syn": {"value": 5.2, "unit": "ms"},
+                "E_rev": {"value": -80, "unit": "mV"},
+                "delay": {"value": 7, "unit": "ms"},
+                "beta": {"value": 1.448, "unit": "1"}
+            }
+        },
+        "MSND1_to_MSND1": {
+            "pre": "MSND1",
+            "post": "MSND1",
+            "receptor_type": "GABA",
+            "p": 0.18,
+            "params": {
+                "g0": {"value": 0.15, "unit": "nS"},
+                "tau_syn": {"value": 8, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 1.7, "unit": "ms"},
+                "beta": {"value": 0.295, "unit": "1"}
+            }
+        },
+        "MSND1_to_MSND2": {
+            "pre": "MSND1",
+            "post": "MSND2",
+            "receptor_type": "GABA",
+            "p": 0.03,
+            "params": {
+                "g0": {"value": 0.375, "unit": "nS"},
+                "tau_syn": {"value": 8, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 1.7, "unit": "ms"},
+                "beta": {"value": 0.295, "unit": "1"}
+            }
+        },
+        "MSND2_to_MSND2": {
+            "pre": "MSND2",
+            "post": "MSND2",
+            "receptor_type": "GABA",
+            "p": 0.18,
+            "params": {
+                "g0": {"value": 0.35, "unit": "nS"},
+                "tau_syn": {"value": 8, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 1.7, "unit": "ms"},
+                "beta": {"value": 0.295, "unit": "1"}
+            }
+        },
+        "MSND2_to_MSND1": {
+            "pre": "MSND2",
+            "post": "MSND1",
+            "receptor_type": "GABA",
+            "p": 0.18,
+            "params": {
+                "g0": {"value": 0.45, "unit": "nS"},
+                "tau_syn": {"value": 8, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 1.7, "unit": "ms"},
+                "beta": {"value": 0.295, "unit": "1"}
+            }
+        },
+        "MSND2_to_GPeT1": {
+            "pre": "MSND2",
+            "post": "GPeT1",
+            "receptor_type": "GABA",
+            "p": 0.2,
+            "params": {
+                "g0": {"value": 2, "unit": "nS"},
+                "tau_syn": {"value": 6, "unit": "ms"},
+                "E_rev": {"value": -65, "unit": "mV"},
+                "delay": {"value": 7, "unit": "ms"},
+                "beta": {"value": 1.664, "unit": "1"}
+            }
+        },
+        "STN_to_GPeT1": {
+            "pre": "STN",
+            "post": "GPeT1",
+            "receptor_type": "AMPA",
+            "p": 0.1,
+            "params": {
+                "g0": {"value": 0.35, "unit": "nS"},
+                "tau_syn": {"value": 12, "unit": "ms"},
+                "E_rev": {"value": 0, "unit": "mV"},
+                "delay": {"value": 2, "unit": "ms"},
+                "beta": {"value": 1.36, "unit": "1"}
+            }
+        },
+        "STN_to_GPeTA": {
+            "pre": "STN",
+            "post": "GPeTA",
+            "receptor_type": "AMPA",
+            "p": 0.1,
+            "params": {
+                "g0": {"value": 0.11, "unit": "nS"},
+                "tau_syn": {"value": 4, "unit": "ms"},
+                "E_rev": {"value": 0, "unit": "mV"},
+                "beta": {"value": 1.36, "unit": "1"}
+            }
+        },
+        "STN_to_SNr": {
+            "pre": "STN",
+            "post": "SNr",
+            "receptor_type": "AMPA",
+            "p": 0.1,
+            "params": {
+                "g0": {"value": 0.91, "unit": "nS"},
+                "tau_syn": {"value": 12, "unit": "ms"},
+                "E_rev": {"value": 0, "unit": "mV"},
+                "delay": {"value": 4.5, "unit": "ms"},
+                "beta": {"value": 1, "unit": "1"}
+            }
+        },
+        "GPeT1_to_FSN": {
+            "pre": "GPeT1",
+            "post": "FSN",
+            "receptor_type": "GABA",
+            "p": 0.01,
+            "params": {
+                "g0": {"value": 2, "unit": "nS"},
+                "tau_syn": {"value": 17, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 7, "unit": "ms"},
+                "beta": {"value": 1.42, "unit": "1"}
+            }
+        },
+        "GPeT1_to_STN": {
+            "pre": "GPeT1",
+            "post": "STN",
+            "receptor_type": "GABA",
+            "p": 0.03,
+            "params": {
+                "g0": {"value": 0.08, "unit": "nS"},
+                "tau_syn": {"value": 8, "unit": "ms"},
+                "E_rev": {"value": -84, "unit": "mV"},
+                "delay": {"value": 1, "unit": "ms"},
+                "beta": {"value": 0.8, "unit": "1"}
+            }
+        },
+        "GPeT1_to_SNr": {
+            "pre": "GPeT1",
+            "post": "SNr",
+            "receptor_type": "GABA",
+            "p": 0.03,
+            "params": {
+                "g0": {"value": 76, "unit": "nS"},
+                "tau_syn": {"value": 2.1, "unit": "ms"},
+                "E_rev": {"value": -72, "unit": "mV"},
+                "delay": {"value": 3, "unit": "ms"},
+                "beta": {"value": 1, "unit": "1"}
+            }
+        },
+        "GPeT1_to_GPeT1": {
+            "pre": "GPeT1",
+            "post": "GPeT1",
+            "receptor_type": "GABA",
+            "p": 0.02,
+            "params": {
+                "g0": {"value": 1.3, "unit": "nS"},
+                "tau_syn": {"value": 5, "unit": "ms"},
+                "E_rev": {"value": -65, "unit": "mV"},
+                "delay": {"value": 1, "unit": "ms"},
+                "beta": {"value": 1.164, "unit": "1"}
+            }
+        },
+        "GPeT1_to_GPeTA": {
+            "pre": "GPeT1",
+            "post": "GPeTA",
+            "receptor_type": "GABA",
+            "p": 0.02,
+            "params": {
+                "g0": {"value": 0.33, "unit": "nS"},
+                "tau_syn": {"value": 5, "unit": "ms"},
+                "E_rev": {"value": -65, "unit": "mV"},
+                "delay": {"value": 1, "unit": "ms"},
+                "beta": {"value": 1.164, "unit": "1"}
+            }
+        },
+        "GPeTA_to_GPeT1": {
+            "pre": "GPeTA",
+            "post": "GPeT1",
+            "receptor_type": "GABA",
+            "p": 0.05,
+            "params": {
+                "g0": {"value": 1.3, "unit": "nS"},
+                "tau_syn": {"value": 5, "unit": "ms"},
+                "E_rev": {"value": -65, "unit": "mV"},
+                "delay": {"value": 1, "unit": "ms"},
+                "beta": {"value": 1.164, "unit": "1"}
+            }
+        },
+        "GPeTA_to_GPeTA": {
+            "pre": "GPeTA",
+            "post": "GPeTA",
+            "receptor_type": "GABA",
+            "p": 0.02,
+            "params": {
+                "g0": {"value": 0.33, "unit": "nS"},
+                "tau_syn": {"value": 5, "unit": "ms"},
+                "E_rev": {"value": -65, "unit": "mV"},
+                "delay": {"value": 1, "unit": "ms"},
+                "beta": {"value": 1.164, "unit": "1"}
+            }
+        },
+        "GPeTA_to_FSN": {
+            "pre": "GPeTA",
+            "post": "FSN",
+            "receptor_type": "GABA",
+            "p": 0.03,
+            "params": {
+                "g0": {"value": 0.51, "unit": "nS"},
+                "tau_syn": {"value": 66, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 7.0, "unit": "ms"},
+                "beta": {"value": 1.42, "unit": "1"}
+            }
+        },
+        "GPeTA_to_MSND1": {
+            "pre": "GPeTA",
+            "post": "MSND1",
+            "receptor_type": "GABA",
+            "p": 0.03,
+            "params": {
+                "g0": {"value": 0.04, "unit": "nS"},
+                "tau_syn": {"value": 87, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 7.0, "unit": "ms"},
+                "beta": {"value": 1.976, "unit": "1"}
+            }
+        },
+        "GPeTA_to_MSND2": {
+            "pre": "GPeTA",
+            "post": "MSND2",
+            "receptor_type": "GABA",
+            "p": 0.03,
+            "params": {
+                "g0": {"value": 0.08, "unit": "nS"},
+                "tau_syn": {"value": 76, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 7.0, "unit": "ms"},
+                "beta": {"value": 1, "unit": "1"}
+            }
+        }
     },
     "simulation": {
         "dt": 0.1,
-        "duration": 500
+        "duration": 1000
     },
     "cortex_inputs": {
         "FSN": {
