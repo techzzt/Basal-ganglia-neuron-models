@@ -1,15 +1,16 @@
 from brian2 import *
 from module.models.neuron_models import create_neurons
-from module.models.synapse_models import create_synapses
+from module.models.Synapse import create_synapses
 from module.utils.data_handler import plot_raster
 
-def run_simulation_with_inh_ext_input(neuron_configs, synapse_params, synapse_class, cortex_inputs, simulation_duration=1000*ms):
+def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class, simulation_params, plot_order=None):
+
     try:
         start_scope()
+        
         neuron_groups = create_neurons(neuron_configs)
         print(f"Neuron Groups: {neuron_groups.keys()}") 
-
-        synapse_connections = create_synapses(neuron_groups, synapse_params, synapse_class)
+        synapse_connections = create_synapses(neuron_groups, connections, synapse_class)
 
         net = Network()
         net.add(neuron_groups.values())
@@ -18,7 +19,6 @@ def run_simulation_with_inh_ext_input(neuron_configs, synapse_params, synapse_cl
         spike_monitors = {}
         voltage_monitors = {}
         for name, group in neuron_groups.items():
-            
             spike_mon = SpikeMonitor(group)
             spike_monitors[name] = spike_mon
             net.add(spike_mon)
@@ -28,12 +28,17 @@ def run_simulation_with_inh_ext_input(neuron_configs, synapse_params, synapse_cl
                 voltage_monitors[name] = voltage_mon
                 net.add(voltage_mon)
         
-        for t in range(0, int(simulation_duration/ms), 100):  
-            print(f"Remaining time: {simulation_duration/ms - t} ms")
+        defaultclock.dt = simulation_params['dt'] * ms
+        duration = simulation_params['duration'] * ms
+
+        for t in range(0, int(duration/ms), 100):  
+            print(f"Remaining time: {duration/ms - t} ms")
             net.run(100 * ms)    
-        
-        net.run(1000 * ms)
-        plot_raster(spike_monitors)  
+
+        if plot_order:
+            plot_raster(spike_monitors, plot_order)
+        else:
+            plot_raster(spike_monitors)
         
         results = {
             'spike_monitors': spike_monitors,
@@ -45,5 +50,5 @@ def run_simulation_with_inh_ext_input(neuron_configs, synapse_params, synapse_cl
         return results
         
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(f"Error during simulation: {str(e)}")
         raise
