@@ -31,7 +31,6 @@ class SynapseBase:
         value = self.params[param_name]['value']
         unit = self.params[param_name]['unit']
         
-        # 단위 변환
         if unit == 'ms':
             return value * ms
         elif unit == 'mV':
