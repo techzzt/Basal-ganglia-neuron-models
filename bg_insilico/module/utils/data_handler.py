@@ -28,8 +28,8 @@ def plot_raster(spike_monitors, sample_size=30):
             index_map = {old: new for new, old in enumerate(sorted(sampled_neurons))}
             mapped_indices = np.array([index_map[idx] for idx in sampled_indices])
             
-            axes[i].scatter(sampled_times/ms, mapped_indices, s=1)
-            axes[i].set_title(f'{name} Raster Plot (Sampled {actual_sample_size} neurons)')
+            axes[i].scatter(sampled_times/ms, mapped_indices, s = 0.7)
+            axes[i].set_title(f'{name} Raster Plot')
             axes[i].set_ylabel('Neuron index')
             axes[i].set_xlim(0, 1000)
 
