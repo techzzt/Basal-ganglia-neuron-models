@@ -24,7 +24,7 @@ class STN(NeuronModel):
 
             for i in range(len(v)):
                 if u[i] < 0*nA:
-                    v[i] = clip(v[i], vr - 15*mV, 20*mV)
+                    v[i] = vr + maximum(u - 15, 20)
                 else:
                     v[i] = vr
 
