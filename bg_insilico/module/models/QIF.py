@@ -1,7 +1,7 @@
 from brian2 import *
 
 eqs = '''
-dv / dt = (k*1*pF/ms/mV*(v-vr)*(v-vt) - u*pF + I - Isyn) / C : volt (unless refractory)
+dv / dt = (k*1*pF/ms/mV*(v-vr)*(v-vt) - u*pF + I - Isyn) / C : volt 
 du/dt = a * (b * (v - vr) - u) : volt/second
 I : amp
 Isyn = I_AMPA + I_NMDA + I_GABA : amp

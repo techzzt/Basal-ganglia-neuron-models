@@ -2,8 +2,8 @@
 from brian2 import *
 
 eqs = '''
-dv/dt = (k * 1 * pF/ms/mV * (v - vr) * (v - vt) - u * pF + I - Isyn) / C : volt (unless refractory)
-du/dt = int(v <= vb) * (a * (b * (vb - v)**3 - u)) + int(v > vb) * (-a * u) : volt/second
+dv/dt = (k * 1 * pF/ms/mV * (v - vr) * (v - vt) - u * pF + I - Isyn) / C : volt 
+du/dt = int(v <= vb) * (a * (b * (v - vb)**3 - u)) + int(v > vb) * (-a * u) : volt/second
 I : amp
 Isyn = I_AMPA + I_NMDA + I_GABA : amp
 I_AMPA : amp
