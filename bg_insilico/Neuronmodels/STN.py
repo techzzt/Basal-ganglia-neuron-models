@@ -4,37 +4,26 @@ from module.models import AdEx
 
 class NeuronModel:
     def __init__(self, N, params):
-        super().__init__(N, params)
+        self.N = N
+        self.params = params
         self.neurons = None
 
     def create_neurons(self):
         raise NotImplementedError("Subclasses should implement this method.")
     
+
 class STN(NeuronModel):
     def __init__(self, N, params):
-        self.N = N
-        self.params = params
+        super().__init__(N, params)
         self.neurons = None
 
-        @network_operation(dt=defaultclock.dt)
-        def update_v():
-            vr = self.params['vr']
-            v = self.neurons.v
-            u = self.neurons.u
-
-            for i in range(len(v)):
-                if u[i] < 0*nA:
-                    v[i] = vr + maximum(u - 15, 20)
-                else:
-                    v[i] = vr
-
-        self.update_v_op = update_v
-    
     def create_neurons(self):
-        eqs = AdEx.eqs 
+        eqs = AdEx.eqs
+     
+        self.neurons = NeuronGroup(
+            self.N, eqs, threshold='v > th', reset='v = vr; u += d', method='euler'
+        )
 
-        self.neurons = NeuronGroup(self.N, eqs, threshold='v > th', reset='v = vr; u += d', method='euler')
-        
         self.neurons.g_L = self.params['g_L']['value'] * eval(self.params['g_L']['unit'])
         self.neurons.E_L = self.params['E_L']['value'] * eval(self.params['E_L']['unit'])
         self.neurons.Delta_T = self.params['Delta_T']['value'] * eval(self.params['Delta_T']['unit'])
