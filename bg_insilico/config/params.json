@@ -6,16 +6,16 @@
             "neuron_type": "poisson",
             "target_rates": {
                 "FSN": {
-                    "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 646*Hz + 3*Hz * randn()"
+                    "equation": "646*Hz + (t >= 200*ms) * (t < 400*ms) * 787*Hz"
                 },
                 "MSND1": {
-                    "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 448*Hz + 3*Hz * randn()"
+                    "equation": "448*Hz + (t >= 200*ms) * (t < 400*ms) * 546*Hz"
                 },
                 "MSND2": {
-                    "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 592*Hz + 3*Hz * randn()"
+                    "equation": "592*Hz + (t >= 200*ms) * (t < 400*ms) * 722*Hz"
                 },
                 "STN": {
-                    "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 170*Hz + 3*Hz * randn()"
+                    "equation": "170*Hz + (t >= 200*ms) * (t < 400*ms) * 250*Hz"
                 }
             }
         },
