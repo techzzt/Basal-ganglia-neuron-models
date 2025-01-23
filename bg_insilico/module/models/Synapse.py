@@ -4,13 +4,12 @@ import json
 from pathlib import Path
 
 def get_synapse_class(class_name):
-
     try:
         module = importlib.import_module('module.models.Synapse')
         return getattr(module, class_name)
     except (ImportError, AttributeError) as e:
-        print(f"Error loading synapse class {class_name}: {str(e)}")
-        raise
+        raise ImportError(f"Error loading synapse class '{class_name}': {e}")
+
 
 def create_synapses(neuron_groups, connections, synapse_class):
 
@@ -23,7 +22,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
         )
         
         synapse_connections = []
-        print("\nAvailable neuron groups:", neuron_groups.keys())
+        # print("\nAvailable neuron groups:", neuron_groups.keys())
 
         for conn_name, conn_config in connections.items():
             pre = conn_config['pre']
@@ -51,7 +50,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
                 )
                 
                 syn.connect(p=conn_config['p'])
-                syn.w = 1
+                syn.w = 0.1
 
                 params = conn_config['params']
                 if isinstance(params, dict):
@@ -81,7 +80,6 @@ def create_synapses(neuron_groups, connections, synapse_class):
                     if 'beta' in current_params:
                         syn.gaba_beta = float(current_params['beta']['value'])
                 
-                
                 if 'delay' in params:
                     syn.delay = params['delay']['value'] * eval(params['delay']['unit'])
                 
@@ -102,7 +100,6 @@ class SynapseBase:
         self.define_equations()
 
     def define_equations(self):
-        """Define base synaptic equations"""
         self.equations = {
             'AMPA': '''
                 g0_a : siemens
@@ -135,7 +132,6 @@ class SynapseBase:
         }
 
     def _get_on_pre(self, receptor_type):
-        """Get the pre-synaptic event code for each receptor type"""
         if receptor_type == 'AMPA':
             return '''v_post += w * mV; g_a += g0_a'''
         elif receptor_type == 'NMDA':
