@@ -10,11 +10,9 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
     def get_neuron_params(configs, name):
         for config in configs:
             if config['name'] == name:
-                # params_file에서 params 값을 읽어오기
                 with open(config['params_file'], 'r') as f:
                     params = json.load(f)
                 return params
-
         return None
     
     try:
@@ -48,23 +46,6 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
         for t in range(0, int(duration/ms), 100):  
             print(f"Remaining time: {duration/ms - t} ms")
             net.run(100 * ms, profile=True)    
-
-            for name, group in neuron_groups.items():
-                if name == "STN":  
-
-                    params = get_neuron_params(neuron_configs, name)
-                    if params:
-                        vr = params['params']['vr']['value'] * eval(params['params']['vr']['unit'])
-                        u = group.u
-                        v = group.v
-                
-                        condition = u < 0 * nA  
-                        adjusted_u = (u - 15 * pA) / (1 * pA) * mV  
-
-                        if len(v[condition]) > 0: 
-                            v[condition] = vr + maximum(adjusted_u, 20 * mV) 
-                        if len(v[~condition]) > 0: 
-                            v[~condition] = vr
 
         if plot_order:
             plot_raster(spike_monitors, plot_order)
