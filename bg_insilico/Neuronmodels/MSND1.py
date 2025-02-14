@@ -19,8 +19,6 @@ class MSND1(NeuronModel):
     def create_neurons(self):
         eqs = QIF.eqs 
         self.neurons = NeuronGroup(self.N, eqs, threshold='v > th', reset='v = c; u += d', method='euler')
-
-        # Initialize parameters with their proper units
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])

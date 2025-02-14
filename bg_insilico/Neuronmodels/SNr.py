@@ -12,7 +12,6 @@ class NeuronModel:
 
 class SNr(NeuronModel):
     def __init__(self, N, params):
-        # Parse the parameters from the params dictionary
         self.N = N
         self.params = params
         self.neurons = None
