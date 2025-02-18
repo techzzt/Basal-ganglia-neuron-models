@@ -19,7 +19,7 @@ class FSN(NeuronModel):
         self.neurons = None
 
     def create_neurons(self):
-        eqs = QIF.eqs 
+        eqs = QIF_FSN.eqs 
 
         self.neurons = NeuronGroup(
             self.N, eqs, threshold='v > th', reset='v = c; u += d', method='euler'
@@ -29,9 +29,10 @@ class FSN(NeuronModel):
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.k = self.params['k']['value'] 
         self.neurons.a = self.params['a']['value'] / second
-        self.neurons.b = self.params['b']['value'] * (Hz) 
+        self.neurons.b = self.params['b']['value'] 
         self.neurons.d = self.params['d']['value'] * mV / ms
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
         self.neurons.c = self.params['c']['value'] * eval(self.params['c']['unit'])
-
+        self.neurons.vb = self.params['vb']['value'] * eval(self.params['vb']['unit']) 
+       
         return self.neurons
