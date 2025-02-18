@@ -51,3 +51,20 @@ def plot_raster(spike_monitors, sample_size=30):
         
     except Exception as e:
         print(f"Raster plot Error: {str(e)}")
+
+
+def plot_membrane_potential(voltage_monitors, plot_order=None):
+    plt.figure(figsize=(10, 5))
+    
+    for name, monitor in voltage_monitors.items():
+        if len(monitor.v) == 0:
+            print(f"Warning: No voltage data recorded for {name}")
+            continue
+            
+        plt.plot(monitor.t / ms, monitor.v[0] / mV, label=f'{name} Neuron 0')
+    
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Membrane Potential (mV)')
+    plt.title('Membrane Potential Over Time')
+    plt.legend()
+    plt.show()
