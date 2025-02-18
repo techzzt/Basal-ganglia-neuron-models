@@ -83,6 +83,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
                 if 'delay' in params:
                     syn.delay = params['delay']['value'] * eval(params['delay']['unit'])
                 
+                print(f" -> {pre} -> {post} 연결 개수: {len(syn)}")
                 synapse_connections.append(syn)
         
         return synapse_connections
