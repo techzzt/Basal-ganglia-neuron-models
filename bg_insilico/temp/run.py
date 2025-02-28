@@ -5,7 +5,7 @@ from module.utils.param_loader import load_params
 
 def main():
     # parameter set 
-    params_file = 'config/params_pd.json'
+    params_file = 'config/test_exc.json'
     
     params = load_params(params_file)
     neuron_configs = params['neurons']
