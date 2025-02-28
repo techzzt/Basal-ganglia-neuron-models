@@ -12,7 +12,6 @@ class NeuronModel:
 
 class SNr(NeuronModel):
     def __init__(self, N, params):
-        # Parse the parameters from the params dictionary
         self.N = N
         self.params = params
         self.neurons = None
@@ -33,5 +32,9 @@ class SNr(NeuronModel):
         self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit'])
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
 
+        self.neurons.E_AMPA = 0 * mV
+        self.neurons.tau_AMPA = 12 * ms
+        self.neurons.tau_GABA = 1 * ms
+        self.neurons.tau_NMDA = 1 * ms
         
         return self.neurons

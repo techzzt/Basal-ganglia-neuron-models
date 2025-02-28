@@ -10,31 +10,29 @@ class NeuronModel:
     def create_neurons(self):
         raise NotImplementedError("Subclasses should implement this method.")
     
+
 class STN(NeuronModel):
     def __init__(self, N, params):
         self.N = N
         self.params = params
         self.neurons = None
 
-        @network_operation(dt=defaultclock.dt)
-        def update_v():
-            vr = self.params['vr']
-            v = self.neurons.v
-            u = self.neurons.u
-
-            for i in range(len(v)):
-                if u[i] < 0*nA:
-                    v[i] = clip(v[i], vr - 15*mV, 20*mV)
-                else:
-                    v[i] = vr
-
-        self.update_v_op = update_v
-    
     def create_neurons(self):
-        eqs = AdEx.eqs 
+        eqs = AdEx.eqs
+        """
+        reset = '''
+        v = vr + clip(u - 15*mV, 20*mV, inf*mV);
+        u += d
+        '''
+        """
+        reset = '''
+        v = vr;
+        u += d
+        '''
+        self.neurons = NeuronGroup(
+            self.N, eqs, threshold='v > th', reset=reset, method='euler'
+        )
 
-        self.neurons = NeuronGroup(self.N, eqs, threshold='v > th', reset='v = vr; u += d', method='euler')
-        
         self.neurons.g_L = self.params['g_L']['value'] * eval(self.params['g_L']['unit'])
         self.neurons.E_L = self.params['E_L']['value'] * eval(self.params['E_L']['unit'])
         self.neurons.Delta_T = self.params['Delta_T']['value'] * eval(self.params['Delta_T']['unit'])
@@ -45,5 +43,14 @@ class STN(NeuronModel):
         self.neurons.a = self.params['a']['value'] * eval(self.params['a']['unit'])
         self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit'])
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
-
+       
+        self.neurons.E_AMPA = 0 * mV
+        self.neurons.tau_AMPA = 4 * ms
+        self.neurons.ampa_beta = 1.09
+        
+        self.neurons.E_NMDA = 0 * mV
+        self.neurons.tau_NMDA = 160 * ms
+        self.neurons.nmda_beta = 1
+        self.neurons.tau_GABA = 1 * ms
+        
         return self.neurons

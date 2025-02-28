@@ -1,0 +1,71 @@
+{
+    "neurons": [
+        {
+            "name": "Cortex",
+            "N": 1, 
+            "neuron_type": "poisson",
+            "target_rates": {
+                "STN": {
+                    "equation": "170*Hz + (t >= 200*ms) * (t < 400*ms) * 250*Hz"
+                }
+            }
+        },
+
+        {
+            "name": "STN",
+            "N": 1,
+            "params_file": "./params_ref/STN_1.json",
+            "model_class": "STN"
+        },
+        {
+            "name": "SNr",
+            "N": 1,
+            "params_file": "./params_ref/SNr_1_nor.json",
+            "model_class": "SNr"
+        }
+    ],
+    
+    "synapse_class": "Synapse",
+
+    "connections": {
+        "Cortex_to_STN": {
+            "pre": "Cortex_STN",
+            "post": "STN",
+            "receptor_type": ["AMPA", "NMDA"],
+            "p": 1,
+            "params": {
+                "AMPA": {
+                    "g0": {"value": 0.25, "unit": "nS"},
+                    "tau_syn": {"value": 4, "unit": "ms"},
+                    "E_rev": {"value": 0, "unit": "mV"},
+                    "beta": {"value": 1.09, "unit": "1"}
+                },
+                "NMDA": {
+                    "g0": {"value": 0.00625, "unit": "nS"},
+                    "tau_syn": {"value": 160, "unit": "ms"},
+                    "E_rev": {"value": 0, "unit": "mV"},
+                    "beta": {"value": 1, "unit": "1"}
+                },
+                "delay": {"value": 2.5, "unit": "ms"}
+            }
+        },
+        "STN_to_SNr": {
+            "pre": "STN",
+            "post": "SNr",
+            "receptor_type": "AMPA",
+            "p": 1,
+            "params": {
+                "g0": {"value": 0.91, "unit": "nS"},
+                "tau_syn": {"value": 12, "unit": "ms"},
+                "E_rev": {"value": 0, "unit": "mV"},
+                "beta": {"value": 1, "unit": "1"}
+            },
+            "delay": {"value": 4.5, "unit": "ms"}
+        }
+    },
+    "simulation": {
+        "duration": 1000
+    },
+
+    "plot_order": ["STN", "SNr"]
+}

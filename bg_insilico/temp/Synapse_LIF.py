@@ -45,14 +45,11 @@ def create_synapses(neuron_groups, connections, synapse_class):
                 syn = Synapses(
                     pre_group, 
                     post_group,
-                    model=synapse_instance.equations[receptor_type],
-                    on_pre=synapse_instance._get_on_pre(receptor_type)
-
+                    model=synapse_instance.equations[receptor_type]
                 )
-                N_pre = len(pre_group)
+                
                 syn.connect(p=conn_config['p'])
-                #syn.w = '0.1 + 0.05 * i / (N_pre - 1)'
-                syn.w = 0.01
+                syn.w[:] = 1
 
                 params = conn_config['params']
 
@@ -63,14 +60,14 @@ def create_synapses(neuron_groups, connections, synapse_class):
                         current_params = params 
                 else:
                     current_params = params
-             
+                """
                 if receptor_type == 'AMPA':
                     syn.g_a = current_params['g0']['value'] * nsiemens
                     syn.tau_AMPA = current_params['tau_syn']['value'] * ms
                     syn.E_AMPA = current_params['E_rev']['value'] * mV
                     if 'beta' in current_params:
-                       syn.ampa_beta = float(current_params['beta']['value'])
-    
+                        syn.ampa_beta = float(current_params['beta']['value'])
+                
                 elif receptor_type == 'NMDA':
                     syn.g_n = current_params['g0']['value'] * nsiemens
                     syn.tau_NMDA = current_params['tau_syn']['value'] * ms
@@ -84,11 +81,10 @@ def create_synapses(neuron_groups, connections, synapse_class):
                     syn.E_GABA = current_params['E_rev']['value'] * mV
                     if 'beta' in current_params:
                         syn.gaba_beta = float(current_params['beta']['value'])
-                
                 if 'delay' in params:
-                    syn.delay = params['delay']['value'] * eval(params['delay']['unit'])             
+                    syn.delay = params['delay']['value'] * eval(params['delay']['unit'])
+                    """                
                 
-
                 synapse_connections.append(syn)
         
         return synapse_connections
@@ -120,11 +116,11 @@ class SynapseBase:
 
     def _get_on_pre(self, receptor_type):
         if receptor_type == 'AMPA':
-            return '''g_a += w * nsiemens'''
+            return '''g_a += w * siemens'''
         elif receptor_type == 'NMDA':
-            return '''g_n += w * nsiemens'''
+            return '''g_n += w * siemens'''
         elif receptor_type == 'GABA':
-            return '''g_g += 1 * nsiemens'''
+            return '''g_g += 1 * siemens'''
         else:
             raise ValueError(f"Unknown receptor type: {receptor_type}")
 
