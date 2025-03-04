@@ -19,16 +19,18 @@ class STN(NeuronModel):
 
     def create_neurons(self):
         eqs = AdEx.eqs
-        """
+
         reset = '''
-        v = vr + clip(u - 15*mV, 20*mV, inf*mV);
+        v = vr + clip((u - 15*pA) * (1/nS), 20*mV, inf*mV);
         u += d
         '''
+        
         """
         reset = '''
         v = vr;
         u += d
         '''
+        """
         self.neurons = NeuronGroup(
             self.N, eqs, threshold='v > th', reset=reset, method='euler'
         )
