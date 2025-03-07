@@ -52,10 +52,9 @@ def create_synapses(neuron_groups, connections, synapse_class):
                 N_pre = len(pre_group)
                 syn.connect(p=conn_config['p'])
                 #syn.w = '0.1 + 0.05 * i / (N_pre - 1)'
-                syn.w = 0.01
+                syn.w = 0.5
 
-                params = conn_config['params']
-
+                params = conn_config['receptor_params']
                 if isinstance(params, dict):
                     if receptor_type in params:
                         current_params = params[receptor_type]
@@ -88,7 +87,6 @@ def create_synapses(neuron_groups, connections, synapse_class):
                 if 'delay' in params:
                     syn.delay = params['delay']['value'] * eval(params['delay']['unit'])             
                 
-
                 synapse_connections.append(syn)
         
         return synapse_connections

@@ -107,11 +107,15 @@ def plot_raster(spike_monitors, sample_size=30):
 def plot_membrane_potential(voltage_monitors, plot_order=None):
     plt.figure(figsize=(10, 5))
     
-    for name, monitor in voltage_monitors.items():
+    if plot_order is not None:
+        filtered_monitors = {name: monitor for name, monitor in voltage_monitors.items() if name in plot_order}
+    else:
+        filtered_monitors = voltage_monitors
+
+    for name, monitor in filtered_monitors.items():
         if len(monitor.v) == 0:
             print(f"Warning: No voltage data recorded for {name}")
             continue
-            
         plt.plot(monitor.t / ms, monitor.v[0] / mV, label=f'{name} Neuron 0')
     
     plt.xlabel('Time (ms)')
