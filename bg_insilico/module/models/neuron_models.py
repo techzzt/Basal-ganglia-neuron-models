@@ -2,7 +2,6 @@ from brian2 import *
 import importlib
 import json
 
-# load parameter
 def load_params_from_file(params_file):
     try:
         with open(params_file, 'r') as f:
@@ -13,7 +12,6 @@ def load_params_from_file(params_file):
         raise
 
 def create_neurons(neuron_configs):
-
     try:
         neuron_groups = {}
         
@@ -21,35 +19,32 @@ def create_neurons(neuron_configs):
             name = config['name']
             N = config['N']
             
-            # Cortex
             if name == 'Cortex':
                 if 'target_rates' in config:
                     for target, rate_info in config['target_rates'].items():
-                        rate_equation = rate_info['equation']
                         group_name = f'Cortex_{target}'
-                        neuron_groups[group_name] = PoissonGroup(N, rates=rate_equation)
+                        rate_equation = rate_info['equation']
+                        neuron_group = PoissonGroup(N, rates=rate_equation)
+                        neuron_groups[group_name] = neuron_group
+                        print(f"Created {group_name} with rate: {rate_equation}")
                 continue
             
             if 'model_class' in config and 'params_file' in config:
-                # load parameter
                 params = load_params_from_file(config['params_file'])
-
+                receptor_params = params.get('receptor_params', None)
+                
                 module_name = f"Neuronmodels.{config['model_class']}"
                 model_module = importlib.import_module(module_name)
                 model_class = getattr(model_module, config['model_class'])
                 
-                model_instance = model_class(N, params)
-                group = model_instance.create_neurons()
-                neuron_groups[name] = group
-                
+                model_instance = model_class(N, params, receptor_params)
+                neuron_group = model_instance.create_neurons()
+                neuron_groups[name] = neuron_group
+                print(f"Created {name} neurons using {config['model_class']}")
+            
         return neuron_groups
         
     except Exception as e:
-        print(f"Neuron Group Error: {str(e)}")
-        print(f"Setting: {config}")
+        print(f"Error creating neuron groups: {str(e)}")
+        print(f"Failed configuration: {config}")
         raise
-
-def generate_rate_equation(params):
-    return (f"0*Hz + (t >= {params['start_time']}*ms) * "
-            f"(t < {params['end_time']}*ms) * {params['peak_rate']}*Hz + "
-            f"{params['noise_amplitude']}*Hz * randn()")
