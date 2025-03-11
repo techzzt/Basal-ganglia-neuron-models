@@ -1,0 +1,86 @@
+{
+    "neurons": [
+        {
+            "name": "Cortex",
+            "N": 100, 
+            "neuron_type": "poisson",
+            "target_rates": {
+                "STN": {
+                    "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 250*Hz"
+                }
+            }
+        },
+
+        {
+            "name": "STN",
+            "N": 100,
+            "params_file": "./params_ref/STN_1.json",
+            "model_class": "STN"
+        },
+        {
+            "name": "GPeT1",
+            "N": 300,
+            "params_file": "./params_ref/GPe_T1_1.json",
+            "model_class": "GPeT1"
+        }
+    ],
+    
+    "synapse_class": "Synapse",
+
+    "connections": {
+        "Cortex_to_STN": {
+            "pre": "Cortex_STN",
+            "post": "STN",
+            "receptor_type": ["AMPA", "NMDA"],
+            "p": 0.75,
+            "receptor_params": {
+                "AMPA": {
+                    "g0": {"value": 0.25, "unit": "nS"},
+                    "tau_syn": {"value": 4, "unit": "ms"},
+                    "E_rev": {"value": 0, "unit": "mV"},
+                    "beta": {"value": 1.09, "unit": "1"}
+                },
+                "NMDA": {
+                    "g0": {"value": 0.00625, "unit": "nS"},
+                    "tau_syn": {"value": 160, "unit": "ms"},
+                    "E_rev": {"value": 0, "unit": "mV"},
+                    "beta": {"value": 1, "unit": "1"}
+                },
+                "delay": {"value": 2.5, "unit": "ms"}
+            }
+        },
+        "STN_to_GPeT1": {
+            "pre": "STN",
+            "post": "GPeT1",
+            "receptor_type": "AMPA",
+            "p": 0.1,
+            "receptor_params": {
+                "AMPA": {
+                "g0": {"value": 0.35, "unit": "nS"},
+                "tau_syn": {"value": 12, "unit": "ms"},
+                "E_rev": {"value": 0, "unit": "mV"},
+                "delay": {"value": 2, "unit": "ms"},
+                "beta": {"value": 0.91, "unit": "1"}
+                }
+            },
+            "GPeT1_to_GPeT1": {
+                "pre": "GPeT1",
+                "post": "GPeT1",
+                "receptor_type": "GABA",
+                "p": 0.02,
+                "params": {
+                    "g0": {"value": 1.3, "unit": "nS"},
+                    "tau_syn": {"value": 5, "unit": "ms"},
+                    "E_rev": {"value": -65, "unit": "mV"},
+                    "delay": {"value": 5, "unit": "ms"},
+                    "beta": {"value": 0.834, "unit": "1"}
+                }
+            }
+        }
+    },
+    "simulation": {
+        "duration": 1000
+    },
+
+    "plot_order": ["STN", "GPeT1"]
+}
