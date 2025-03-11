@@ -22,7 +22,6 @@ def create_synapses(neuron_groups, connections, synapse_class):
         )
         
         synapse_connections = []
-        # print("\nAvailable neuron groups:", neuron_groups.keys())
 
         for conn_name, conn_config in connections.items():
             pre = conn_config['pre']
@@ -33,6 +32,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
             try:
                 pre_group = neuron_groups[pre]
                 post_group = neuron_groups[post]
+
             except KeyError as e:
                 print(f"Error: Could not find neuron group {e}")
                 continue
@@ -47,12 +47,14 @@ def create_synapses(neuron_groups, connections, synapse_class):
                     post_group,
                     model=synapse_instance.equations[receptor_type],
                     on_pre=synapse_instance._get_on_pre(receptor_type)
-                )
-                
-                syn.connect(p=conn_config['p'])
-                syn.w = 0.1
 
-                params = conn_config['params']
+                )
+                N_pre = len(pre_group)
+                syn.connect(p=conn_config['p'])
+                #syn.w = '0.1 + 0.05 * i / (N_pre - 1)'
+                syn.w = 0.2
+
+                params = conn_config['receptor_params']
                 if isinstance(params, dict):
                     if receptor_type in params:
                         current_params = params[receptor_type]
@@ -60,30 +62,31 @@ def create_synapses(neuron_groups, connections, synapse_class):
                         current_params = params 
                 else:
                     current_params = params
-
+             
                 if receptor_type == 'AMPA':
-                    syn.g0_a = current_params['g0']['value'] * nsiemens
+                    syn.g_a = current_params['g0']['value'] * nsiemens
                     syn.tau_AMPA = current_params['tau_syn']['value'] * ms
                     syn.E_AMPA = current_params['E_rev']['value'] * mV
                     if 'beta' in current_params:
-                        syn.ampa_beta = float(current_params['beta']['value'])
+                       syn.ampa_beta = float(current_params['beta']['value'])
+    
                 elif receptor_type == 'NMDA':
-                    syn.g0_n = current_params['g0']['value'] * nsiemens
+                    syn.g_n = current_params['g0']['value'] * nsiemens
                     syn.tau_NMDA = current_params['tau_syn']['value'] * ms
                     syn.E_NMDA = current_params['E_rev']['value'] * mV
                     if 'beta' in current_params:
                         syn.nmda_beta = float(current_params['beta']['value'])
+                
                 elif receptor_type == 'GABA':
-                    syn.g0_g = current_params['g0']['value'] * nsiemens
+                    syn.g_g = current_params['g0']['value'] * nsiemens
                     syn.tau_GABA = current_params['tau_syn']['value'] * ms
                     syn.E_GABA = current_params['E_rev']['value'] * mV
                     if 'beta' in current_params:
                         syn.gaba_beta = float(current_params['beta']['value'])
                 
                 if 'delay' in params:
-                    syn.delay = params['delay']['value'] * eval(params['delay']['unit'])
+                    syn.delay = params['delay']['value'] * eval(params['delay']['unit'])             
                 
-                print(f" -> {pre} -> {post} 연결 개수: {len(syn)}")
                 synapse_connections.append(syn)
         
         return synapse_connections
@@ -103,42 +106,23 @@ class SynapseBase:
     def define_equations(self):
         self.equations = {
             'AMPA': '''
-                g0_a : siemens
-                E_AMPA : volt
-                w : 1
-                ampa_beta : 1
-                tau_AMPA : second
-                dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
-                I_AMPA_syn = ampa_beta * w * g_a * (E_AMPA - v) : amp 
+            w : 1
             ''',
             'NMDA': '''
-                g0_n : siemens
-                Mg2: 1
-                w : 1
-                E_NMDA : volt 
-                nmda_beta: 1
-                tau_NMDA : second
-                dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
-                I_NMDA_syn = nmda_beta * w * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp 
+            w : 1            
             ''',
             'GABA': '''
-                g0_g : siemens
-                E_GABA : volt
-                w : 1
-                tau_GABA : second
-                gaba_beta : 1
-                dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-                I_GABA_syn = gaba_beta * w * g_g * (E_GABA - v) : amp 
+            w : 1            
             '''
         }
 
     def _get_on_pre(self, receptor_type):
         if receptor_type == 'AMPA':
-            return '''v_post += w * mV; g_a += g0_a'''
+            return '''g_a += w * nsiemens'''
         elif receptor_type == 'NMDA':
-            return '''v_post += w * mV; g_n += g0_n'''
+            return '''g_n += w * nsiemens'''
         elif receptor_type == 'GABA':
-            return '''v_post += w * mV; g_g += g0_g'''
+            return '''g_g += 1 * nsiemens'''
         else:
             raise ValueError(f"Unknown receptor type: {receptor_type}")
 
