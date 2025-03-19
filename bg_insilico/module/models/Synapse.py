@@ -49,11 +49,8 @@ def create_synapses(neuron_groups, connections, synapse_class):
                     on_pre=synapse_instance._get_on_pre(receptor_type)
 
                 )
-                N_pre = len(pre_group)
                 syn.connect(p=conn_config['p'])
-                #syn.w = '0.1 + 0.05 * i / (N_pre - 1)'
-                syn.w = 0.2
-
+                syn.w = conn_config.get('weight', 1.0)
                 params = conn_config['receptor_params']
                 if isinstance(params, dict):
                     if receptor_type in params:
@@ -86,7 +83,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
                 
                 if 'delay' in params:
                     syn.delay = params['delay']['value'] * eval(params['delay']['unit'])             
-                
+                    print("delay", syn.delay)
                 synapse_connections.append(syn)
         
         return synapse_connections
@@ -109,10 +106,10 @@ class SynapseBase:
             w : 1
             ''',
             'NMDA': '''
-            w : 1            
+            w : 1
             ''',
             'GABA': '''
-            w : 1            
+            w : 1
             '''
         }
 
@@ -122,7 +119,7 @@ class SynapseBase:
         elif receptor_type == 'NMDA':
             return '''g_n += w * nsiemens'''
         elif receptor_type == 'GABA':
-            return '''g_g += 1 * nsiemens'''
+            return '''g_g += w * nsiemens'''
         else:
             raise ValueError(f"Unknown receptor type: {receptor_type}")
 
