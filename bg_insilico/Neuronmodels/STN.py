@@ -1,6 +1,11 @@
 from brian2 import *
 import importlib
 from module.models import AdEx
+import numpy as np
+import bisect
+
+from brian2.utils.arrays import calc_repeats
+from brian2.utils.logger import get_logger
 
 class NeuronModel:
     def __init__(self, N, params):
@@ -21,7 +26,8 @@ class STN(NeuronModel):
     def create_neurons(self):
         eqs = AdEx.eqs
         reset = '''
-        v = vr + clip((u - 15*pA) * (1/nS), 20*mV, inf*mV);
+        temp = (u - 15*pA) / nS;
+        v = vr + clip(temp, 20*mV, inf*mV);
         u += d
         '''
         self.neurons = NeuronGroup(
