@@ -1,7 +1,6 @@
 {
     "model": "QIF",
     "params": {
-        "N": {"value": 100, "unit": ""},
         "k": {"value": 1, "unit": ""},
         "vr": {"value": -64.4, "unit": "mV"},
         "vt": {"value": -50, "unit": "mV"},
