@@ -11,8 +11,7 @@
         "b": {"value": -20, "unit": "1/second"},
         "c": {"value": -60, "unit": "mV"},
         "C": {"value": 15.2, "unit": "pF"},
-        "d": {"value": 60.88, "unit": "volt/second"},
-        "I": {"value": 0, "unit": "pA"}
+        "d": {"value": 60.88, "unit": "volt/second"}
     },
     "reference": {
         "title": "Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model"    }
