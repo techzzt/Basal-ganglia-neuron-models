@@ -2,7 +2,6 @@ from brian2 import *
 from module.models.neuron_models import create_neurons
 from module.models.Synapse import create_synapses
 from module.utils.data_handler import plot_raster, plot_membrane_potential
-from brian2 import profiling_summary
 
 import json 
 import numpy as np
@@ -42,11 +41,10 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
                 net.add(voltage_mon)
 
         duration = simulation_params['duration'] * ms
-        
+
         """
         for t in range(0, int(duration/ms), 100):  
             print(f"Remaining time: {duration/ms - t} ms")
-            net.run(100 * ms, profile=True)    
         """
         net.run(duration)
 
