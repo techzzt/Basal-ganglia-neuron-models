@@ -2,8 +2,6 @@ import importlib
 from brian2 import *
 
 from module.models import QIF_FSN
-from module.models import QIF
-from module.models import LIF
 
 class NeuronModel:
     def __init__(self, N, params):
@@ -14,18 +12,18 @@ class NeuronModel:
         raise NotImplementedError("Subclasses should implement this method.")
 
 class FSN(NeuronModel):
-    def __init__(self, N, params, connections=None):  # ✅ connections 추가
+    def __init__(self, N, params, connections=None):  
         self.N = N
         self.params = params
         self.receptor_params = self.get_receptor_params(connections) if connections else {}
         self.neurons = None
-        print(f"[DEBUG] FSN receptor_params: {self.receptor_params}")  # 디버깅용 출력
+        print(f"[DEBUG] FSN receptor_params: {self.receptor_params}")  
     
     def get_receptor_params(self, connections):
         """현재 뉴런이 post-synaptic인 시냅스 파라미터를 connections에서 검색"""
         receptor_params = {}
         for conn_name, conn_data in connections.items():
-            if conn_data['post'] == "FSN":  # ✅ FSN 뉴런이 post라면 시냅스 정보 가져오기
+            if conn_data['post'] == "FSN": 
                 receptor_params.update(conn_data.get('receptor_params', {}))
         return receptor_params
     
@@ -47,14 +45,14 @@ class FSN(NeuronModel):
         self.neurons.c = self.params['c']['value'] * eval(self.params['c']['unit'])
         self.neurons.vb = self.params['vb']['value'] * eval(self.params['vb']['unit']) 
         
-        # ✅ self.params가 아니라 self.receptor_params에서 시냅스 정보 가져오기
         rp = self.receptor_params
 
         # AMPA parameters
         if 'AMPA' in rp:
+            self.neurons.g_a = rp['AMPA']['g0']['value'] * eval(rp['AMPA']['g0']['unit'])
             self.neurons.E_AMPA = rp['AMPA']['E_rev']['value'] * eval(rp['AMPA']['E_rev']['unit'])
             self.neurons.tau_AMPA = rp['AMPA']['tau_syn']['value'] * eval(rp['AMPA']['tau_syn']['unit'])
-            self.neurons.ampa_beta = rp['AMPA'].get('beta', {}).get('value', 0)  # ✅ beta 값이 없으면 기본값 0
+            self.neurons.ampa_beta = rp['AMPA'].get('beta', {}).get('value', 0) 
         else:
             self.neurons.E_AMPA = 0 * mV
             self.neurons.tau_AMPA = 1 * ms
@@ -62,9 +60,10 @@ class FSN(NeuronModel):
 
         # NMDA parameters
         if 'NMDA' in rp:
+            self.neurons.g_n = rp['NMDA']['g0']['value'] * eval(rp['NMDA']['g0']['unit'])
             self.neurons.E_NMDA = rp['NMDA']['E_rev']['value'] * eval(rp['NMDA']['E_rev']['unit'])
             self.neurons.tau_NMDA = rp['NMDA']['tau_syn']['value'] * eval(rp['NMDA']['tau_syn']['unit'])
-            self.neurons.nmda_beta = rp['NMDA'].get('beta', {}).get('value', 0)  # ✅ beta 값이 없으면 기본값 0
+            self.neurons.nmda_beta = rp['NMDA'].get('beta', {}).get('value', 0)  
         else:
             self.neurons.E_NMDA = 0 * mV
             self.neurons.tau_NMDA = 1 * ms
@@ -72,9 +71,10 @@ class FSN(NeuronModel):
 
         # GABA parameters
         if 'GABA' in rp:
+            self.neurons.g_g = rp['GABA']['g0']['value'] * eval(rp['GABA']['g0']['unit'])
             self.neurons.E_GABA = rp['GABA']['E_rev']['value'] * eval(rp['GABA']['E_rev']['unit'])
             self.neurons.tau_GABA = rp['GABA']['tau_syn']['value'] * eval(rp['GABA']['tau_syn']['unit'])
-            self.neurons.gaba_beta = rp['GABA'].get('beta', {}).get('value', 0)  # ✅ beta 값이 없으면 기본값 0
+            self.neurons.gaba_beta = rp['GABA'].get('beta', {}).get('value', 0) 
         else:
             self.neurons.E_GABA = 0 * mV
             self.neurons.tau_GABA = 1 * ms
