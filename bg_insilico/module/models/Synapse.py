@@ -115,13 +115,11 @@ class SynapseBase:
 
     def _get_on_pre(self, receptor_type):
         if receptor_type == 'AMPA':
-            return '''g_a += w * usiemens'''
+            return '''g_a += w * (g_a / (1 + w))'''
         elif receptor_type == 'NMDA':
-            return '''g_n += w * usiemens'''
+            return '''g_n += w * (g_n / (1 + w))'''
         elif receptor_type == 'GABA':
-            return '''g_g += w * usiemens'''
-        else:
-            raise ValueError(f"Unknown receptor type: {receptor_type}")
+            return '''g_g += w * (g_g / (1 + w))'''
 
 class Synapse(SynapseBase):
     def __init__(self, neurons, connections):

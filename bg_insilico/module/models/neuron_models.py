@@ -11,7 +11,7 @@ def load_params_from_file(params_file):
         print(f"Load Error: {str(e)}")
         raise
 
-def create_neurons(neuron_configs, connections=None):  # ✅ connections 추가
+def create_neurons(neuron_configs, connections=None):  
     try:
         neuron_groups = {}
         
@@ -36,8 +36,7 @@ def create_neurons(neuron_configs, connections=None):  # ✅ connections 추가
                 model_module = importlib.import_module(module_name)
                 model_class = getattr(model_module, config['model_class'])
                 
-                # ✅ connections 추가
-                model_instance = model_class(N, params, connections)  # ✅ connections 전달
+                model_instance = model_class(N, params, connections)  
                 neuron_group = model_instance.create_neurons()
                 neuron_groups[name] = neuron_group
                 print(f"Created {name} neurons using {config['model_class']}")
