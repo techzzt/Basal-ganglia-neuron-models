@@ -1,7 +1,6 @@
 {
     "model": "AdEx",
     "params": {
-        "N": {"value": 100, "unit": ""},
         "g_L": {"value": 10, "unit": "nS"},
         "E_L": {"value": -80.2, "unit": "mV"},
         "Delta_T": {"value": 16.2, "unit": "mV"},
