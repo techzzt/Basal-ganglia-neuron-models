@@ -41,6 +41,7 @@ class GPeT1(NeuronModel):
         self.neurons.a = self.params['a']['value'] * eval(self.params['a']['unit'])
         self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit'])
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
+        self.neurons.I_ext = self.params['I_ext']['value'] * eval(self.params['I_ext']['unit'])
 
         rp = self.receptor_params
 
