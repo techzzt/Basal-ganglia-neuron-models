@@ -7,8 +7,8 @@
         "vr": {"value": -80, "unit": "mV"},
         "vt": {"value": -29.7, "unit": "mV"},
         "th": {"value": 40, "unit": "mV"},
-        "a": {"value": 0.01, "unit": "1/second"},
-        "b": {"value": -20, "unit": "1/second"},
+        "a": {"value": 0.01, "unit": "second"},
+        "b": {"value": -20, "unit": "1"},
         "C": {"value": 15.2, "unit": "pF"},
         "d": {"value": 91, "unit": "volt/second"},
         "c": {"value": -60, "unit": "mV"}

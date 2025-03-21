@@ -11,7 +11,7 @@
         "b": {"value": -20, "unit": "1/second"},
         "C": {"value": 15.2, "unit": "pF"},
         "c": {"value": -60, "unit": "mV"},
-        "d": {"value": 90.984, "unit": "volt/second"},
+        "d": {"value": 90.984, "unit": "pA"},
         "I": {"value": 0, "unit": "pA"}
     },
     "reference": {
