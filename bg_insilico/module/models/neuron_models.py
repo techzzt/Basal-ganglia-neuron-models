@@ -11,6 +11,12 @@ def load_params_from_file(params_file):
         print(f"Load Error: {str(e)}")
         raise
 
+def get_neuron_count(neuron_configs, target_name):
+    for config in neuron_configs:
+        if config["name"] == target_name:
+            return config["N"]
+    return None  
+
 def create_neurons(neuron_configs, connections=None):  
     try:
         neuron_groups = {}
@@ -22,15 +28,21 @@ def create_neurons(neuron_configs, connections=None):
             if name == 'Cortex':
                 if 'target_rates' in config:
                     for target, rate_info in config['target_rates'].items():
-                        group_name = f'Cortex_{target}'
-                        rate_equation = rate_info['equation']
-                        evaluated_rate = eval(rate_equation) 
-                        rate_per_neuron = evaluated_rate / N
+                        target_N = get_neuron_count(neuron_configs, target)
                         
-                        neuron_group = PoissonGroup(N, rates=rate_per_neuron)
+                        if target_N is None:
+                            print(f"Warning: Could not find neuron count for target '{target}'")
+                            continue
+
+                        rate_equation = rate_info['equation']
+                        evaluated_rate = eval(rate_equation)  
+                        rate_per_neuron = evaluated_rate / target_N  
+                        # print("rate_per_neuron", rate_per_neuron)
+                        # print(f"Creating PoissonGroup: {target} (N={target_N}, rate={rate_equation})")
+                        neuron_group = PoissonGroup(target_N, rates=rate_per_neuron)
+                        group_name = f'Cortex_{target}'
                         neuron_groups[group_name] = neuron_group
 
-                        print(f"Created {group_name} with rate: {rate_equation}")
                 continue
             
             if 'model_class' in config and 'params_file' in config:
@@ -42,10 +54,7 @@ def create_neurons(neuron_configs, connections=None):
                 
                 model_instance = model_class(N, params, connections)  
                 neuron_group = model_instance.create_neurons()
-                initial_v = -65 * mV  # Set initial voltage (수정)
-                
-                # Set the voltage for each neuron in the group to the initial value
-                neuron_group.v = initial_v 
+            
                 neuron_groups[name] = neuron_group
                 print(f"Created {name} neurons using {config['model_class']}")
             

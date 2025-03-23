@@ -2,7 +2,7 @@ from brian2 import *
 
 eqs = '''
 dv/dt = (k * (1 * pF/ms/mV) * (v - vr) * (v - vt) - u * pF + Isyn) / C : volt
-du/dt = int(v <= vb) * (a * (b * (v - vb)**3/(volt**2 * second) - u)) - int(v > vb) * (a * u) : volt/second
+du/dt = int(v <= vb) * (a * (b * (v - vb)**3 / (volt**2 * second) - u)) - int(v > vb) * (a * u) : volt/second
 
 Isyn = I_AMPA + I_NMDA + I_GABA : amp
 I_AMPA = g_a * (E_AMPA - v) : amp
