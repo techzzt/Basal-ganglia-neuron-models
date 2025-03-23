@@ -47,6 +47,7 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
             print(f"Remaining time: {duration/ms - t} ms")
         """
         net.run(duration)
+        defaultclock.dt = 0.1*ms
 
         for name, monitor in voltage_monitors.items():
             if monitor.v.size > 0:
