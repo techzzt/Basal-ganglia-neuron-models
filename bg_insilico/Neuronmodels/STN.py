@@ -1,5 +1,6 @@
 from brian2 import *
 import importlib
+from module.models import AdEx_STN
 from module.models import AdEx
 import numpy as np
 import bisect
@@ -32,13 +33,8 @@ class STN(NeuronModel):
 
     def create_neurons(self):
         eqs = AdEx.eqs
-        reset = '''
-        temp = (u - 15*pA) / nS;
-        v = vr + clip(temp, 20*mV, inf*mV);
-        u += d
-        '''
         self.neurons = NeuronGroup(
-            self.N, eqs, threshold='v > th', reset=reset, method='euler'
+            self.N, eqs, threshold='v > th', reset="u += d; v = vr", method='euler'
         )
 
         self.neurons.g_L = self.params['g_L']['value'] * eval(self.params['g_L']['unit'])
@@ -51,40 +47,20 @@ class STN(NeuronModel):
         self.neurons.a = self.params['a']['value'] * eval(self.params['a']['unit'])
         self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit'])
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
+        self.neurons.I_ext = self.params['I_ext']['value'] * eval(self.params['I_ext']['unit'])
 
-        rp = self.receptor_params
 
-        # AMPA parameters
-        if 'AMPA' in rp:
-            self.neurons.g_a = rp['AMPA']['g0']['value'] * eval(rp['AMPA']['g0']['unit'])
-            self.neurons.E_AMPA = rp['AMPA']['E_rev']['value'] * eval(rp['AMPA']['E_rev']['unit'])
-            self.neurons.tau_AMPA = rp['AMPA']['tau_syn']['value'] * eval(rp['AMPA']['tau_syn']['unit'])
-            self.neurons.ampa_beta = rp['AMPA']['beta']['value']
-        else:
-            self.neurons.E_AMPA = 0 * mV
-            self.neurons.tau_AMPA = 1 * ms
-            self.neurons.ampa_beta = 0
+        self.neurons.E_AMPA = 0 * mV
+        self.neurons.tau_AMPA = 1 * ms
+        self.neurons.ampa_beta = 0
 
-        # NMDA parameters
-        if 'NMDA' in rp:
-            self.neurons.g_n = rp['NMDA']['g0']['value'] * eval(rp['NMDA']['g0']['unit'])
-            self.neurons.E_NMDA = rp['NMDA']['E_rev']['value'] * eval(rp['NMDA']['E_rev']['unit'])
-            self.neurons.tau_NMDA = rp['NMDA']['tau_syn']['value'] * eval(rp['NMDA']['tau_syn']['unit'])
-            self.neurons.nmda_beta = rp['NMDA']['beta']['value']
-        else:
-            self.neurons.E_NMDA = 0 * mV
-            self.neurons.tau_NMDA = 1 * ms
-            self.neurons.nmda_beta = 0
+        self.neurons.E_NMDA = 0 * mV
+        self.neurons.tau_NMDA = 1 * ms
+        self.neurons.nmda_beta = 0
 
-        # GABA parameters
-        if 'GABA' in rp:
-            self.neurons.g_g = rp['GABA']['g0']['value'] * eval(rp['GABA']['g0']['unit'])
-            self.neurons.E_GABA = rp['GABA']['E_rev']['value'] * eval(rp['GABA']['E_rev']['unit'])
-            self.neurons.tau_GABA = rp['GABA']['tau_syn']['value'] * eval(rp['GABA']['tau_syn']['unit'])
-            self.neurons.gaba_beta = rp['GABA']['beta']['value']
-        else:
-            self.neurons.E_GABA = 0 * mV
-            self.neurons.tau_GABA = 1 * ms
-            self.neurons.gaba_beta = 0
+
+        self.neurons.E_GABA = 0 * mV
+        self.neurons.tau_GABA = 1 * ms
+        self.neurons.gaba_beta = 0
 
         return self.neurons
