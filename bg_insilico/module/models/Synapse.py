@@ -12,7 +12,7 @@ def get_synapse_class(class_name):
 
 def create_synapses(neuron_groups, connections, synapse_class):
     try:
-        synapse_connections = []  # 한번만 초기화
+        synapse_connections = []  
         SynapseClass = get_synapse_class(synapse_class)
         
         synapse_instance = SynapseClass(
@@ -20,8 +20,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
             connections=connections
         )
 
-        # 연결마다 고유한 이름을 부여하여 중복 생성 방지
-        created_synapses = {}  # 이미 생성된 synapse를 저장할 딕셔너리
+        created_synapses = {} 
 
         for conn_name, conn_config in connections.items():
             pre = conn_config['pre']
@@ -40,10 +39,8 @@ def create_synapses(neuron_groups, connections, synapse_class):
                 receptor_types = [receptor_types]
 
             for receptor_type in receptor_types:
-                # 고유한 synapse 이름 생성
                 syn_name = f"synapse_{pre}_{post}"
                 
-                # 이미 생성된 synapse가 있으면 재사용
                 if syn_name not in created_synapses:
                     syn = Synapses(
                         pre_group, 
@@ -54,12 +51,11 @@ def create_synapses(neuron_groups, connections, synapse_class):
                     syn.connect(p=conn_config['p'])
                     created_synapses[syn_name] = syn
                 else:
-                    syn = created_synapses[syn_name]  # 이미 생성된 synapse 사용
+                    syn = created_synapses[syn_name] 
                 
                 syn.w = conn_config.get('weight', 1.0)
                 params = conn_config['receptor_params']
                 
-                # params 설정
                 if isinstance(params, dict):
                     if receptor_type in params:
                         current_params = params[receptor_type]
@@ -68,7 +64,6 @@ def create_synapses(neuron_groups, connections, synapse_class):
                 else:
                     current_params = params
 
-                # synapse에 대한 추가 설정
                 if receptor_type == 'AMPA':
                     syn.g_a = current_params['g0']['value'] * eval(current_params['g0']['unit'])   
                     syn.tau_AMPA = current_params['tau_syn']['value'] * ms
@@ -93,7 +88,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
                 if 'delay' in params:
                     syn.delay = params['delay']['value'] * eval(params['delay']['unit'])             
 
-                synapse_connections.append(syn)  # synapse_connections에 추가
+                synapse_connections.append(syn)
                 print(f"Created synapse: {syn_name}")
 
         return synapse_connections
