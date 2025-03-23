@@ -9,13 +9,11 @@ import numpy as np
 
 def plot_raster(spike_monitors, sample_size=30, plot_order=None):
     try:
-        # 🔹 특정 뉴런만 필터링 (plot_order 지정된 경우)
         if plot_order:
             spike_monitors = {name: spike_monitors[name] for name in plot_order if name in spike_monitors}
 
-        # 🔹 플롯할 뉴런 그룹이 없을 경우 예외 처리
         if not spike_monitors:
-            print("⚠️ No valid neuron groups to plot.")
+            print("No valid neuron groups to plot.")
             return
         
         n_plots = len(spike_monitors)
@@ -24,17 +22,17 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
         if n_plots == 1:
             axes = [axes]
         
-        firing_rates = {}  # 각 뉴런 그룹별 평균 발화율 저장
-        
+        firing_rates = {}  
+
         for i, (name, monitor) in enumerate(spike_monitors.items()):
             if len(monitor.i) == 0:
-                print(f"⚠️ Warning: No spikes recorded for {name}")
+                print(f"No spikes recorded for {name}")
                 continue
 
             unique_neurons = np.unique(monitor.i)
-            actual_sample_size = min(sample_size, len(unique_neurons))  # 샘플링할 뉴런 수 제한
+            actual_sample_size = min(sample_size, len(unique_neurons))
             sampled_neurons = np.random.choice(unique_neurons, size=actual_sample_size, replace=False)
-            
+
             mask = np.isin(monitor.i, sampled_neurons)
             sampled_times = monitor.t[mask]
             sampled_indices = monitor.i[mask]
@@ -47,19 +45,17 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
             axes[i].set_ylabel('Neuron index')
             axes[i].set_xlim(0, 1000)
 
-            # 🔹 평균 Firing Rate 계산
+            # 🔹 올바른 발화율 계산 (전체 뉴런 수 기준)
             num_spikes = len(monitor.t)
-            num_neurons = len(unique_neurons)
-            firing_rate = (num_spikes / (num_neurons * (1000 / 1000))) if num_neurons > 0 else 0  # Hz
+            total_neurons = monitor.source.N  # 전체 뉴런 개수
+            simulation_time_sec = monitor.t[-1] / second  # 시뮬레이션 시간 (초)
+
+            firing_rate = num_spikes / (total_neurons * simulation_time_sec) if total_neurons > 0 else 0  # Hz
             firing_rates[name] = firing_rate
 
             print(f"{name} 평균 발화율: {firing_rate:.2f} Hz")
 
-        axes[-1].set_xlabel('Time (ms)')
-        plt.subplots_adjust(hspace=0.5)
-        plt.show()
-        
-        return firing_rates  # 반환값으로 firing rate 리턴
+            return firing_rates 
 
     except Exception as e:
         print(f"Raster plot Error: {str(e)}")
@@ -68,7 +64,6 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
 def plot_membrane_potential(voltage_monitors, plot_order=None):
     plt.figure(figsize=(10, 5))
     
-    # Filter voltage monitors based on plot_order
     if plot_order:
         filtered_monitors = {name: monitor for name, monitor in voltage_monitors.items() if name in plot_order}
     else:
