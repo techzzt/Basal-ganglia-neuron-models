@@ -1,18 +1,18 @@
 from brian2 import *
 
-eqs = '''
-dv/dt = (k * (1 * pF/ms/mV) * (v - vr) * (v - vt) - u * pF + Isyn) / C : volt
-du/dt = int(v <= vb) * (a * (b * (v - vb)**3/(volt**2 * second) - u)) - int(v > vb) * (a * u) : volt/second
 
+eqs = '''
+dv/dt = (-g_L * (v - E_L) + g_L * Delta_T * exp((v - vt) / Delta_T) - u1 - u2 + Isyn + I_ext) / C : volt
+du1/dt = (a * (v - E_L) - u1) / tau_w: amp
+du2/dt = int(v <= -70*mV) *  (a * (v - vr) - u2) / tau_w: amp
 Isyn = I_AMPA + I_NMDA + I_GABA : amp
-I_AMPA = g_a * (E_AMPA - v) : amp
+I_AMPA = ampa_beta * g_a * (E_AMPA - v) : amp 
 I_GABA = gaba_beta * g_g * (E_GABA - v) : amp
 I_NMDA = nmda_beta * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp 
 
 tau_GABA : second
 tau_AMPA : second
 tau_NMDA : second
-
 dg_g/dt = -g_g / tau_GABA : siemens
 dg_a/dt = -g_a / tau_AMPA : siemens
 dg_n/dt = -g_n / tau_NMDA : siemens
@@ -20,21 +20,20 @@ dg_n/dt = -g_n / tau_NMDA : siemens
 E_AMPA : volt
 E_GABA : volt
 E_NMDA : volt
-
 ampa_beta: 1
 gaba_beta: 1
 nmda_beta: 1
 Mg2 : 1
 
-a : 1/second
-b : 1
-k : 1
+g_L    : siemens
 E_L    : volt
+Delta_T: volt
 vt     : volt
-vr     : volt
-vb     : volt
+vr     : volt 
+tau_w  : second
 th     : volt
-c      : volt
+a     : siemens
+d      : amp
 C      : farad
-d      : volt/second
+I_ext  : amp
 '''

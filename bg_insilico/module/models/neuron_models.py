@@ -24,8 +24,12 @@ def create_neurons(neuron_configs, connections=None):
                     for target, rate_info in config['target_rates'].items():
                         group_name = f'Cortex_{target}'
                         rate_equation = rate_info['equation']
-                        neuron_group = PoissonGroup(N, rates=rate_equation)
+                        evaluated_rate = eval(rate_equation) 
+                        rate_per_neuron = evaluated_rate / N
+                        
+                        neuron_group = PoissonGroup(N, rates=rate_per_neuron)
                         neuron_groups[group_name] = neuron_group
+
                         print(f"Created {group_name} with rate: {rate_equation}")
                 continue
             
@@ -38,6 +42,10 @@ def create_neurons(neuron_configs, connections=None):
                 
                 model_instance = model_class(N, params, connections)  
                 neuron_group = model_instance.create_neurons()
+                initial_v = -65 * mV  # Set initial voltage (수정)
+                
+                # Set the voltage for each neuron in the group to the initial value
+                neuron_group.v = initial_v 
                 neuron_groups[name] = neuron_group
                 print(f"Created {name} neurons using {config['model_class']}")
             

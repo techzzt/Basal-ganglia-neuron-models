@@ -61,21 +61,21 @@ def create_synapses(neuron_groups, connections, synapse_class):
                     current_params = params
              
                 if receptor_type == 'AMPA':
-                    syn.g_a = current_params['g0']['value'] * nsiemens
+                    syn.g_a = current_params['g0']['value'] * eval(current_params['g0']['unit'])   
                     syn.tau_AMPA = current_params['tau_syn']['value'] * ms
                     syn.E_AMPA = current_params['E_rev']['value'] * mV
                     if 'beta' in current_params:
                        syn.ampa_beta = float(current_params['beta']['value'])
     
-                elif receptor_type == 'NMDA':
-                    syn.g_n = current_params['g0']['value'] * nsiemens
+                if receptor_type == 'NMDA':
+                    syn.g_n = current_params['g0']['value'] * eval(current_params['g0']['unit'])   
                     syn.tau_NMDA = current_params['tau_syn']['value'] * ms
                     syn.E_NMDA = current_params['E_rev']['value'] * mV
                     if 'beta' in current_params:
                         syn.nmda_beta = float(current_params['beta']['value'])
                 
-                elif receptor_type == 'GABA':
-                    syn.g_g = current_params['g0']['value'] * nsiemens
+                if receptor_type == 'GABA':
+                    syn.g_g = current_params['g0']['value'] * eval(current_params['g0']['unit'])   
                     syn.tau_GABA = current_params['tau_syn']['value'] * ms
                     syn.E_GABA = current_params['E_rev']['value'] * mV
                     if 'beta' in current_params:
@@ -115,11 +115,11 @@ class SynapseBase:
 
     def _get_on_pre(self, receptor_type):
         if receptor_type == 'AMPA':
-            return '''g_a += w * (g_a / (1 + w))'''
+            return '''g_a += w * nS'''
         elif receptor_type == 'NMDA':
-            return '''g_n += w * (g_n / (1 + w))'''
+            return '''g_n += w * nS'''
         elif receptor_type == 'GABA':
-            return '''g_g += w * (g_g / (1 + w))'''
+            return '''g_g += w * nS'''
 
 class Synapse(SynapseBase):
     def __init__(self, neurons, connections):
