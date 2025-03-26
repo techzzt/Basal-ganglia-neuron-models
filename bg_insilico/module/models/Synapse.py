@@ -5,7 +5,7 @@ from pathlib import Path
 
 def get_synapse_class(class_name):
     try:
-        module = importlib.import_module('module.models.Synapse')
+        module = importlib.import_module('module.models.Synapse') 
         return getattr(module, class_name)
     except (ImportError, AttributeError) as e:
         raise ImportError(f"Error loading synapse class '{class_name}': {e}")
@@ -13,12 +13,9 @@ def get_synapse_class(class_name):
 def create_synapses(neuron_groups, connections, synapse_class):
     try:
         synapse_connections = []  
-        SynapseClass = get_synapse_class(synapse_class)
+        SynapseClass = get_synapse_class(synapse_class) 
         
-        synapse_instance = SynapseClass(
-            neurons=neuron_groups,
-            connections=connections
-        )
+        synapse_instance = SynapseClass(neurons=neuron_groups, connections=connections)
 
         created_synapses = {} 
 
@@ -26,7 +23,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
             pre = conn_config['pre']
             post = conn_config['post']
             print(f"\nProcessing connection: {conn_name}")
-            
+
             try:
                 pre_group = neuron_groups[pre]
                 post_group = neuron_groups[post]
@@ -39,38 +36,34 @@ def create_synapses(neuron_groups, connections, synapse_class):
                 receptor_types = [receptor_types]
 
             for receptor_type in receptor_types:
-                syn_name = f"synapse_{pre}_{post}"
-                
+                syn_name = f"synapse_{pre}_{post}_{receptor_type}"
+
                 if syn_name not in created_synapses:
+                    
                     syn = Synapses(
                         pre_group, 
                         post_group,
                         model=synapse_instance.equations[receptor_type],
                         on_pre=synapse_instance._get_on_pre(receptor_type)
                     )
-                    syn.connect(p=conn_config['p'])
+                    syn.connect(p=conn_config['p']) 
                     created_synapses[syn_name] = syn
                 else:
-                    syn = created_synapses[syn_name] 
+                    syn = created_synapses[syn_name]
                 
                 syn.w = conn_config.get('weight', 1.0)
                 params = conn_config['receptor_params']
-                
-                if isinstance(params, dict):
-                    if receptor_type in params:
-                        current_params = params[receptor_type]
-                    else:
-                        current_params = params 
-                else:
-                    current_params = params
+
+                current_params = params.get(receptor_type, {})
 
                 if receptor_type == 'AMPA':
                     syn.g_a = current_params['g0']['value'] * eval(current_params['g0']['unit'])   
                     syn.tau_AMPA = current_params['tau_syn']['value'] * ms
                     syn.E_AMPA = current_params['E_rev']['value'] * mV
+                    print("ampa", syn.g_a)
                     if 'beta' in current_params:
                         syn.ampa_beta = float(current_params['beta']['value'])
-    
+               
                 if receptor_type == 'NMDA':
                     syn.g_n = current_params['g0']['value'] * eval(current_params['g0']['unit'])   
                     syn.tau_NMDA = current_params['tau_syn']['value'] * ms
@@ -85,8 +78,8 @@ def create_synapses(neuron_groups, connections, synapse_class):
                     if 'beta' in current_params:
                         syn.gaba_beta = float(current_params['beta']['value'])
                 
-                if 'delay' in params:
-                    syn.delay = params['delay']['value'] * eval(params['delay']['unit'])             
+                if 'delay' in current_params:
+                    syn.delay = current_params['delay']['value'] * eval(current_params['delay']['unit'])             
 
                 synapse_connections.append(syn)
                 print(f"Created synapse: {syn_name}")
@@ -96,6 +89,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
     except Exception as e:
         print(f"Error creating synapses: {str(e)}")
         raise
+
 
 class SynapseBase:
     def __init__(self, neurons, connections):
@@ -130,3 +124,4 @@ class Synapse(SynapseBase):
     def __init__(self, neurons, connections):
         super().__init__(neurons, connections)
         self.params = {'Mg2': {'value': 1.0, 'unit': '1'}}
+
