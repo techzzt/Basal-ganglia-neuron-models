@@ -2,6 +2,7 @@ from brian2 import *
 import importlib
 import json
 import numpy as np 
+from brian2 import mV, ms, nS, Hz
 
 def load_params_from_file(params_file):
     try:
@@ -38,12 +39,12 @@ def generate_non_overlapping_poisson_input(N, total_rate, duration):
         if len(available_spikes) == 0:
             break 
         
-        num_spikes = len(available_spikes) // (N - i)  
+        num_spikes = min(len(available_spikes), len(available_spikes) // (N - i)) 
+    
         selected_spikes = np.random.choice(available_spikes, num_spikes, replace=False)
+        neuron_spikes[i] = sorted(selected_spikes)
+        assigned_spikes.update(selected_spikes)
 
-        neuron_spikes[i] = sorted(selected_spikes) 
-        assigned_spikes.update(selected_spikes) 
-        
     return neuron_spikes
 
 
@@ -67,7 +68,7 @@ def create_neurons(neuron_configs, connections=None):
                         total_rate = eval(rate_info['equation'])
                         print(f"Total rate for {target}: {total_rate} Hz")
 
-                        spike_times_per_neuron = generate_non_overlapping_poisson_input(target_N, total_rate, duration=1.0)
+                        spike_times_per_neuron = generate_non_overlapping_poisson_input(target_N, total_rate, duration=1000*ms)
 
                         neuron_indices = []
                         spike_times = []

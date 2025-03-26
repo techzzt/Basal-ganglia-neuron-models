@@ -60,7 +60,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
                     syn.g_a = current_params['g0']['value'] * eval(current_params['g0']['unit'])   
                     syn.tau_AMPA = current_params['tau_syn']['value'] * ms
                     syn.E_AMPA = current_params['E_rev']['value'] * mV
-                    print("ampa", syn.g_a)
+                    # print("ampa", syn.g_a)
                     if 'beta' in current_params:
                         syn.ampa_beta = float(current_params['beta']['value'])
                
