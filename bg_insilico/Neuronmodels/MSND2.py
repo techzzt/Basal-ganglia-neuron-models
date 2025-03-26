@@ -1,6 +1,7 @@
 import importlib
 from brian2 import *
 from module.models import QIF
+from brian2 import mV, ms, nS
 
 class NeuronModel:
     def __init__(self, N, params):

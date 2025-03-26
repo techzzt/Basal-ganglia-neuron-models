@@ -4,6 +4,7 @@ from module.models import AdEx_STN
 from module.models import AdEx
 import numpy as np
 import bisect
+from brian2 import mV, ms, nS
 
 from brian2.utils.arrays import calc_repeats
 from brian2.utils.logger import get_logger
@@ -40,9 +41,9 @@ class STN(NeuronModel):
         eqs = AdEx.eqs
         
         reset = '''
-        temp = (u - 15*pA) / nS;
+        temp = (z - 15*pA) / nS;
         v = vr + clip(temp, 20*mV, inf*mV);
-        u += d
+        z += d
         '''
         
         self.neurons = NeuronGroup(

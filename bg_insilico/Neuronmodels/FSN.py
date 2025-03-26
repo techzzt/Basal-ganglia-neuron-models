@@ -1,5 +1,6 @@
 import importlib
 from brian2 import *
+from brian2 import mV, ms, nS
 
 from module.models import QIF_FSN
 

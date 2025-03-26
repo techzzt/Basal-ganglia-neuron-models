@@ -1,6 +1,7 @@
 from brian2 import *
 import importlib
 from module.models import AdEx
+from brian2 import mV, ms, nS
 
 class NeuronModel:
     def __init__(self, N, params):
@@ -34,7 +35,7 @@ class GPeT1(NeuronModel):
         eqs = AdEx.eqs 
 
         self.neurons = NeuronGroup(
-            self.N, eqs, threshold='v > th', reset='v = vr; u += d', method='euler'
+            self.N, eqs, threshold='v > th', reset='v = vr; z += d', method='euler'
         )
         self.neurons.g_L = self.params['g_L']['value'] * eval(self.params['g_L']['unit'])
         self.neurons.E_L = self.params['E_L']['value'] * eval(self.params['E_L']['unit'])
