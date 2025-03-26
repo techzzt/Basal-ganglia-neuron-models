@@ -1,11 +1,13 @@
 import importlib
 from brian2 import *
 
-from module.models import QIF
+from module.models import QIF_FSN
 
 class NeuronModel:
     def __init__(self, N, params):
-        super().__init__(N, params)
+        super().__init__()  
+        self.N = N
+        self.params = params
         self.neurons = None
 
     def create_neurons(self):
@@ -13,6 +15,7 @@ class NeuronModel:
 
 class FSN(NeuronModel):
     def __init__(self, N, params, connections=None):  
+        super().__init__(N, params) 
         self.N = N
         self.params = params
         self.receptor_params = self.get_receptor_params(connections) if connections else {}
@@ -32,22 +35,26 @@ class FSN(NeuronModel):
         return receptor_params
     
     def create_neurons(self):
-        eqs = QIF.eqs 
-
+        eqs = QIF_FSN.eqs 
+        reset_eqs = '''
+        v = vr;
+        u = - a * u * second
+        '''
         self.neurons = NeuronGroup(
-            self.N, eqs, threshold='v > th', reset='v = c; u += d', method='euler'
+            self.N, eqs, threshold='v > vb', reset = reset_eqs, method='euler'
         )
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
+        self.neurons.vb = self.params['vb']['value'] * eval(self.params['vb']['unit'])
         self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.k = self.params['k']['value'] 
         self.neurons.a = self.params['a']['value'] / ms
-        self.neurons.b = self.params['b']['value'] /ms
+        self.neurons.b = self.params['b']['value'] / ms
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
         self.neurons.c = self.params['c']['value'] * eval(self.params['c']['unit'])
         self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit'])
-        self.neurons.u = self.params['u']['value'] * eval(self.params['u']['unit']) / ms
+        # self.neurons.u = self.params['u']['value'] * eval(self.params['u']['unit'])
 
         self.neurons.E_AMPA = 0 * mV
         self.neurons.tau_AMPA = 1 * ms
@@ -61,12 +68,5 @@ class FSN(NeuronModel):
         self.neurons.E_GABA = 0 * mV
         self.neurons.tau_GABA = 1 * ms
         self.neurons.gaba_beta = 0
-
-
+        
         return self.neurons
-    
-    def _reset_eqs(self, v, u):
-        if v <= self.neurons.vb:
-            return 'v = vr; u += a * (b * (v - vb)**3 - u)'
-        else:
-            return 'v = vr; u -= a * u'

@@ -49,8 +49,8 @@ class GPeTA(NeuronModel):
         self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit'])
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
         self.neurons.I_ext = self.params['I_ext']['value'] * eval(self.params['I_ext']['unit'])
-        self.neurons.u = self.params['u']['value'] * eval(self.params['u']['unit']) 
-        
+        # self.neurons.u = self.params['u']['value'] * eval(self.params['u']['unit']) 
+
         self.neurons.E_AMPA = 0 * mV
         self.neurons.tau_AMPA = 1 * ms
         self.neurons.ampa_beta = 0
@@ -63,6 +63,5 @@ class GPeTA(NeuronModel):
         self.neurons.E_GABA = 0 * mV
         self.neurons.tau_GABA = 1 * ms
         self.neurons.gaba_beta = 0
-
-
+        
         return self.neurons
