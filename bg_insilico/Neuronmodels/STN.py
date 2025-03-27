@@ -62,7 +62,7 @@ class STN(NeuronModel):
         self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit'])
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
         self.neurons.I_ext = self.params['I_ext']['value'] * eval(self.params['I_ext']['unit'])
-        # self.neurons.u = self.params['u']['value'] * eval(self.params['u']['unit'])
+        self.neurons.z = self.params['z']['value'] * eval(self.params['z']['unit'])
 
         self.neurons.E_AMPA = 0 * mV
         self.neurons.tau_AMPA = 1 * ms
