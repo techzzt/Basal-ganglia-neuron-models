@@ -8,14 +8,6 @@ import numpy as np
 
 def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class, simulation_params, plot_order=None):
     
-    def get_neuron_params(configs, name):
-        for config in configs:
-            if config['name'] == name:
-                with open(config['params_file'], 'r') as f:
-                    params = json.load(f)
-                return params
-        return None
-    
     try:
         start_scope()
         
@@ -41,13 +33,12 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
                 net.add(voltage_mon)
 
         duration = simulation_params['duration'] * ms
-
+        defaultclock.dt = 0.01 * ms
         """
         for t in range(0, int(duration/ms), 100):  
             print(f"Remaining time: {duration/ms - t} ms")
         """
         net.run(duration)
-        defaultclock.dt = 0.1*ms
 
         for name, monitor in voltage_monitors.items():
             if monitor.v.size > 0:
