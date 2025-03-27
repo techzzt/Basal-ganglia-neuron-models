@@ -1,11 +1,11 @@
 from brian2 import *
 
 eqs = '''
-dv/dt = (k * (1 * pF/ms/mV) * (v - vr) * (v - vt) - u * pF + Isyn) / C : volt
-du/dt = int(v <= vb) * (a * (b * (v - vb)**3 / (volt**2 * second) - u)) - int(v > vb) * (a * u) : volt/second
+dv/dt = (k*1*pF/ms/mV*(v-vr)*(v-vt) - u*pF + Isyn) / C : volt 
+du/dt = a * (b * ((v - vb) ** 3/volt ** 2) - u) : volt/second
 
 Isyn = I_AMPA + I_NMDA + I_GABA : amp
-I_AMPA = g_a * (E_AMPA - v) : amp
+I_AMPA = ampa_beta * g_a * (E_AMPA - v) : amp
 I_GABA = gaba_beta * g_g * (E_GABA - v) : amp
 I_NMDA = nmda_beta * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp 
 
@@ -27,7 +27,7 @@ nmda_beta: 1
 Mg2 : 1
 
 a : 1/second
-b : 1
+b : 1/second
 k : 1
 E_L    : volt
 vt     : volt

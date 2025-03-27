@@ -74,8 +74,10 @@ def create_neurons(neuron_configs, connections=None):
                         spike_times = []
 
                         for neuron_idx, spikes in enumerate(spike_times_per_neuron):
-                            neuron_indices.extend([neuron_idx] * len(spikes))
-                            spike_times.extend(spikes)
+                            unique_spikes = np.unique(spikes)  
+                            neuron_indices.extend([neuron_idx] * len(unique_spikes))
+                            spike_times.extend(unique_spikes)
+
 
                         cortex_spike_gen = SpikeGeneratorGroup(target_N, neuron_indices, spike_times * second)
 
