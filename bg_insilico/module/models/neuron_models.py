@@ -26,32 +26,28 @@ def distribute_sequential_firing_rates(N, total_rate):
     neuron_rates = [len(events) for events in neuron_events]  
     return neuron_rates * Hz
 
-def generate_non_overlapping_poisson_input(N, total_rate, duration):
 
-    total_spikes = int(total_rate * duration)  
-    spike_times = np.sort(np.random.uniform(0, duration, total_spikes))  
+def generate_non_overlapping_poisson_input(N, total_rate, duration, dt=1 * ms):
 
-    neuron_spikes = [[] for _ in range(N)] 
-    assigned_spikes = set() 
+    try:
+        total_spikes = int(total_rate * duration) 
+        spike_times = np.sort(np.random.uniform(0, duration, total_spikes))  
+        spike_times = np.round(spike_times / dt) * dt  
+        neuron_indices = np.random.choice(N, total_spikes, replace=True)
 
-    for i in range(N):
-        available_spikes = [t for t in spike_times if t not in assigned_spikes] 
-        if len(available_spikes) == 0:
-            break 
-        
-        num_spikes = min(len(available_spikes), len(available_spikes) // (N - i)) 
-    
-        selected_spikes = np.random.choice(available_spikes, num_spikes, replace=False)
-        neuron_spikes[i] = sorted(selected_spikes)
-        assigned_spikes.update(selected_spikes)
+        unique_spikes = set(zip(neuron_indices, spike_times))
+        neuron_indices, spike_times = zip(*unique_spikes)
 
-    return neuron_spikes
+        return np.array(neuron_indices), np.array(spike_times)
 
+    except Exception as e:
+        print(f"Error in generate_non_overlapping_poisson_input: {str(e)}")
+        raise
 
-def create_neurons(neuron_configs, connections=None):
+def create_neurons(neuron_configs, simulation_params, connections=None):
     try:
         neuron_groups = {}
-
+        
         for config in neuron_configs:
             name = config['name']
             N = config['N']
@@ -61,29 +57,20 @@ def create_neurons(neuron_configs, connections=None):
                     for target, rate_info in config['target_rates'].items():
                         target_N = get_neuron_count(neuron_configs, target)
 
-                        if target_N is None:
-                            print(f"Warning: Could not find neuron count for target '{target}'")
+                        if target_N is None or target_N == 0:
+                            print(f"Warning: Could not find valid neuron count for target '{target}'")
                             continue
 
-                        total_rate = eval(rate_info['equation'])
-                        print(f"Total rate for {target}: {total_rate} Hz")
+                        t = defaultclock.t 
+                        total_rate = eval(rate_info['equation'], {"t": t, "Hz": Hz, "ms": ms})
+                        rate_per_neuron = total_rate 
+                        neuron_group = PoissonGroup(
+                            target_N, 
+                            rates=rate_per_neuron  
+                        )
 
-                        spike_times_per_neuron = generate_non_overlapping_poisson_input(target_N, total_rate, duration=1000*ms)
-
-                        neuron_indices = []
-                        spike_times = []
-
-                        for neuron_idx, spikes in enumerate(spike_times_per_neuron):
-                            unique_spikes = np.unique(spikes)  
-                            neuron_indices.extend([neuron_idx] * len(unique_spikes))
-                            spike_times.extend(unique_spikes)
-
-
-                        cortex_spike_gen = SpikeGeneratorGroup(target_N, neuron_indices, spike_times * second)
-
-                        neuron_groups[f'Cortex_{target}'] = cortex_spike_gen
-
-                        print(f"Generated non-overlapping Poisson input for Cortex_{target} with total rate {total_rate} Hz")
+                        neuron_groups[f'Cortex_{target}'] = neuron_group
+                        print(f"Created Cortex input for {target} with {rate_per_neuron} Hz per neuron")
 
                 continue
 
@@ -97,13 +84,12 @@ def create_neurons(neuron_configs, connections=None):
                             continue
 
                         total_rate = eval(rate_info['equation']) 
-                        print(f"Total rate for {target}: {total_rate} Hz (Ext Poisson input)")
-
-                        ext_poisson_group = PoissonGroup(target_N, rates=total_rate)
+                        rate_per_neuron = total_rate / target_N 
+                        ext_poisson_group = PoissonGroup(target_N, rates=rate_per_neuron)
 
                         neuron_groups[f'Ext_{target}'] = ext_poisson_group
 
-                        print(f"Created Ext Poisson input for {target} with rate {total_rate}")
+                        print(f"Created Ext Poisson input for {target} with {rate_per_neuron} Hz per neuron")
 
                 continue
 
@@ -118,7 +104,6 @@ def create_neurons(neuron_configs, connections=None):
                 neuron_group = model_instance.create_neurons()
 
                 neuron_groups[name] = neuron_group
-                print(f"Created {name} neurons using {config['model_class']}")
 
         return neuron_groups
 

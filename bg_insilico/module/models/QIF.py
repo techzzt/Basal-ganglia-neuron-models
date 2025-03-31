@@ -5,8 +5,8 @@ dv/dt = (k*1*pF/ms/mV*(v-vr)*(v-vt) - u*pF + Isyn) / C : volt
 du/dt = a * (b * (v - vr) - u) : volt/second
 
 Isyn = I_AMPA + I_NMDA + I_GABA : amp
-I_AMPA = ampa_beta * g_a * (v - E_AMPA) : amp
-I_GABA = gaba_beta * g_g * (v - E_GABA) : amp
+I_AMPA = ampa_beta * g_a * (E_AMPA - v) : amp
+I_GABA = gaba_beta * g_g * (E_GABA - v) : amp
 I_NMDA = nmda_beta * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp 
 
 tau_GABA : second
