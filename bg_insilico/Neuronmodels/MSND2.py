@@ -49,15 +49,15 @@ class MSND2(NeuronModel):
                 
         self.neurons.E_AMPA = 0 * mV
         self.neurons.tau_AMPA = 1 * ms
-        self.neurons.ampa_beta = 0
+        #self.neurons.ampa_beta = 0
 
         self.neurons.E_NMDA = 0 * mV
         self.neurons.tau_NMDA = 1 * ms
-        self.neurons.nmda_beta = 0
+        #self.neurons.nmda_beta = 0
 
 
         self.neurons.E_GABA = 0 * mV
         self.neurons.tau_GABA = 1 * ms
-        self.neurons.gaba_beta = 0
+        #self.neurons.gaba_beta = 0
         
         return self.neurons

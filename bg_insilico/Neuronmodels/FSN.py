@@ -38,15 +38,14 @@ class FSN(NeuronModel):
     def create_neurons(self):
         eqs = QIF_FSN.eqs 
         reset_eqs = '''
-        v = vr;
-        u = - a * u * second
+        v = c;
+        u += a * u * ms
         '''
         self.neurons = NeuronGroup(
             self.N, eqs, threshold='v > vb', reset = reset_eqs, method='euler'
         )
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
-        self.neurons.vb = self.params['vb']['value'] * eval(self.params['vb']['unit'])
         self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.k = self.params['k']['value'] 
@@ -54,20 +53,20 @@ class FSN(NeuronModel):
         self.neurons.b = self.params['b']['value'] / ms
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
         self.neurons.c = self.params['c']['value'] * eval(self.params['c']['unit'])
-        self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit'])
+        self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit']) 
         self.neurons.u = self.params['u']['value'] * eval(self.params['u']['unit']) / ms
 
         self.neurons.E_AMPA = 0 * mV
         self.neurons.tau_AMPA = 1 * ms
-        self.neurons.ampa_beta = 0
+        # self.neurons.ampa_beta = 0
 
         self.neurons.E_NMDA = 0 * mV
         self.neurons.tau_NMDA = 1 * ms
-        self.neurons.nmda_beta = 0
+        # self.neurons.nmda_beta = 0
 
 
         self.neurons.E_GABA = 0 * mV
         self.neurons.tau_GABA = 1 * ms
-        self.neurons.gaba_beta = 0
+        # self.neurons.gaba_beta = 0
         
         return self.neurons
