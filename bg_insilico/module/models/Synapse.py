@@ -42,11 +42,14 @@ def create_synapses(neuron_groups, connections, synapse_class):
                 syn_name = f"synapse_{pre}_{post}"
 
                 if syn_name not in created_synapses:
+                    g0_value = conn_config.get('receptor_params', {}).get(receptor_type, {}).get('g0', {}).get('value', 0.0)
+                    on_pre_code = synapse_instance._get_on_pre(receptor_type, g0_value)
+
                     syn = Synapses(
                         pre_group, 
                         post_group,
                         model=synapse_instance.equations[receptor_type],
-                        on_pre=synapse_instance._get_on_pre(receptor_type)
+                        on_pre=on_pre_code  
                     )
                     syn.connect(p=conn_config['p']) 
                     created_synapses[syn_name] = syn
@@ -54,6 +57,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
                     syn = created_synapses[syn_name]
 
                 syn.w = conn_config.get('weight', 1.0)
+
                 current_params = conn_config['receptor_params'].get(receptor_type, {})
 
                 param_map = {
@@ -65,18 +69,14 @@ def create_synapses(neuron_groups, connections, synapse_class):
                 if receptor_type in param_map:
                     syn_var = param_map[receptor_type]
                     unit = unit_mapping.get(current_params.get('g0', {}).get('unit', 'nS'), nS)
-                    syn.__setattr__(syn_var['g'], current_params.get('g0', {}).get('value', 0.0) * unit)
+                    syn.__setattr__(syn_var['g'], g0_value * unit) 
                     syn.__setattr__(syn_var['tau'], current_params.get('tau_syn', {}).get('value', 1.0) * ms)
                     syn.__setattr__(syn_var['E'], current_params.get('E_rev', {}).get('value', 0.0) * mV)
-
-                    if 'beta' in current_params:
-                        syn.__setattr__(syn_var['beta'], float(current_params['beta'].get('value', 0.0)))
 
                 if 'delay' in current_params:
                     delay_unit = unit_mapping.get(current_params['delay'].get('unit', 'ms'), ms)
                     syn.delay = current_params['delay'].get('value', 0.0) * delay_unit
                 synapse_connections.append(syn)
-                # print(f"Created synapse: {syn_name}")
 
         return synapse_connections
         
@@ -104,18 +104,18 @@ class SynapseBase:
             w : 1
             '''
         }
-    # linit max_g is the max conductance value
-    
-    def _get_on_pre(self, receptor_type, max_g=5): 
+    def _get_on_pre(self, receptor_type, g0_value):
+        max_g = 3 * g0_value  
+
         if receptor_type == 'AMPA':
             return f'''g_a += w * nS
-                      g_a = clip(g_a, g_a, {max_g} * nS)'''  
+                    g_a = clip(g_a, g_a, {max_g} * nS)'''  
         if receptor_type == 'NMDA':
             return f'''g_n += w * nS
-                      g_n = clip(g_n, g_n, {max_g} * nS)''' 
+                    g_n = clip(g_n, g_n, {max_g} * nS)''' 
         if receptor_type == 'GABA':
             return f'''g_g += w * nS
-                      g_g = clip(g_g, g_g, {max_g} * nS)''' 
+                    g_g = clip(g_g, g_g, {max_g} * nS)'''
     """
 
     def _get_on_pre(self, receptor_type, max_g=7): 
@@ -125,7 +125,7 @@ class SynapseBase:
             return f'''g_n += w * nS''' 
         if receptor_type == 'GABA':
             return f'''g_g += w * nS''' 
-    """
+    """    
 
 class Synapse(SynapseBase):
     def __init__(self, neurons, connections):
