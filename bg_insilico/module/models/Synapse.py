@@ -43,7 +43,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
 
                 if syn_name not in created_synapses:
                     g0_value = conn_config.get('receptor_params', {}).get(receptor_type, {}).get('g0', {}).get('value', 0.0)
-                    on_pre_code = synapse_instance._get_on_pre(receptor_type, g0_value)
+                    on_pre_code = synapse_instance._get_on_pre(receptor_type, g0_value, pre)
 
                     syn = Synapses(
                         pre_group, 
@@ -104,17 +104,17 @@ class SynapseBase:
             w : 1
             '''
         }
-    def _get_on_pre(self, receptor_type, g0_value):
+    def _get_on_pre(self, receptor_type, g0_value, pre_neuron):
         max_g = 3 * g0_value  
-
+        weight_term = "0.11 * w * nS" if pre_neuron.startswith("Cortex") else "w * nS" 
         if receptor_type == 'AMPA':
-            return f'''g_a += w * nS
+            return f'''g_a += {weight_term}
                     g_a = clip(g_a, g_a, {max_g} * nS)'''  
         if receptor_type == 'NMDA':
-            return f'''g_n += w * nS
+            return f'''g_n += {weight_term}
                     g_n = clip(g_n, g_n, {max_g} * nS)''' 
         if receptor_type == 'GABA':
-            return f'''g_g += w * nS
+            return f'''g_g += {weight_term}
                     g_g = clip(g_g, g_g, {max_g} * nS)'''
     """
 

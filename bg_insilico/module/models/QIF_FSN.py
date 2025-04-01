@@ -13,14 +13,13 @@ tau_GABA : second
 tau_AMPA : second
 tau_NMDA : second
 
-dg_g/dt = -g_g / tau_GABA : siemens (unless refractory)
-dg_a/dt = -g_a / tau_AMPA : siemens (unless refractory)
-dg_n/dt = -g_n / tau_NMDA : siemens (unless refractory)
+dg_g/dt = -g_g / tau_GABA : siemens 
+dg_a/dt = -g_a / tau_AMPA : siemens
+dg_n/dt = -g_n / tau_NMDA : siemens
 
 E_AMPA : volt
 E_GABA : volt
 E_NMDA : volt
-
 
 Mg2 : 1
 

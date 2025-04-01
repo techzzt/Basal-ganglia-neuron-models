@@ -56,21 +56,29 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
                 if 'target_rates' in config:
                     for target, rate_info in config['target_rates'].items():
                         target_N = get_neuron_count(neuron_configs, target)
-
                         if target_N is None or target_N == 0:
                             print(f"Warning: Could not find valid neuron count for target '{target}'")
                             continue
-
-                        t = defaultclock.t 
-                        total_rate = eval(rate_info['equation'], {"t": t, "Hz": Hz, "ms": ms})
-                        rate_per_neuron = total_rate 
+                        
+                        duration = simulation_params['duration'] 
+                        dt = defaultclock.dt  
+                        time_points = np.arange(0, duration, dt)
+                        
+                        rate_values = np.array([
+                            eval(rate_info['equation'], {"t": t * ms, "Hz": Hz, "ms": ms})
+                            for t in time_points
+                        ])
+                        
+                        rate_array = TimedArray(rate_values, dt=dt)
+                        
                         neuron_group = PoissonGroup(
                             target_N, 
-                            rates=rate_per_neuron  
+                            rates='rate_array(t)',
+                            namespace={'rate_array': rate_array}
                         )
 
                         neuron_groups[f'Cortex_{target}'] = neuron_group
-                        print(f"Created Cortex input for {target} with {rate_per_neuron} Hz per neuron")
+                        print(f"Created Cortex input for {target} with dynamic rates")
 
                 continue
 
