@@ -42,7 +42,8 @@ class STN(NeuronModel):
         
         reset = '''
         temp = (z - 15*pA) / nS;
-        v = vr + clip(temp, 20*mV, inf*mV);
+        vstn = clip(temp, 20*mV, inf*mV);
+        v = vr + (vstn - vr) * int(z < 0*pA)
         z += d
         '''
         
