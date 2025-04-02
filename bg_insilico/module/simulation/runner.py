@@ -11,7 +11,7 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
     try:
         start_scope()
         
-        neuron_groups = create_neurons(neuron_configs, connections)
+        neuron_groups = create_neurons(neuron_configs, simulation_params, connections)
         print(f"Neuron Groups: {neuron_groups.keys()}") 
         synapse_connections = create_synapses(neuron_groups, connections, synapse_class)
 
@@ -33,7 +33,6 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
                 net.add(voltage_mon)
 
         duration = simulation_params['duration'] * ms
-        defaultclock.dt = 0.01 * ms
         """
         for t in range(0, int(duration/ms), 100):  
             print(f"Remaining time: {duration/ms - t} ms")
