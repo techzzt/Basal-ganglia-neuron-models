@@ -26,6 +26,11 @@ def distribute_sequential_firing_rates(N, total_rate):
     neuron_rates = [len(events) for events in neuron_events]  
     return neuron_rates * Hz
 
+def create_poisson_input(N, rate_expr, duration, dt=1*ms):
+    time_points = np.arange(0, duration/ms, dt/ms) * ms 
+    rate_values = np.array([eval(rate_expr, {"t": t, "Hz": Hz, "ms": ms}) for t in time_points]) 
+    rate_array = TimedArray(rate_values * Hz, dt) 
+    return PoissonGroup(N, rates='rate_array(t)', namespace={'rate_array': rate_array})
 
 def generate_non_overlapping_poisson_input(N, total_rate, duration, dt=1 * ms):
 
@@ -47,12 +52,12 @@ def generate_non_overlapping_poisson_input(N, total_rate, duration, dt=1 * ms):
 def create_neurons(neuron_configs, simulation_params, connections=None):
     try:
         neuron_groups = {}
-        
+
         for config in neuron_configs:
             name = config['name']
             N = config['N']
 
-            if name == 'Cortex':
+            if name in ['Cortex', 'Ext']:
                 if 'target_rates' in config:
                     for target, rate_info in config['target_rates'].items():
                         target_N = get_neuron_count(neuron_configs, target)
@@ -61,35 +66,11 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
                             print(f"Warning: Could not find valid neuron count for target '{target}'")
                             continue
 
-                        t = defaultclock.t 
-                        total_rate = eval(rate_info['equation'], {"t": t, "Hz": Hz, "ms": ms})
-                        rate_per_neuron = total_rate 
-                        neuron_group = PoissonGroup(
-                            target_N, 
-                            rates=rate_per_neuron  
-                        )
+                        rate_equation = rate_info['equation']
+                        neuron_group = create_poisson_input(target_N, rate_equation, simulation_params['duration'])
 
-                        neuron_groups[f'Cortex_{target}'] = neuron_group
-                        print(f"Created Cortex input for {target} with {rate_per_neuron} Hz per neuron")
-
-                continue
-
-            if name == 'Ext':
-                if 'target_rates' in config:
-                    for target, rate_info in config['target_rates'].items():
-                        target_N = get_neuron_count(neuron_configs, target)
-
-                        if target_N is None:
-                            print(f"Warning: Could not find neuron count for target '{target}'")
-                            continue
-
-                        total_rate = eval(rate_info['equation']) 
-                        rate_per_neuron = total_rate / target_N 
-                        ext_poisson_group = PoissonGroup(target_N, rates=rate_per_neuron)
-
-                        neuron_groups[f'Ext_{target}'] = ext_poisson_group
-
-                        print(f"Created Ext Poisson input for {target} with {rate_per_neuron} Hz per neuron")
+                        neuron_groups[f'{name}_{target}'] = neuron_group
+                        print(f"Created {name} input for {target} with dynamic rates: {rate_equation}")
 
                 continue
 
@@ -111,3 +92,4 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
         print(f"Error creating neuron groups: {str(e)}")
         print(f"Failed configuration: {config}")
         raise
+
