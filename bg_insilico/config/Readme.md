@@ -34,18 +34,19 @@
 
 ```
 "neuron_type": "poisson",
-"target_rates": {
-    "FSN": {
-        "equation": "((t / second) / 1000 * 646 + 3 * randn()) * Hz"
-    },
-    "MSND1": {
-        "equation": "((t / second) / 1000 * 448 + 3 * randn()) * Hz"
-    },
-    "MSND2": {
-        "equation": "((t / second) / 1000 * 592 + 3 * randn()) * Hz"
-    },
-    "STN": {
-        "equation": "((t / second) / 1000 * 170 + 3 * randn()) * Hz"
-    }
-}
+            "target_rates": {
+                "FSN": {
+                    "equation": "((t / second) / 1000 * 646) * Hz"
+                },
+                "MSND1": {
+                    "equation": "((t / second) / 1000 * 448) * Hz"
+                },
+                "MSND2": {
+                    "equation": "((t / second) / 1000 * 592) * Hz"
+                },
+                "STN": {
+                    "equation": "((t / second) / 1000 * 170) * Hz"
+                }
+            }
+
 ```     
