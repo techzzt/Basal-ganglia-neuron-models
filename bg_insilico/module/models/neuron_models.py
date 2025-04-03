@@ -28,7 +28,7 @@ def distribute_sequential_firing_rates(N, total_rate):
 
 def create_poisson_input(N, rate_expr, duration, dt=1*ms):
     time_points = np.arange(0, duration/ms, dt/ms) * ms 
-    rate_values = np.array([eval(rate_expr, {"t": t, "Hz": Hz, "ms": ms}) for t in time_points]) 
+    rate_values = np.array([eval(rate_expr, {"t": t, "Hz": Hz, "ms": ms, "second": second}) for t in time_points]) 
     rate_array = TimedArray(rate_values * Hz, dt) 
     return PoissonGroup(N, rates='rate_array(t)', namespace={'rate_array': rate_array})
 
