@@ -20,16 +20,16 @@
 ```
 "target_rates": {
     "FSN": {
-        "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 646*Hz + 3*Hz * randn()"
+        "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 646*Hz"
     },
     "MSND1": {
-        "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 448*Hz + 3*Hz * randn()"
+        "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 448*Hz"
     },
     "MSND2": {
-        "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 592*Hz + 3*Hz * randn()"
+        "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 592*Hz"
     },
     "STN": {
-        "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 170*Hz + 3*Hz * randn()"
+        "equation": "0*Hz + (t >= 200*ms) * (t < 400*ms) * 170*Hz"
     }
 }
 ```
