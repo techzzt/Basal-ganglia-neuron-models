@@ -2,16 +2,16 @@
 # degradation
 "target_rates": {
     "FSN": {
-        "equation": "((1 - (t / second)) * (646 / 1000) + 3 * randn()) * Hz"
+        "equation": "((1 - (t / second)) * (646 / 1000)) * Hz"
     },
     "MSND1": {
-        "equation": "((1 - (t / second)) * (448 / 1000) + 3 * randn()) * Hz"
+        "equation": "((1 - (t / second)) * (448 / 1000)) * Hz"
     },
     "MSND2": {
-        "equation": "((1 - (t / second)) * (592 / 1000) + 3 * randn()) * Hz"
+        "equation": "((1 - (t / second)) * (592 / 1000)) * Hz"
     },
     "STN": {
-        "equation": "((1 - (t / second)) * (170 / 1000) + 3 * randn()) * Hz"
+        "equation": "((1 - (t / second)) * (170 / 1000)) * Hz"
     }
 }
 
