@@ -39,7 +39,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
             receptor_types = receptor_types if isinstance(receptor_types, list) else [receptor_types]
 
             for receptor_type in receptor_types:
-                syn_name = f"synapse_{pre}_{post}"
+                syn_name = f"synapse_{pre}_{post}_{receptor_type}"
 
                 if syn_name not in created_synapses:
                     g0_value = conn_config.get('receptor_params', {}).get(receptor_type, {}).get('g0', {}).get('value', 0.0)
