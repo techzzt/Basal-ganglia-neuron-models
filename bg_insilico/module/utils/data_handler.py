@@ -24,6 +24,9 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
         
         firing_rates = {}
 
+        start_time = 3000 * ms
+        end_time = 5000 * ms
+
         for i, (name, monitor) in enumerate(spike_monitors.items()):
             if len(monitor.i) == 0:
                 print(f"No spikes recorded for {name}")
@@ -33,19 +36,23 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
             axes[i].set_title(f'{name} Raster Plot')
             axes[i].set_ylabel('Neuron index')
 
-            num_spikes = len(monitor.t)
-            total_neurons = monitor.source.N
-            simulation_time_sec = monitor.t[-1] / second  
+            valid_spike_indices = (monitor.t >= start_time) & (monitor.t <= end_time)
+            valid_spike_times = monitor.t[valid_spike_indices]
+            valid_spike_count = len(valid_spike_times)
 
-            firing_rate = num_spikes / (total_neurons * (defaultclock.t / second))
+            total_neurons = monitor.source.N
+            time_window_sec = (end_time - start_time) / second
+
+            firing_rate = valid_spike_count / (total_neurons * time_window_sec)
             firing_rates[name] = firing_rate
 
-            print(f"{name} 평균 발화율: {firing_rate:.2f} Hz")
+            print(f"{name} 평균 발화율 (3000–5000ms): {firing_rate:.2f} Hz")
 
-        return firing_rates 
+        return firing_rates
 
     except Exception as e:
         print(f"Raster plot Error: {str(e)}")
+
 
 
 def plot_membrane_potential(voltage_monitors, plot_order=None):
