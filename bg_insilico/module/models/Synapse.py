@@ -57,7 +57,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
                     syn = created_synapses[syn_name]
 
                 syn.w = conn_config.get('weight', 1.0)
-
+                print("synapse con w", syn.w)
                 current_params = conn_config['receptor_params'].get(receptor_type, {})
 
                 param_map = {
@@ -104,18 +104,26 @@ class SynapseBase:
             w : 1
             '''
         }
+
     def _get_on_pre(self, receptor_type, g0_value, pre_neuron):
-        max_g = 3 * g0_value  
-        weight_term = "0.11 * w * nS" if pre_neuron.startswith("Cortex") else "w * nS" 
+        max_g_val = (5 * g0_value)
+        max_g_str = f"{max_g_val} * nS"
+        weight_term = f"0.11 * w * {g0_value} * nS" if pre_neuron.startswith("Cortex") else f"w * {g0_value} * nS"
+        
         if receptor_type == 'AMPA':
-            return f'''g_a += {weight_term}
-                    g_a = clip(g_a, g_a, {max_g} * nS)'''  
-        if receptor_type == 'NMDA':
-            return f'''g_n += {weight_term}
-                    g_n = clip(g_n, g_n, {max_g} * nS)''' 
-        if receptor_type == 'GABA':
-            return f'''g_g += {weight_term}
-                    g_g = clip(g_g, g_g, {max_g} * nS)'''
+            return f'''
+            g_a += {weight_term}
+            g_a = clip(g_a, g_a, {max_g_str})'''
+        elif receptor_type == 'NMDA':
+            return f'''
+            g_n += {weight_term}
+            g_n = clip(g_n, g_n, {max_g_str})'''
+        elif receptor_type == 'GABA':
+            return f'''
+            g_g += {weight_term}
+            g_g = clip(g_g, g_g, {max_g_str})'''
+
+
     """
 
     def _get_on_pre(self, receptor_type, max_g=7): 

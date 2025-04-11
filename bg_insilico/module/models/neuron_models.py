@@ -19,18 +19,20 @@ def get_neuron_count(neuron_configs, target_name):
             return config["N"]
     return None  
 
-def distribute_sequential_firing_rates(N, total_rate):
-    total_events = int(total_rate)  
-    event_indices = np.arange(total_events)
-    neuron_events = np.array_split(event_indices, N)  
-    neuron_rates = [len(events) for events in neuron_events]  
-    return neuron_rates * Hz
-
 def create_poisson_input(N, rate_expr, duration, dt=1*ms):
-    time_points = np.arange(0, duration/ms, dt/ms) * ms 
-    rate_values = np.array([eval(rate_expr, {"t": t, "Hz": Hz, "ms": ms, "second": second}) for t in time_points]) 
-    rate_array = TimedArray(rate_values * Hz, dt) 
+    time_points = np.arange(0, duration/ms, dt/ms) * ms
+
+    # time-dependent total input rate 
+    total_rate_values = np.array([
+        eval(rate_expr, {"t": t, "Hz": Hz, "ms": ms, "second": second, "np": np})
+        for t in time_points
+    ]) 
+
+    per_neuron_rate_values = total_rate_values / N
+    rate_array = TimedArray(per_neuron_rate_values * Hz, dt)
+
     return PoissonGroup(N, rates='rate_array(t)', namespace={'rate_array': rate_array})
+
 
 def generate_non_overlapping_poisson_input(N, total_rate, duration, dt=1 * ms):
 
