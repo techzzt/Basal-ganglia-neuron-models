@@ -18,41 +18,48 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
         
         n_plots = len(spike_monitors)
         fig, axes = plt.subplots(n_plots, 1, figsize=(10, 2 * n_plots), sharex=True)
-
         if n_plots == 1:
             axes = [axes]
-        
+
         firing_rates = {}
 
-        start_time = 3000 * ms
-        end_time = 5000 * ms
+        start_time = 1000 * ms
+        end_time = 10000 * ms
 
         for i, (name, monitor) in enumerate(spike_monitors.items()):
             if len(monitor.i) == 0:
                 print(f"No spikes recorded for {name}")
                 continue
 
-            axes[i].scatter(monitor.t/ms, monitor.i, s=0.7)
-            axes[i].set_title(f'{name} Raster Plot')
-            axes[i].set_ylabel('Neuron index')
-
-            valid_spike_indices = (monitor.t >= start_time) & (monitor.t <= end_time)
-            valid_spike_times = monitor.t[valid_spike_indices]
-            valid_spike_count = len(valid_spike_times)
-
             total_neurons = monitor.source.N
-            time_window_sec = (end_time - start_time) / second
+            chosen_neurons = np.random.choice(total_neurons, size=min(sample_size, total_neurons), replace=False)
 
-            firing_rate = valid_spike_count / (total_neurons * time_window_sec)
+            neuron_mask = np.isin(monitor.i, chosen_neurons)
+            display_t = monitor.t[neuron_mask]
+            display_i = monitor.i[neuron_mask]
+
+            valid_indices = (monitor.t >= start_time) & (monitor.t <= end_time) & neuron_mask
+            valid_t = monitor.t[valid_indices]
+            spike_count = len(valid_t)
+
+            time_window_sec = (end_time - start_time) / second
+            firing_rate = spike_count / (len(chosen_neurons) * time_window_sec)
             firing_rates[name] = firing_rate
 
-            print(f"{name} 평균 발화율 (3000–5000ms): {firing_rate:.2f} Hz")
+            axes[i].scatter(display_t / ms, display_i, s=0.7)
+            axes[i].set_title(f'{name} Raster Plot (subset of {len(chosen_neurons)} neurons)')
+            axes[i].set_ylabel('Neuron index')
+
+            print(f"{name} 평균 발화율 ({int(start_time/ms)}–{int(end_time/ms)}ms, {len(chosen_neurons)} neurons): {firing_rate:.2f} Hz")
+
+        plt.xlabel('Time (ms)')
+        plt.tight_layout()
+        plt.show()
 
         return firing_rates
 
     except Exception as e:
         print(f"Raster plot Error: {str(e)}")
-
 
 
 def plot_membrane_potential(voltage_monitors, plot_order=None):
