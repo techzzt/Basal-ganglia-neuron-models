@@ -32,6 +32,11 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
                 voltage_monitors[name] = voltage_mon
                 net.add(voltage_mon)
 
+            if 'Isyn' in group.variables:
+                isyn_mon = StateMonitor(group, 'Isyn', record=True)
+                voltage_monitors[f'{name}_Isyn'] = isyn_mon
+                net.add(isyn_mon)
+
         duration = simulation_params['duration'] * ms
         """
         for t in range(0, int(duration/ms), 100):  
@@ -40,11 +45,17 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
         net.run(duration)
 
         for name, monitor in voltage_monitors.items():
-            if monitor.v.size > 0:
-                print(f"{name} - Min Voltage: {np.min(monitor.v) / mV} mV")
-                print(f"{name} - Max Voltage: {np.max(monitor.v) / mV} mV")
-            else:
-                print(f"Warning: No voltage data recorded for {name}")
+
+            if hasattr(monitor, 'v'):
+                if monitor.v.size > 0:
+                    print(f"{name} - Min Voltage: {np.min(monitor.v) / mV} mV")
+                    print(f"{name} - Max Voltage: {np.max(monitor.v) / mV} mV")
+                else:
+                    print(f"Warning: No voltage data recorded for {name}")
+
+            if hasattr(monitor, 'Isyn'):
+                avg_current = np.mean(monitor.Isyn[0]) / pA
+                print(f"{name} 평균 synaptic current: {avg_current:.2f} pA")
 
         plot_raster(spike_monitors, 30, plot_order) 
         plot_membrane_potential(voltage_monitors, plot_order)
