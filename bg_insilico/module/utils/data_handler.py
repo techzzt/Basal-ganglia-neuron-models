@@ -20,7 +20,7 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
 
         firing_rates = {}
 
-        start_time = 3000 * ms
+        start_time = 1500 * ms
         end_time = 5000 * ms
 
         for i, (name, monitor) in enumerate(spike_monitors.items()):
