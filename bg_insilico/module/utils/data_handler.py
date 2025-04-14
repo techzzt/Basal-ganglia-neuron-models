@@ -4,9 +4,6 @@ import numpy as np
 from brian2 import *
 from datetime import datetime
 
-import matplotlib.pyplot as plt
-import numpy as np
-
 def plot_raster(spike_monitors, sample_size=30, plot_order=None):
     try:
         if plot_order:
@@ -23,8 +20,8 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
 
         firing_rates = {}
 
-        start_time = 1000 * ms
-        end_time = 10000 * ms
+        start_time = 3000 * ms
+        end_time = 5000 * ms
 
         for i, (name, monitor) in enumerate(spike_monitors.items()):
             if len(monitor.i) == 0:
@@ -50,6 +47,10 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
             axes[i].set_title(f'{name} Raster Plot (subset of {len(chosen_neurons)} neurons)')
             axes[i].set_ylabel('Neuron index')
 
+            axes[i].set_ylim(min(chosen_neurons) - 1, max(chosen_neurons) + 1)
+
+            axes[i].set_xlim(0, int(monitor.t[-1] / ms))
+
             print(f"{name} 평균 발화율 ({int(start_time/ms)}–{int(end_time/ms)}ms, {len(chosen_neurons)} neurons): {firing_rate:.2f} Hz")
 
         plt.xlabel('Time (ms)')
@@ -60,7 +61,6 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
 
     except Exception as e:
         print(f"Raster plot Error: {str(e)}")
-
 
 def plot_membrane_potential(voltage_monitors, plot_order=None):
     plt.figure(figsize=(10, 5))
