@@ -1,7 +1,7 @@
 from brian2 import *
 from module.models.neuron_models import create_neurons
 from module.models.Synapse import create_synapses
-from module.utils.data_handler import plot_raster, plot_membrane_potential
+from module.utils.data_handler import plot_raster, plot_membrane_potential, plot_single_neuron_raster
 
 import json 
 import numpy as np
@@ -59,6 +59,7 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
 
         plot_raster(spike_monitors, 30, plot_order) 
         plot_membrane_potential(voltage_monitors, plot_order)
+        plot_single_neuron_raster(spike_monitors, neuron_index=10, plot_order=['FSN', 'MSND2', 'MSND2'])
 
         results = {
             'spike_monitors': spike_monitors,
