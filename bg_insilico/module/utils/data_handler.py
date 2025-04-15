@@ -80,3 +80,44 @@ def plot_membrane_potential(voltage_monitors, plot_order=None):
     plt.title('Membrane Potential Over Time')
     plt.legend()
     plt.show()
+
+# track individual neuron
+def plot_single_neuron_raster(spike_monitors, neuron_index, plot_order=None):
+    try:
+        if plot_order:
+            spike_monitors = {name: spike_monitors[name] for name in plot_order if name in spike_monitors}
+
+        if not spike_monitors:
+            print("No valid neuron groups to plot.")
+            return
+
+        n_plots = len(spike_monitors)
+        fig, axes = plt.subplots(n_plots, 1, figsize=(10, 2 * n_plots), sharex=True)
+        if n_plots == 1:
+            axes = [axes]
+
+        for i, (name, monitor) in enumerate(spike_monitors.items()):
+            if len(monitor.i) == 0:
+                print(f"No spikes recorded for {name}")
+                continue
+
+            # 해당 neuron index의 spike만 필터링
+            neuron_mask = monitor.i == neuron_index
+            spike_times = monitor.t[neuron_mask]
+
+            if len(spike_times) == 0:
+                print(f"{name} - Neuron {neuron_index} has no spikes.")
+                continue
+
+            axes[i].scatter(spike_times/ms, np.full_like(spike_times/ms, neuron_index), s=4, color='red')
+            axes[i].set_title(f'{name} Neuron {neuron_index} Raster')
+            axes[i].set_ylabel('Neuron index')
+            axes[i].set_xlim(0, int(monitor.t[-1] / ms))
+            axes[i].set_ylim(neuron_index - 1, neuron_index + 1)
+
+        plt.xlabel('Time (ms)')
+        plt.tight_layout()
+        plt.show()
+
+    except Exception as e:
+        print(f"Single neuron raster plot Error: {str(e)}")
