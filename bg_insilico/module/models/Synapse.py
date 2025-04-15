@@ -106,7 +106,7 @@ class SynapseBase:
         }
 
     def _get_on_pre(self, receptor_type, g0_value, pre_neuron):
-        max_g_val = (9 * g0_value)
+        max_g_val = (8.5 * g0_value)
         max_g_str = f"{max_g_val} * nS"
         weight_term = f"0.11 * w * {g0_value} * nS" if pre_neuron.startswith("Cortex") else f"w * {g0_value} * nS"
         
