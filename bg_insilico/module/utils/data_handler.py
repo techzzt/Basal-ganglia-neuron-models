@@ -21,7 +21,7 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
         firing_rates = {}
 
         start_time = 1500 * ms
-        end_time = 5000 * ms
+        end_time = 10000 * ms
 
         for i, (name, monitor) in enumerate(spike_monitors.items()):
             if len(monitor.i) == 0:
@@ -121,3 +121,40 @@ def plot_single_neuron_raster(spike_monitors, neuron_index, plot_order=None):
 
     except Exception as e:
         print(f"Single neuron raster plot Error: {str(e)}")
+
+
+def plot_raster_all_neurons_stim_window(spike_monitors, stim_start=200*ms, stim_end=1000*ms, plot_order=None):
+    try:
+        if plot_order:
+            spike_monitors = {name: spike_monitors[name] for name in plot_order if name in spike_monitors}
+        
+        if not spike_monitors:
+            print("No valid neuron groups to plot.")
+            return
+
+        n_plots = len(spike_monitors)
+        fig, axes = plt.subplots(n_plots, 1, figsize=(10, 2 * n_plots), sharex=True)
+        if n_plots == 1:
+            axes = [axes]
+
+        for i, (name, monitor) in enumerate(spike_monitors.items()):
+            if len(monitor.i) == 0:
+                print(f"No spikes recorded for {name}")
+                continue
+
+            time_mask = (monitor.t >= stim_start) & (monitor.t <= stim_end)
+            display_t = monitor.t[time_mask]
+            display_i = monitor.i[time_mask]
+
+            axes[i].scatter(display_t / ms, display_i, s=0.5, color='darkblue')
+            axes[i].set_title(f'{name} Raster (All neurons, {int(stim_start/ms)}–{int(stim_end/ms)} ms)')
+            axes[i].set_ylabel('Neuron index')
+            axes[i].set_xlim(int(stim_start/ms), int(stim_end/ms))
+            axes[i].set_ylim(-1, monitor.source.N)
+
+        plt.xlabel('Time (ms)')
+        plt.tight_layout()
+        plt.show()
+
+    except Exception as e:
+        print(f"Raster all neuron stim window error: {str(e)}")
