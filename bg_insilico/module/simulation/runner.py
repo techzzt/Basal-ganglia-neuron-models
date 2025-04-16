@@ -1,7 +1,7 @@
 from brian2 import *
 from module.models.neuron_models import create_neurons
 from module.models.Synapse import create_synapses
-from module.utils.data_handler import plot_raster, plot_membrane_potential, plot_single_neuron_raster
+from module.utils.data_handler import plot_raster, plot_membrane_potential, plot_single_neuron_raster, plot_raster_all_neurons_stim_window
 
 import json 
 import numpy as np
@@ -33,7 +33,7 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
                 net.add(voltage_mon)
 
             if 'Isyn' in group.variables:
-                isyn_mon = StateMonitor(group, 'Isyn', record=True)
+                isyn_mon = StateMonitor(group, 'Isyn', record=[0])
                 voltage_monitors[f'{name}_Isyn'] = isyn_mon
                 net.add(isyn_mon)
 
@@ -59,7 +59,8 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
 
         plot_raster(spike_monitors, 30, plot_order) 
         plot_membrane_potential(voltage_monitors, plot_order)
-        plot_single_neuron_raster(spike_monitors, neuron_index=10, plot_order=['FSN', 'MSND2', 'MSND2'])
+        plot_single_neuron_raster(spike_monitors, 10, plot_order)
+        plot_raster_all_neurons_stim_window(spike_monitors, 1500*ms, 10000 * ms, plot_order)
 
         results = {
             'spike_monitors': spike_monitors,
