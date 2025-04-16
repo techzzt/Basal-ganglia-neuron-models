@@ -26,7 +26,7 @@ def create_synapses(neuron_groups, connections, synapse_class):
         for conn_name, conn_config in connections.items():
             pre = conn_config['pre']
             post = conn_config['post']
-            print(f"\nProcessing connection: {conn_name}")
+            # print(f"\nProcessing connection: {conn_name}")
 
             try:
                 pre_group = neuron_groups[pre]
