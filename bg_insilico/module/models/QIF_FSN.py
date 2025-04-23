@@ -2,7 +2,7 @@ from brian2 import *
 
 eqs = '''
 dv/dt = (k*1*pF/ms/mV*(v - vr) * (v - vt)- u*pF + Isyn) / C : volt
-du/dt = a * (b * ((v - vr)**3) / (volt**2) - u) : volt/second
+du/dt = int(v <= vb) * a * (b * ((v - vb)**3 / (volt**2)) - u) + int(v > vb) * (-a * u): volt/second
 
 Isyn = I_AMPA + I_NMDA + I_GABA : amp
 I_AMPA = g_a * (E_AMPA - v) : amp
@@ -15,7 +15,7 @@ tau_NMDA : second
 
 dg_g/dt = -g_g / tau_GABA : siemens 
 dg_a/dt = -g_a / tau_AMPA : siemens
-dg_n/dt = -g_n / tau_NMDA : siemens
+dg_n/dt = -g_n / tau_NMDA : siemens 
 
 E_AMPA : volt
 E_GABA : volt
