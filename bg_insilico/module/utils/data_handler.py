@@ -66,23 +66,34 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
 
 
 def plot_membrane_potential(voltage_monitors, plot_order=None):
-    plt.figure(figsize=(10, 5))
-    
     if plot_order:
         filtered_monitors = {name: monitor for name, monitor in voltage_monitors.items() if name in plot_order}
     else:
         filtered_monitors = voltage_monitors
 
-    for name, monitor in filtered_monitors.items():
+    n_plots = len(filtered_monitors)
+    if n_plots == 0:
+        print("No voltage monitors to plot.")
+        return
+
+    fig, axes = plt.subplots(n_plots, 1, figsize=(10, 2.5 * n_plots), sharex=True)
+
+    if n_plots == 1:
+        axes = [axes]  
+
+    for i, (name, monitor) in enumerate(filtered_monitors.items()):
         if len(monitor.v) == 0:
             print(f"Warning: No voltage data recorded for {name}")
             continue
-        plt.plot(monitor.t / ms, monitor.v[0] / mV, label=f'{name} Neuron 0')
+        axes[i].plot(monitor.t / ms, monitor.v[0] / mV)
+        axes[i].set_title(f'{name} Neuron 0 Membrane Potential')
+        axes[i].set_ylabel('V (mV)')
+        axes[i].set_xlim(0, int(monitor.t[-1] / ms))
     
-    plt.ylabel('Membrane Potential (mV)')
-    plt.title('Membrane Potential Over Time')
-    plt.legend()
+    axes[-1].set_xlabel('Time (ms)')
+    plt.tight_layout()
     plt.show()
+
 
 # track individual neuron
 def plot_single_neuron_raster(spike_monitors, neuron_index, plot_order=None):
