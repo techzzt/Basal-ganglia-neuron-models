@@ -39,10 +39,10 @@ class FSN(NeuronModel):
         eqs = QIF_FSN.eqs 
         reset_eqs = '''
         v = c;
-        u += a * u * ms
+        u += d
         '''
         self.neurons = NeuronGroup(
-            self.N, eqs, threshold='v > vb', reset = reset_eqs, method='euler'
+            self.N, eqs, threshold='v > th', reset = reset_eqs, method='euler'
         )
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
