@@ -64,10 +64,9 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
     except Exception as e:
         print(f"Raster plot Error: {str(e)}")
 
-
 def plot_membrane_potential(voltage_monitors, plot_order=None):
     if plot_order:
-        filtered_monitors = {name: monitor for name, monitor in voltage_monitors.items() if name in plot_order}
+        filtered_monitors = {name: voltage_monitors[name] for name in plot_order if name in voltage_monitors}
     else:
         filtered_monitors = voltage_monitors
 
@@ -93,7 +92,6 @@ def plot_membrane_potential(voltage_monitors, plot_order=None):
     axes[-1].set_xlabel('Time (ms)')
     plt.tight_layout()
     plt.show()
-
 
 # track individual neuron
 def plot_single_neuron_raster(spike_monitors, neuron_index, plot_order=None):
@@ -171,3 +169,40 @@ def plot_raster_all_neurons_stim_window(spike_monitors, stim_start=200*ms, stim_
 
     except Exception as e:
         print(f"Raster all neuron stim window error: {str(e)}")
+
+
+def plot_isyn(voltage_monitors, plot_order=None):
+    plt.figure(figsize=(10, 6))
+
+    if plot_order:
+        filtered_monitors = {name: voltage_monitors[name] for name in plot_order if name in voltage_monitors}
+    else:
+        filtered_monitors = voltage_monitors
+
+    for name, monitor in filtered_monitors.items():
+        if hasattr(monitor, 'Isyn'):
+            plt.plot(monitor.t / ms, monitor.Isyn[0] / pA, label=f'{name} Isyn')
+    
+    plt.title('Synaptic Current (Isyn) Over Time')
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Isyn (pA)')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_conductance(monitors, name='MSND1'):
+    plt.figure(figsize=(12, 4))
+    if f"{name}_g_a" in monitors:
+        plt.plot(monitors[f"{name}_g_a"].t/ms, monitors[f"{name}_g_a"].g_a[0]/nS, label='g_a (AMPA)')
+    if f"{name}_g_n" in monitors:
+        plt.plot(monitors[f"{name}_g_n"].t/ms, monitors[f"{name}_g_n"].g_n[0]/nS, label='g_n (NMDA)')
+    if f"{name}_g_g" in monitors:
+        plt.plot(monitors[f"{name}_g_g"].t/ms, monitors[f"{name}_g_g"].g_g[0]/nS, label='g_g (GABA)')
+    
+    plt.title(f'Synaptic Conductance for {name}')
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Conductance (nS)')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
