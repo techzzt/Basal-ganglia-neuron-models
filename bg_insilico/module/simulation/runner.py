@@ -1,7 +1,7 @@
 from brian2 import *
 from module.models.neuron_models import create_neurons
 from module.models.Synapse import create_synapses
-from module.utils.data_handler import plot_raster, plot_membrane_potential, plot_single_neuron_raster, plot_raster_all_neurons_stim_window
+from module.utils.data_handler import plot_raster, plot_membrane_potential, plot_single_neuron_raster, plot_raster_all_neurons_stim_window, plot_isyn, plot_conductance
 
 import json 
 import numpy as np
@@ -21,27 +21,43 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
         
         spike_monitors = {}
         voltage_monitors = {}
-        
+        conductance_monitors = {}
+
         for name, group in neuron_groups.items():
             spike_mon = SpikeMonitor(group)
             spike_monitors[name] = spike_mon
             net.add(spike_mon)
             
-            if 'v' in group.variables:
-                voltage_mon = StateMonitor(group, 'v', record=True)
-                voltage_monitors[name] = voltage_mon
-                net.add(voltage_mon)
+            if 'v' in group.variables and 'Isyn' in group.variables:
+                voltage_mon = StateMonitor(group, ['v', 'Isyn'], record=[0])
+            elif 'v' in group.variables:
+                voltage_mon = StateMonitor(group, 'v', record=[0])
+            elif 'Isyn' in group.variables:
+                voltage_mon = StateMonitor(group, 'Isyn', record=[0])
+            else:
+                continue
 
-            if 'Isyn' in group.variables:
-                isyn_mon = StateMonitor(group, 'Isyn', record=[0])
-                voltage_monitors[f'{name}_Isyn'] = isyn_mon
-                net.add(isyn_mon)
+            voltage_monitors[name] = voltage_mon
+            net.add(voltage_mon)
+        
+        """
+            if 'g_a' in group.variables:
+                g_mon = StateMonitor(group, ['g_a'], record=[0])
+                conductance_monitors[f'{name}_g_a'] = g_mon
+                net.add(g_mon)
 
+            if 'g_n' in group.variables:
+                g_mon = StateMonitor(group, ['g_n'], record=[0])
+                conductance_monitors[f'{name}_g_n'] = g_mon
+                net.add(g_mon)
+
+            if 'g_g' in group.variables:
+                g_mon = StateMonitor(group, ['g_g'], record=[0])
+                conductance_monitors[f'{name}_g_g'] = g_mon
+                net.add(g_mon)
+        """        
         duration = simulation_params['duration'] * ms
-        """
-        for t in range(0, int(duration/ms), 100):  
-            print(f"Remaining time: {duration/ms - t} ms")
-        """
+
         net.run(duration)
 
         for name, monitor in voltage_monitors.items():
@@ -61,6 +77,8 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
         plot_membrane_potential(voltage_monitors, plot_order)
         plot_single_neuron_raster(spike_monitors, 10, plot_order)
         plot_raster_all_neurons_stim_window(spike_monitors, 1500*ms, 10000 * ms, plot_order)
+        plot_isyn(voltage_monitors, plot_order)
+        # plot_conductance(results['conductance_monitors'], name='MSND1')
 
         results = {
             'spike_monitors': spike_monitors,
