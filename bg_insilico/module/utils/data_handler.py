@@ -5,6 +5,8 @@ from brian2 import *
 from datetime import datetime
 
 def plot_raster(spike_monitors, sample_size=30, plot_order=None):
+    np.random.seed(2025)
+
     try:
         if plot_order:
             spike_monitors = {name: spike_monitors[name] for name in plot_order if name in spike_monitors}
@@ -20,9 +22,9 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
 
         firing_rates = {}
 
-        start_time = 1500 * ms
+        start_time = 0 * ms
         end_time = 10000 * ms
-
+          
         for i, (name, monitor) in enumerate(spike_monitors.items()):
             if len(monitor.i) == 0:
                 print(f"No spikes recorded for {name}")
@@ -31,14 +33,15 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
             total_neurons = monitor.source.N
             chosen_neurons = np.random.choice(total_neurons, size=min(sample_size, total_neurons), replace=False)
 
+            # time + neuron filter
+            time_mask = (monitor.t >= start_time) & (monitor.t <= end_time)
             neuron_mask = np.isin(monitor.i, chosen_neurons)
-            display_t = monitor.t[neuron_mask]
-            display_i = monitor.i[neuron_mask]
+            combined_mask = time_mask & neuron_mask
 
-            valid_indices = (monitor.t >= start_time) & (monitor.t <= end_time) & neuron_mask
-            valid_t = monitor.t[valid_indices]
-            spike_count = len(valid_t)
+            display_t = monitor.t[combined_mask]
+            display_i = monitor.i[combined_mask]
 
+            spike_count = len(display_t)
             time_window_sec = (end_time - start_time) / second
             firing_rate = spike_count / (len(chosen_neurons) * time_window_sec)
             firing_rates[name] = firing_rate
@@ -48,8 +51,7 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
             axes[i].set_ylabel('Neuron index')
 
             axes[i].set_ylim(min(chosen_neurons) - 1, max(chosen_neurons) + 1)
-
-            axes[i].set_xlim(0, int(monitor.t[-1] / ms))
+            axes[i].set_xlim(int(start_time/ms), int(end_time/ms))
 
             print(f"{name} 평균 발화율 ({int(start_time/ms)}–{int(end_time/ms)}ms, {len(chosen_neurons)} neurons): {firing_rate:.2f} Hz")
 
@@ -61,6 +63,7 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
 
     except Exception as e:
         print(f"Raster plot Error: {str(e)}")
+
 
 def plot_membrane_potential(voltage_monitors, plot_order=None):
     plt.figure(figsize=(10, 5))
@@ -101,7 +104,6 @@ def plot_single_neuron_raster(spike_monitors, neuron_index, plot_order=None):
                 print(f"No spikes recorded for {name}")
                 continue
 
-            # 해당 neuron index의 spike만 필터링
             neuron_mask = monitor.i == neuron_index
             spike_times = monitor.t[neuron_mask]
 
