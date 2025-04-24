@@ -39,7 +39,7 @@
         {
             "name": "FSN",
             "N": 800,
-            "params_file": "./params_ref/FSN_1_nor.json",
+            "params_file": "./params_ref/FSN_1_dop.json",
             "model_class": "FSN"
         },
         {
@@ -51,7 +51,7 @@
         {
             "name": "MSND1",
             "N": 18000,
-            "params_file": "./params_ref/MSN_D1_1_nor.json",
+            "params_file": "./params_ref/MSN_D1_1_dop.json",
             "model_class": "MSND1"
         },
         {
@@ -63,13 +63,13 @@
         {
             "name": "GPeT1",
             "N": 500,
-            "params_file": "./params_ref/GPe_T1_1.json",
+            "params_file": "./params_ref/GPe_T1_1_dop.json",
             "model_class": "GPeT1"
         },
         {
             "name": "GPeTA",
             "N": 160,
-            "params_file": "./params_ref/GPe_TA_1_nor.json",
+            "params_file": "./params_ref/GPe_TA_1_dop.json",
             "model_class": "GPeTA"
         }
     ],
@@ -105,7 +105,7 @@
                 "tau_syn": {"value": 6, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 0.746, "unit": "1"}
+                "beta": {"value": 2.02, "unit": "1"}
                 }
             }
         },
@@ -122,7 +122,7 @@
                 "tau_syn": {"value": 17, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 7, "unit": "ms"},
-                "beta": {"value": 0.894, "unit": "1"}
+                "beta": {"value": 1.42, "unit": "1"}
                 }
             }
         },
@@ -139,7 +139,7 @@
                 "tau_syn": {"value": 66, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 7.0, "unit": "ms"},
-                "beta": {"value": 0.894, "unit": "1"}
+                "beta": {"value": 1.42, "unit": "1"}
                 }
             }
         },
@@ -161,7 +161,7 @@
                     "g0": {"value": 0.11, "unit": "nS"},
                     "tau_syn": {"value": 160, "unit": "ms"},
                     "E_rev": {"value": 0, "unit": "mV"},
-                    "beta": {"value": 1.208, "unit": "1"},
+                    "beta": {"value": 0.168, "unit": "1"},
                     "delay": {"value": 2.5, "unit": "ms"}
                 }
             }
@@ -195,7 +195,7 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 1.176, "unit": "1"}
+                "beta": {"value": 0.295, "unit": "1"}
                 }
             }
         }, 
@@ -212,7 +212,7 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 1.176, "unit": "1"}
+                "beta": {"value": 0.295, "unit": "1"}
                 }
             }
         },
@@ -229,7 +229,7 @@
                 "tau_syn": {"value": 87, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 7.0, "unit": "ms"},
-                "beta": {"value": 0.756, "unit": "1"}
+                "beta": {"value": 1.976, "unit": "1"}
                 }
             }
         },
@@ -245,7 +245,7 @@
                     "g0": {"value": 0.5, "unit": "nS"},
                     "tau_syn": {"value": 12, "unit": "ms"},
                     "E_rev": {"value": 0, "unit": "mV"},
-                    "beta": {"value": 0.948, "unit": "1"},
+                    "beta": {"value": 0.208, "unit": "1"},
                     "delay": {"value": 2.5, "unit": "ms"}
                 },
                 "NMDA": {
@@ -285,7 +285,7 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 1.176, "unit": "1"}
+                "beta": {"value": 0.295, "unit": "1"}
                 }
             }
         },
@@ -301,7 +301,7 @@
                 "g0": {"value": 0.35, "unit": "nS"},
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
-                "beta": {"value": 1.176, "unit": "mV"},
+                "beta": {"value": 0.295, "unit": "1"},
                 "delay": {"value": 1.7, "unit": "ms"}
                 }
             }
@@ -334,7 +334,7 @@
                     "g0": {"value": 0.25, "unit": "nS"},
                     "tau_syn": {"value": 4, "unit": "ms"},
                     "E_rev": {"value": 0, "unit": "mV"},
-                    "beta": {"value": 1.09, "unit": "1"},
+                    "beta": {"value": 0.64, "unit": "1"},
                     "delay": {"value": 2.5, "unit": "ms"}
                 },
                 "NMDA": {
@@ -359,7 +359,7 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -84, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 0.952, "unit": "1"}
+                "beta": {"value": 0.8, "unit": "1"}
                 }
             }
         },
@@ -392,7 +392,7 @@
                 "tau_syn": {"value": 6, "unit": "ms"},
                 "E_rev": {"value": -65, "unit": "mV"},
                 "delay": {"value": 7, "unit": "ms"},
-                "beta": {"value": 0.834, "unit": "1"}
+                "beta": {"value": 1.664, "unit": "1"}
                 }
             }
         },
@@ -409,7 +409,7 @@
                 "tau_syn": {"value": 12, "unit": "ms"},
                 "E_rev": {"value": 0, "unit": "mV"},
                 "delay": {"value": 2, "unit": "ms"},
-                "beta": {"value": 0.91, "unit": "1"}
+                "beta": {"value": 1.36, "unit": "1"}
                 }
             }
         },
@@ -426,7 +426,7 @@
                 "tau_syn": {"value": 5, "unit": "ms"},
                 "E_rev": {"value": -65, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 0.8, "unit": "1"}
+                "beta": {"value": 1.164, "unit": "1"}
                 }
             }
         },
@@ -443,7 +443,7 @@
                 "tau_syn": {"value": 5, "unit": "ms"},
                 "E_rev": {"value": -65, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 0.834, "unit": "1"}
+                "beta": {"value": 1.164, "unit": "1"}
                 }
             }
         },
@@ -476,7 +476,7 @@
                 "tau_syn": {"value": 5, "unit": "ms"},
                 "E_rev": {"value": -65, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 0.834, "unit": "1"}
+                "beta": {"value": 1.164, "unit": "1"}
                 }
             }
         },
@@ -493,7 +493,7 @@
                 "tau_syn": {"value": 5, "unit": "ms"},
                 "E_rev": {"value": -65, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 0.834, "unit": "1"}
+                "beta": {"value": 1.164, "unit": "1"}
                 }
             }
         },
@@ -509,7 +509,7 @@
                 "g0": {"value": 0.11, "unit": "nS"},
                 "tau_syn": {"value": 4, "unit": "ms"},
                 "E_rev": {"value": 0, "unit": "mV"},
-                "beta": {"value": 0.91, "unit": "1"},
+                "beta": {"value": 1.36, "unit": "1"},
                 "delay": {"value": 5, "unit": "ms"}
                 } 
             }
