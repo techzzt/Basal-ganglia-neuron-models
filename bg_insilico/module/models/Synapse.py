@@ -73,6 +73,13 @@ def create_synapses(neuron_groups, connections, synapse_class):
                     syn.__setattr__(syn_var['tau'], current_params.get('tau_syn', {}).get('value', 1.0) * ms)
                     syn.__setattr__(syn_var['E'], current_params.get('E_rev', {}).get('value', 0.0) * mV)
 
+                    if 'beta' in current_params:
+                        beta_value = current_params['beta'].get('value', 1.0)
+                        syn.__setattr__(syn_var['beta'], beta_value)
+
+                    else: 
+                        syn.__setattr__(syn_var['beta'], 1.0)
+
                 if 'delay' in current_params:
                     delay_unit = unit_mapping.get(current_params['delay'].get('unit', 'ms'), ms)
                     syn.delay = current_params['delay'].get('value', 0.0) * delay_unit
