@@ -2,7 +2,7 @@
     "model": "AdEx",
     "params": {
         "g_L": {"value": 1, "unit": "nS"},
-        "E_L": {"value": -63.08, "unit": "mV"},
+        "E_L": {"value": -47.12, "unit": "mV"},
         "Delta_T": {"value": 1.7, "unit": "mV"},
         "vt": {"value": -54.7, "unit": "mV"},
         "vr": {"value": -60, "unit": "mV"},

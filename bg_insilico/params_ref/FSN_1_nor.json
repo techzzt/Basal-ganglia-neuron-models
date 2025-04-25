@@ -2,8 +2,8 @@
     "model": "QIF_FSN",
     "params": {
         "k": {"value": 1, "unit": ""},
-        "v": {"value": -64.4, "unit": "mV"},
-        "vr": {"value": -64.4, "unit": "mV"},
+        "v": {"value": -60.381, "unit": "mV"},
+        "vr": {"value": -60.381, "unit": "mV"},
         "vb": {"value": -55, "unit": "mV"},
         "vt": {"value": -50, "unit": "mV"},
         "th": {"value": 25, "unit": "mV"},
