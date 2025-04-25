@@ -1,3 +1,6 @@
+from brian2 import prefs
+prefs.codegen.target = 'numpy'
+
 from brian2 import *
 from module.models.neuron_models import create_neurons
 from module.models.Synapse import create_synapses
@@ -21,7 +24,7 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
         
         spike_monitors = {}
         voltage_monitors = {}
-        conductance_monitors = {}
+        # conductance_monitors = {}
 
         for name, group in neuron_groups.items():
             spike_mon = SpikeMonitor(group)
@@ -75,8 +78,8 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
 
         plot_raster(spike_monitors, 30, plot_order) 
         plot_membrane_potential(voltage_monitors, plot_order)
-        plot_single_neuron_raster(spike_monitors, 10, plot_order)
-        plot_raster_all_neurons_stim_window(spike_monitors, 1500*ms, 10000 * ms, plot_order)
+        # plot_single_neuron_raster(spike_monitors, 10, plot_order)
+        plot_raster_all_neurons_stim_window(spike_monitors, 1000*ms, 10000 * ms, plot_order)
         plot_isyn(voltage_monitors, plot_order)
         # plot_conductance(results['conductance_monitors'], name='MSND1')
 
