@@ -12,7 +12,7 @@
         "a": {"value": 2.5, "unit": "nS"},
         "d": {"value": 70, "unit": "pA"},
         "C": {"value": 40, "unit": "pF"},
-        "I_ext": {"value": 1, "unit": "pA"},
+        "I_ext": {"value": 12, "unit": "pA"},
         "z": {"value": 0, "unit": "pA"}
         },
     "reference": {
