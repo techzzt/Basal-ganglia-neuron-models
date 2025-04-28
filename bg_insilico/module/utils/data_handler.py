@@ -4,9 +4,8 @@ import numpy as np
 from brian2 import *
 from datetime import datetime
 
-def plot_raster(spike_monitors, sample_size=30, plot_order=None):
+def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms, end_time=10000*ms):
     np.random.seed(2025)
-
     try:
         if plot_order:
             spike_monitors = {name: spike_monitors[name] for name in plot_order if name in spike_monitors}
@@ -21,9 +20,6 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
             axes = [axes]
 
         firing_rates = {}
-
-        start_time = 0 * ms
-        end_time = 10000 * ms
           
         for i, (name, monitor) in enumerate(spike_monitors.items()):
             if len(monitor.i) == 0:
@@ -33,7 +29,6 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
             total_neurons = monitor.source.N
             chosen_neurons = np.random.choice(total_neurons, size=min(sample_size, total_neurons), replace=False)
 
-            # time + neuron filter
             time_mask = (monitor.t >= start_time) & (monitor.t <= end_time)
             neuron_mask = np.isin(monitor.i, chosen_neurons)
             combined_mask = time_mask & neuron_mask
@@ -53,7 +48,7 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None):
             axes[i].set_ylim(min(chosen_neurons) - 1, max(chosen_neurons) + 1)
             axes[i].set_xlim(int(start_time/ms), int(end_time/ms))
 
-            print(f"{name} 평균 발화율 ({int(start_time/ms)}–{int(end_time/ms)}ms, {len(chosen_neurons)} neurons): {firing_rate:.2f} Hz")
+            print(f"{name} 평균 발화율 ({int(2000 * ms/ms)}–{int(end_time/ms)}ms, {len(chosen_neurons)} neurons): {firing_rate:.2f} Hz")
 
         plt.xlabel('Time (ms)')
         plt.tight_layout()
@@ -186,23 +181,6 @@ def plot_isyn(voltage_monitors, plot_order=None):
     plt.title('Synaptic Current (Isyn) Over Time')
     plt.xlabel('Time (ms)')
     plt.ylabel('Isyn (pA)')
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-
-
-def plot_conductance(monitors, name='MSND1'):
-    plt.figure(figsize=(12, 4))
-    if f"{name}_g_a" in monitors:
-        plt.plot(monitors[f"{name}_g_a"].t/ms, monitors[f"{name}_g_a"].g_a[0]/nS, label='g_a (AMPA)')
-    if f"{name}_g_n" in monitors:
-        plt.plot(monitors[f"{name}_g_n"].t/ms, monitors[f"{name}_g_n"].g_n[0]/nS, label='g_n (NMDA)')
-    if f"{name}_g_g" in monitors:
-        plt.plot(monitors[f"{name}_g_g"].t/ms, monitors[f"{name}_g_g"].g_g[0]/nS, label='g_g (GABA)')
-    
-    plt.title(f'Synaptic Conductance for {name}')
-    plt.xlabel('Time (ms)')
-    plt.ylabel('Conductance (nS)')
     plt.legend()
     plt.tight_layout()
     plt.show()
