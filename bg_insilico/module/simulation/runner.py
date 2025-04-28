@@ -67,7 +67,7 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
 
         plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time)
         plot_membrane_potential(voltage_monitors, plot_order)
-        plot_raster_all_neurons_stim_window(spike_monitors, start_time = 2000*ms, end_time=end_time, plot_order = plot_order)
+        plot_raster_all_neurons_stim_window(spike_monitors, stim_start = 2000*ms, end_time=end_time, plot_order = plot_order)
         # plot_single_neuron_raster(spike_monitors, 10, plot_order)
         # plot_isyn(voltage_monitors, plot_order)
 
