@@ -129,7 +129,7 @@ def plot_single_neuron_raster(spike_monitors, neuron_index, plot_order=None):
         print(f"Single neuron raster plot Error: {str(e)}")
 
 
-def plot_raster_all_neurons_stim_window(spike_monitors, stim_start=200*ms, stim_end=1000*ms, plot_order=None):
+def plot_raster_all_neurons_stim_window(spike_monitors, stim_start=200*ms, end_time=1000*ms, plot_order=None):
     try:
         if plot_order:
             spike_monitors = {name: spike_monitors[name] for name in plot_order if name in spike_monitors}
@@ -148,14 +148,14 @@ def plot_raster_all_neurons_stim_window(spike_monitors, stim_start=200*ms, stim_
                 print(f"No spikes recorded for {name}")
                 continue
 
-            time_mask = (monitor.t >= stim_start) & (monitor.t <= stim_end)
+            time_mask = (monitor.t >= stim_start) & (monitor.t <= end_time)
             display_t = monitor.t[time_mask]
             display_i = monitor.i[time_mask]
 
             axes[i].scatter(display_t / ms, display_i, s=0.5, color='darkblue')
-            axes[i].set_title(f'{name} Raster (All neurons, {int(stim_start/ms)}–{int(stim_end/ms)} ms)')
+            axes[i].set_title(f'{name} Raster (All neurons, {int(stim_start/ms)}–{int(end_time/ms)} ms)')
             axes[i].set_ylabel('Neuron index')
-            axes[i].set_xlim(int(stim_start/ms), int(stim_end/ms))
+            axes[i].set_xlim(int(stim_start/ms), int(end_time/ms))
             axes[i].set_ylim(-1, monitor.source.N)
 
         plt.xlabel('Time (ms)')
