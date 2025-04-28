@@ -1,13 +1,18 @@
-from brian2 import prefs
-prefs.codegen.target = 'numpy'
-
 from brian2 import *
+# set_device('cpp_standalone')
+
 from module.models.neuron_models import create_neurons
 from module.models.Synapse import create_synapses
 from module.utils.data_handler import plot_raster, plot_membrane_potential, plot_single_neuron_raster, plot_raster_all_neurons_stim_window, plot_isyn, plot_conductance
 
 import json 
 import numpy as np
+
+# https://brian.discourse.group/t/cannot-use-cython/895/4
+
+import os
+os.environ['CC'] = 'gcc'
+os.environ['CXX'] = 'g++'
 
 def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class, simulation_params, plot_order=None):
     
