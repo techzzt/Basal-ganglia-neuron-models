@@ -37,7 +37,7 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms
             display_i = monitor.i[combined_mask]
 
             spike_count = len(display_t)
-            time_window_sec = (end_time - start_time) / second
+            time_window_sec = (end_time - 2000 * ms) / second
             firing_rate = spike_count / (len(chosen_neurons) * time_window_sec)
             firing_rates[name] = firing_rate
 
