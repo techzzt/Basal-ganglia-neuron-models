@@ -5,7 +5,6 @@ from module.utils.param_loader import load_params
 from brian2 import ms 
 
 def main():
-    # parameter set 
     params_file = 'config/test_normal_msn_params_noin.json'
     
     params = load_params(params_file)
