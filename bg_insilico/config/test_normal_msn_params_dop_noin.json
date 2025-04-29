@@ -334,7 +334,7 @@
                     "g0": {"value": 0.25, "unit": "nS"},
                     "tau_syn": {"value": 4, "unit": "ms"},
                     "E_rev": {"value": 0, "unit": "mV"},
-                    "beta": {"value": 0.64, "unit": "1"},
+                    "beta": {"value": 1.36, "unit": "1"},
                     "delay": {"value": 2.5, "unit": "ms"}
                 },
                 "NMDA": {
