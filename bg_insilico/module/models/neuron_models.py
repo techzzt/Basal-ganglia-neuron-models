@@ -52,6 +52,8 @@ def generate_non_overlapping_poisson_input(N, total_rate, duration, dt=1 * ms):
         raise
 
 def create_neurons(neuron_configs, simulation_params, connections=None):
+    np.random.seed(2025)
+
     try:
         neuron_groups = {}
 
