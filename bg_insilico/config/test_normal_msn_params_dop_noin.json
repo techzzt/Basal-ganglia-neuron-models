@@ -239,7 +239,7 @@
             "post": "MSND2",
             "receptor_type": ["AMPA", "NMDA"],
             "p": 1,
-            "weight": 75,
+            "weight": 50,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -262,7 +262,7 @@
             "post": "MSND2",
             "receptor_type": "GABA",
             "p": 0.18,
-            "weight": 0.001,
+            "weight": 0.01,
             "receptor_params": {
                 "GABA":{
                 "g0": {"value": 6, "unit": "nS"},
@@ -278,7 +278,7 @@
             "post": "MSND2",
             "receptor_type": "GABA",
             "p": 0.03,
-            "weight": 0.001,
+            "weight": 0.1,
             "receptor_params": {
                 "GABA":{
                 "g0": {"value": 0.375, "unit": "nS"},
@@ -295,7 +295,7 @@
             "post": "MSND2",
             "receptor_type": "GABA",
             "p": 0.18,
-            "weight": 0.001,
+            "weight": 0.1,
             "receptor_params": {
                 "GABA":{
                 "g0": {"value": 0.35, "unit": "nS"},
@@ -312,7 +312,7 @@
             "post": "MSND2",
             "receptor_type": "GABA",
             "p": 0.03,
-            "weight": 0.01,
+            "weight": 0.1,
             "receptor_params": {
                 "GABA":{
                 "g0": {"value": 0.08, "unit": "nS"},
@@ -517,11 +517,11 @@
     },
 
     "simulation": {
-        "duration": 10000
+        "duration": 30000
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
 
-    "start_time": 0,
-    "end_time": 10000
+    "start_time": 2000,
+    "end_time": 30000
 }
