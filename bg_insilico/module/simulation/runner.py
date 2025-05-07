@@ -2,7 +2,8 @@ from brian2 import *
 
 from module.models.neuron_models import create_neurons
 from module.models.Synapse import create_synapses
-from module.utils.data_handler import plot_raster, plot_membrane_potential, plot_single_neuron_raster, plot_raster_all_neurons_stim_window, plot_isyn
+from module.utils.data_handler import plot_raster, plot_membrane_potential, compute_firing_rates_all_neurons, plot_raster_all_neurons_stim_window, plot_isyn
+from module.utils.sta import compute_sta 
 
 import json 
 import numpy as np
@@ -65,9 +66,22 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
                 avg_current = np.mean(monitor.Isyn[0]) / pA
                 print(f"{name} 평균 synaptic current: {avg_current:.2f} pA")
 
+        compute_firing_rates_all_neurons(spike_monitors, start_time=2000*ms, end_time=end_time, plot_order=plot_order)
         plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time)
         plot_membrane_potential(voltage_monitors, plot_order)
         plot_raster_all_neurons_stim_window(spike_monitors, stim_start = 2000*ms, end_time=end_time, plot_order = plot_order)
+        analysis_window = 100*ms  # STA 계산용 window
+        sta_start_time = duration - 5000*ms  # STA 계산할 구간 시작
+
+        compute_sta(
+            pre_monitors=spike_monitors,
+            post_monitors={name: spike_monitors[name] for name in plot_order},  # post neuron만 선별
+            neuron_groups=neuron_groups,
+            synapses=synapse_connections,
+            start_from_end=5000*ms,
+            window=analysis_window
+        )
+
         # plot_single_neuron_raster(spike_monitors, 10, plot_order)
         # plot_isyn(voltage_monitors, plot_order)
 
