@@ -73,13 +73,18 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
         analysis_window = 100*ms  
         sta_start_time = duration - 5000*ms 
 
-        compute_sta(
-            pre_monitors=spike_monitors,
-            post_monitors={name: spike_monitors[name] for name in plot_order},  
+        post_monitors = {name: spike_monitors[name] for name in plot_order if name in spike_monitors}
+        relevant_pres = {conn['pre'] for conn in connections.values() if conn['post'] in plot_order}
+        pre_monitors = {name: spike_monitors[name] for name in relevant_pres if name in spike_monitors}
+
+        sta_results, bins = compute_sta(
+            pre_monitors=pre_monitors,
+            post_monitors=post_monitors,
             neuron_groups=neuron_groups,
-            synapses=synapse_connections,
+            synapses=synapse_connections, 
+            connections=connections,
             start_from_end=5000*ms,
-            window=analysis_window
+            window=30*ms
         )
 
         # plot_single_neuron_raster(spike_monitors, 10, plot_order)
