@@ -1,42 +1,47 @@
 from brian2 import *
 import numpy as np 
 
-def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, window=100*ms, start_from_end=5000*ms):
+def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connections, window=100*ms, bin_size=10*ms, start_from_end=5000*ms, min_spikes=10):
     sta_results = {}
     t_end = defaultclock.t
     t_start = t_end - start_from_end
+    n_bins = int(window/bin_size)
+    bins = np.linspace(-window/ms, 0, n_bins+1)
+
+    print(f"\n===== Spike-Triggered Histogram (Window={window/ms} ms, Bin={bin_size/ms} ms, Last {start_from_end/ms} ms) =====")
+
+    connected_pairs = set((conn['pre'], conn['post']) for conn in connections.values())
 
     for post_name, post_mon in post_monitors.items():
-        print(f"\n[STA] Post: {post_name}")
         post_spike_times = post_mon.t
-        post_spike_indices = post_mon.i
+        valid_mask = (post_spike_times >= t_start)
+        post_spike_times = post_spike_times[valid_mask]
 
-        valid_indices = np.where(post_spike_times >= t_start)[0]
-        post_spike_times = post_spike_times[valid_indices]
-        post_spike_indices = post_spike_indices[valid_indices]
-
-        if len(post_spike_times) == 0:
-            print(f"No spikes in last {start_from_end/ms} ms for {post_name}")
+        if len(post_spike_times) < min_spikes:
+            print(f"[{post_name}] Not enough spikes ({len(post_spike_times)}) for reliable STA.")
             continue
 
+        print(f"\n[Post: {post_name}] Spike count: {len(post_spike_times)}")
         sta_results[post_name] = {}
 
         for pre_name, pre_mon in pre_monitors.items():
             if pre_name == post_name:
                 continue
 
-            relevant_syns = [s for s in synapses if s.source.name == pre_name and s.target.name == post_name]
-            if not relevant_syns:
+            if (pre_name, post_name) not in connected_pairs:
                 continue
 
-            print(f"  Pre: {pre_name} — {len(post_spike_times)} spikes")
             pre_spike_times = pre_mon.t
+            all_deltas = []
 
-            sta = []
-            for spike_time in post_spike_times:
-                idx = np.where((pre_spike_times >= spike_time - window) & (pre_spike_times < spike_time))[0]
-                sta.append(len(idx))
+            for t_post in post_spike_times:
+                mask = (pre_spike_times >= t_post - window) & (pre_spike_times < t_post)
+                deltas = (pre_spike_times[mask] - t_post) / ms 
+                all_deltas.extend(deltas)
 
-            sta_results[post_name][pre_name] = np.mean(sta)
+            hist, _ = np.histogram(all_deltas, bins=bins)
+            sta_results[post_name][pre_name] = hist
 
-    return sta_results
+            print(f"  ← {pre_name:10s}: {hist.sum()} pre-spikes in window")
+
+    return sta_results, bins
