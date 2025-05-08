@@ -51,6 +51,29 @@ def generate_non_overlapping_poisson_input(N, total_rate, duration, dt=1 * ms):
         print(f"Error in generate_non_overlapping_poisson_input: {str(e)}")
         raise
 
+def generate_non_overlapping_poisson_input_timevarying(N, rate_expr, duration, dt=1*ms):
+
+    try:
+        time_points = np.arange(0, duration/ms, dt/ms) * ms
+        spike_times = []
+        neuron_indices = []
+
+        for t in time_points:
+            lam = eval(rate_expr, {"t": t, "Hz": Hz, "ms": ms, "second": second, "np": np})
+            n_spikes = np.random.poisson(float(lam * dt))
+            if n_spikes > 0:
+                chosen_indices = np.random.choice(N, n_spikes, replace=True)
+                neuron_indices.extend(chosen_indices)
+                spike_times.extend([float(t/ms)/1000.0] * n_spikes) 
+
+        unique_spikes = set(zip(neuron_indices, spike_times))
+        neuron_indices, spike_times = zip(*unique_spikes) if unique_spikes else ([], [])
+        return np.array(neuron_indices), np.array(spike_times)
+
+    except Exception as e:
+        print(f"Error in generate_non_overlapping_poisson_input_timevarying: {str(e)}")
+        raise
+
 def create_neurons(neuron_configs, simulation_params, connections=None):
     np.random.seed(2025)
 
@@ -65,17 +88,25 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
                 if 'target_rates' in config:
                     for target, rate_info in config['target_rates'].items():
                         target_N = get_neuron_count(neuron_configs, target)
-
                         if target_N is None or target_N == 0:
                             print(f"Warning: Could not find valid neuron count for target '{target}'")
                             continue
 
-                        rate_equation = rate_info['equation']
-                        neuron_group = create_poisson_input(target_N, rate_equation, simulation_params['duration'])
-
+                        duration = simulation_params['duration'] * ms
+                        rate_expr = rate_info['equation']
+                        if 't' in rate_expr:
+                            neuron_indices, spike_times = generate_non_overlapping_poisson_input_timevarying(
+                                target_N, rate_expr, float(duration/ms), dt=1*ms
+                            )
+                        else:
+                            total_rate = eval(rate_expr, {"Hz": Hz, "ms": ms, "second": second, "np": np})
+                            neuron_indices, spike_times = generate_non_overlapping_poisson_input(
+                                target_N, float(total_rate/Hz), float(duration/ms)/1000.0
+                            )
+                        spike_times = spike_times * second
+                        neuron_group = SpikeGeneratorGroup(target_N, neuron_indices, spike_times)
                         neuron_groups[f'{name}_{target}'] = neuron_group
-                        print(f"Created {name} input for {target} with dynamic rates: {rate_equation}")
-
+                        print(f"Created {name} input for {target} with non-overlapping Poisson spikes: {rate_expr}")
                 continue
 
             if 'model_class' in config and 'params_file' in config:
@@ -96,4 +127,3 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
         print(f"Error creating neuron groups: {str(e)}")
         print(f"Failed configuration: {config}")
         raise
-
