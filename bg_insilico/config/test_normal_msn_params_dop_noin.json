@@ -268,7 +268,8 @@
                 "g0": {"value": 6, "unit": "nS"},
                 "tau_syn": {"value": 11, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
-                "delay": {"value": 1.7, "unit": "ms"}
+                "delay": {"value": 1.7, "unit": "ms"},
+                "beta": {"value": 1.72, "unit": "1"}
                 }
             }
         },
@@ -334,7 +335,7 @@
                     "g0": {"value": 0.25, "unit": "nS"},
                     "tau_syn": {"value": 4, "unit": "ms"},
                     "E_rev": {"value": 0, "unit": "mV"},
-                    "beta": {"value": 1.36, "unit": "1"},
+                    "beta": {"value": 0.64, "unit": "1"},
                     "delay": {"value": 2.5, "unit": "ms"}
                 },
                 "NMDA": {
@@ -359,7 +360,7 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -84, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 0.8, "unit": "1"}
+                "beta": {"value": 0.81, "unit": "1"}
                 }
             }
         },

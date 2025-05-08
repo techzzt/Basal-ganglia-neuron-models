@@ -266,7 +266,8 @@
                 "g0": {"value": 6, "unit": "nS"},
                 "tau_syn": {"value": 11, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
-                "delay": {"value": 1.7, "unit": "ms"}
+                "delay": {"value": 1.7, "unit": "ms"},
+                "beta": {"value": 0.82, "unit": "1"}
                 }
             }
         },
@@ -332,7 +333,7 @@
                     "g0": {"value": 0.25, "unit": "nS"},
                     "tau_syn": {"value": 4, "unit": "ms"},
                     "E_rev": {"value": 0, "unit": "mV"},
-                    "beta": {"value": 0.91, "unit": "1"},
+                    "beta": {"value": 1.09, "unit": "1"},
                     "delay": {"value": 2.5, "unit": "ms"}
                 },
                 "NMDA": {
@@ -357,7 +358,7 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -84, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 0.952, "unit": "1"}
+                "beta": {"value": 1.048, "unit": "1"}
                 }
             }
         },
@@ -515,11 +516,11 @@
     },
 
     "simulation": {
-        "duration": 30000
+        "duration": 10000
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
 
     "start_time": 2000,
-    "end_time": 30000
+    "end_time": 10000
 }
