@@ -1,8 +1,6 @@
-from brian2 import *
-
 eqs = '''
-dv/dt = (k*1*pF/ms/mV*(v - vr) * (v - vt)- u*pF + Isyn) / C : volt
-du/dt = int(v <= vb) * a * (b * ((v - vb)**3 / (volt**2)) - u) + int(v > vb) * (-a * u): volt/second
+dv/dt = (k*1*pF/ms/mV*(v - vr) * (v - vt) - u + Isyn) / C : volt
+du/dt = int(v <= vb) * a * (b * ((v - vb)**3) * (pA / mV**3) - u) + int(v > vb) * (-a * u) : amp
 
 Isyn = I_AMPA + I_NMDA + I_GABA : amp
 I_AMPA = ampa_beta * g_a * (E_AMPA - v) : amp 
@@ -26,8 +24,8 @@ E_NMDA : volt
 
 Mg2 : 1
 
-a : 1/second
-b : 1/second
+a : Hz
+b : 1
 k : 1
 E_L    : volt
 vt     : volt
@@ -36,5 +34,5 @@ vb     : volt
 th     : volt
 c      : volt
 C      : farad
-d      : volt/second 
+d      : amp
 '''
