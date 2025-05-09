@@ -6,12 +6,14 @@
         "Delta_T": {"value": 16.2, "unit": "mV"},
         "vt": {"value": -64.0, "unit": "mV"},
         "vr": {"value": -70, "unit": "mV"},
+        "v": {"value": -70, "unit": "mV"},
         "tau_w": {"value": 333, "unit": "ms"},
         "th": {"value": 15, "unit": "mV"},
         "a": {"value": 0.3, "unit": "nS"},
         "d": {"value": 0.05, "unit": "pA"},
         "C": {"value": 60, "unit": "pF"},
-        "I_ext": {"value": 5, "unit": "pA"}
+        "I_ext": {"value": 5, "unit": "pA"},
+        "z": {"value": 0, "unit": "pA"}
         },
     "reference": {
         "title": "Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model"
