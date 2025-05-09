@@ -79,8 +79,8 @@
             "pre": "Cortex_FSN",
             "post": "FSN",
             "receptor_type": "AMPA",
-            "p": 0.8,
-            "weight": 8.5,
+            "p": 0.6,
+            "weight": 1,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -96,7 +96,7 @@
             "post": "FSN",
             "receptor_type": "GABA",
             "p": 0.74,
-            "weight": 0.05,
+            "weight": 0.2,
             "receptor_params": {
                 "GABA":{
                 "g0": {"value": 1, "unit": "nS"},
@@ -113,7 +113,7 @@
             "post": "FSN",
             "receptor_type": "GABA",
             "p": 0.01,
-            "weight": 0.1,
+            "weight": 0.2,
             "receptor_params": {
                 "GABA":{
                 "g0": {"value": 2, "unit": "nS"},
@@ -130,7 +130,7 @@
             "post": "FSN",
             "receptor_type": "GABA",
             "p": 0.03,
-            "weight": 0.01,
+            "weight": 0.2,
             "receptor_params": {
                 "GABA":{
                 "g0": {"value": 0.51, "unit": "nS"},
@@ -516,11 +516,11 @@
     },
 
     "simulation": {
-        "duration": 10000
+        "duration": 5000
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
 
     "start_time": 2000,
-    "end_time": 10000
+    "end_time": 5000
 }

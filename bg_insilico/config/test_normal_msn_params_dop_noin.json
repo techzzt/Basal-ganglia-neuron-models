@@ -518,11 +518,11 @@
     },
 
     "simulation": {
-        "duration": 30000
+        "duration": 10000
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
 
     "start_time": 2000,
-    "end_time": 30000
+    "end_time": 10000
 }
