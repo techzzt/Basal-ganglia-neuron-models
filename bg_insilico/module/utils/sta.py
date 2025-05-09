@@ -8,7 +8,7 @@ def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connection
     n_bins = int(window/bin_size)
     bins = np.linspace(-window/ms, 0, n_bins+1)
 
-    print(f"\n===== Spike-Triggered Histogram (Window={window/ms} ms, Bin={bin_size/ms} ms, Last {start_from_end/ms} ms) =====")
+    print(f"\n== Spike Triggered Histogram (Window={window/ms} ms, Bin={bin_size/ms} ms, Last {start_from_end/ms} ms) ==")
 
     connected_pairs = set((conn['pre'], conn['post']) for conn in connections.values())
 
@@ -18,7 +18,7 @@ def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connection
         post_spike_times = post_spike_times[valid_mask]
 
         if len(post_spike_times) < min_spikes:
-            print(f"[{post_name}] Not enough spikes ({len(post_spike_times)}) for reliable STA.")
+            print(f"[{post_name}] Not enough spikes ({len(post_spike_times)})")
             continue
 
         print(f"\n[Post: {post_name}] Spike count: {len(post_spike_times)}")
@@ -42,6 +42,6 @@ def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connection
             hist, _ = np.histogram(all_deltas, bins=bins)
             sta_results[post_name][pre_name] = hist
 
-            print(f"  ← {pre_name:10s}: {hist.sum()} pre-spikes in window")
+            print(f" ← {pre_name:10s}: {hist.sum()} pre-spikes in window")
 
     return sta_results, bins
