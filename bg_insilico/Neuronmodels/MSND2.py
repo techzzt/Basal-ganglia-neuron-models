@@ -40,24 +40,24 @@ class MSND2(NeuronModel):
         self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.k = self.params['k']['value'] 
-        self.neurons.a = self.params['a']['value'] / ms
-        self.neurons.b = self.params['b']['value'] / ms
+        self.neurons.a = 1 / (self.params['a']['value'] * ms)        
+        self.neurons.b = self.params['b']['value']
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
         self.neurons.c = self.params['c']['value'] * eval(self.params['c']['unit'])
         self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit']) 
-        self.neurons.u = self.params['u']['value'] * eval(self.params['u']['unit']) / ms
+        self.neurons.u = self.params['u']['value'] * eval(self.params['u']['unit']) 
                 
         self.neurons.E_AMPA = 0 * mV
         self.neurons.tau_AMPA = 1 * ms
-        #self.neurons.ampa_beta = 0
+        self.neurons.ampa_beta = 0
 
         self.neurons.E_NMDA = 0 * mV
         self.neurons.tau_NMDA = 1 * ms
-        #self.neurons.nmda_beta = 0
+        self.neurons.nmda_beta = 0
 
 
         self.neurons.E_GABA = 0 * mV
         self.neurons.tau_GABA = 1 * ms
-        #self.neurons.gaba_beta = 0
+        self.neurons.gaba_beta = 0
         
         return self.neurons
