@@ -34,7 +34,7 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
                 net.add(sp_mon)
 
                 if 'v' in group.variables:
-                    v_mon = StateMonitor(group, 'v', record=[0], dt=10*ms)  # 기록 간격도 줄임
+                    v_mon = StateMonitor(group, 'v', record=[0], dt=10*ms)  
                     voltage_monitors[name] = v_mon
                     net.add(v_mon)
 
