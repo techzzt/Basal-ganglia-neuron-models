@@ -2,7 +2,7 @@ from brian2 import *
 
 eqs = '''
 dv/dt = (k*1*pF/ms/mV*(v-vr)*(v-vt) - u + Isyn) / C : volt 
-du/dt = a * (siemens * b * (v - vr) - u) : amp
+du/dt = (1/a) * (b * (v - vr) - u) : amp
 
 Isyn = I_AMPA + I_NMDA + I_GABA : amp
 I_AMPA = ampa_beta * g_a * (E_AMPA - v) : amp 
@@ -26,8 +26,8 @@ E_NMDA : volt
 
 Mg2 : 1
 
-a : Hz
-b : 1
+a : second
+b : amp/volt
 k : 1
 vt     : volt
 vr     : volt 
