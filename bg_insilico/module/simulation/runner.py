@@ -11,6 +11,10 @@ from module.utils.sta import compute_sta
 import numpy as np
 import os
 
+os.environ['CC'] = 'gcc'
+os.environ['CXX'] = 'g++'
+prefs.codegen.target = 'cython'
+
 def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class, simulation_params, plot_order=None, start_time=0*ms, end_time=30000*ms):
     try:
         start_scope()
@@ -38,9 +42,8 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
                     voltage_monitors[name] = v_mon
                     net.add(v_mon)
 
-        # === Chunked Simulation ===
         duration = simulation_params['duration'] * ms
-        chunk_size = 5000 * ms
+        chunk_size = 500 * ms
         t = 0 * ms
         while t < duration:
             run_time = min(chunk_size, duration - t)
@@ -48,12 +51,12 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
             net.run(run_time)
             t += run_time
 
-        # === Post-Simulation Analysis ===
+        """
         for name, monitor in voltage_monitors.items():
             if monitor.v.size > 0:
                 v_vals = monitor.v[0] / mV
                 # print(f"{name} - Min Voltage: {np.min(v_vals):.2f} mV, Max Voltage: {np.max(v_vals):.2f} mV")
-
+        """
         compute_firing_rates_all_neurons(spike_monitors, start_time=2000*ms, end_time=end_time, plot_order=plot_order)
         plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time)
         # plot_membrane_potential(voltage_monitors, plot_order)
