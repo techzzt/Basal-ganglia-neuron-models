@@ -40,8 +40,8 @@ class MSND1(NeuronModel):
         self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.k = self.params['k']['value'] 
-        self.neurons.a = 1 / (self.params['a']['value'] * ms)        
-        self.neurons.b = self.params['b']['value'] 
+        self.neurons.a = self.params['a']['value'] * eval(self.params['a']['unit'])
+        self.neurons.b = self.params['b']['value'] * pA/mV
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
         self.neurons.c = self.params['c']['value'] * eval(self.params['c']['unit'])
         self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit']) 
