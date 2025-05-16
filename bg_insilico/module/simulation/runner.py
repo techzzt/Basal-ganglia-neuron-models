@@ -4,8 +4,8 @@ from module.models.Synapse import create_synapses
 from module.utils.data_handler import (
     plot_raster, plot_membrane_potential,
     compute_firing_rates_all_neurons, 
-    plot_raster_all_neurons_stim_window
-)
+    plot_raster_all_neurons_stim_window,
+    estimate_required_weight)
 
 from module.utils.sta import compute_sta 
 import numpy as np
@@ -33,17 +33,19 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
 
         for name, group in neuron_groups.items():
             if name in record_neurons:
-                sp_mon = SpikeMonitor(group, record=[0])
+                sample_size = min(30, group.N)
+                sample_indices = np.random.choice(group.N, size=sample_size, replace=False).tolist()
+                sp_mon = SpikeMonitor(group, record=sample_indices)
                 spike_monitors[name] = sp_mon
                 net.add(sp_mon)
 
                 if 'v' in group.variables:
-                    v_mon = StateMonitor(group, 'v', record=[0], dt=10*ms)  
+                    v_mon = StateMonitor(group, 'v', record=sample_indices, dt=1*ms)  
                     voltage_monitors[name] = v_mon
                     net.add(v_mon)
 
         duration = simulation_params['duration'] * ms
-        chunk_size = 500 * ms
+        chunk_size = 1000 * ms
         t = 0 * ms
         while t < duration:
             run_time = min(chunk_size, duration - t)
