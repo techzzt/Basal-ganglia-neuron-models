@@ -36,19 +36,12 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms
             display_t = monitor.t[combined_mask]
             display_i = monitor.i[combined_mask]
 
-            spike_count = len(display_t)
-            time_window_sec = (end_time - 2000 * ms) / second
-            firing_rate = spike_count / (len(chosen_neurons) * time_window_sec)
-            firing_rates[name] = firing_rate
-
-            axes[i].scatter(display_t / ms, display_i, s=0.7)
+            axes[i].scatter(display_t / ms, display_i, s=0.35)
             axes[i].set_title(f'{name} Raster Plot (subset of {len(chosen_neurons)} neurons)')
             axes[i].set_ylabel('Neuron index')
 
             axes[i].set_ylim(min(chosen_neurons) - 1, max(chosen_neurons) + 1)
             axes[i].set_xlim(int(start_time/ms), int(end_time/ms))
-
-            print(f"{name} 평균 발화율 ({int(2000 * ms/ms)}–{int(end_time/ms)}ms, {len(chosen_neurons)} neurons): {firing_rate:.2f} Hz")
 
         plt.xlabel('Time (ms)')
         plt.tight_layout()
@@ -115,7 +108,7 @@ def plot_single_neuron_raster(spike_monitors, neuron_index, plot_order=None):
                 print(f"{name} - Neuron {neuron_index} has no spikes.")
                 continue
 
-            axes[i].scatter(spike_times/ms, np.full_like(spike_times/ms, neuron_index), s=4, color='red')
+            axes[i].scatter(spike_times/ms, np.full_like(spike_times/ms, neuron_index), s=0.5, color='red')
             axes[i].set_title(f'{name} Neuron {neuron_index} Raster')
             axes[i].set_ylabel('Neuron index')
             axes[i].set_xlim(0, int(monitor.t[-1] / ms))
@@ -165,6 +158,30 @@ def plot_raster_all_neurons_stim_window(spike_monitors, stim_start=200*ms, end_t
     except Exception as e:
         print(f"Raster all neuron stim window error: {str(e)}")
 
+def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=10000*ms, plot_order=None):
+    firing_rates = {}
+    for name, monitor in spike_monitors.items():
+        if plot_order and name not in plot_order:
+            continue
+        if len(monitor.i) == 0:
+            print(f"No spikes recorded for {name}")
+            firing_rates[name] = 0.0
+            continue
+
+        time_mask = (monitor.t >= start_time) & (monitor.t <= end_time)
+        spike_times = monitor.t[time_mask]
+        neuron_ids = monitor.i[time_mask]
+
+        num_neurons = monitor.source.N
+        time_window_sec = (end_time - start_time) / second
+        total_spikes = len(spike_times)
+
+        avg_rate = total_spikes / (num_neurons * time_window_sec)
+        firing_rates[name] = avg_rate
+
+        print(f"[{name}] Mean Firing Rates ({int(start_time/ms)}–{int(end_time/ms)}ms): {avg_rate:.2f} Hz")
+
+    return firing_rates
 
 def plot_isyn(voltage_monitors, plot_order=None):
     plt.figure(figsize=(10, 6))
@@ -184,3 +201,16 @@ def plot_isyn(voltage_monitors, plot_order=None):
     plt.legend()
     plt.tight_layout()
     plt.show()
+
+def estimate_required_weight(
+    input_firing_rate,
+    g0,
+    V_post=-70 * mV,
+    E_rev=0 * mV,
+    tau_syn=12 * ms,
+    beta=1.0,
+    target_epsc=90 * pA):
+    delta_V = E_rev - V_post
+    mean_epsc_per_spike = beta * g0 * delta_V * tau_syn
+    required_weight = (target_epsc / (input_firing_rate * mean_epsc_per_spike)).item()
+    return required_weight
