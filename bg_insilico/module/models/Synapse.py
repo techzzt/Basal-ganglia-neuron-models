@@ -4,6 +4,44 @@ import json
 from pathlib import Path
 from brian2 import mV, ms, nS, Hz
 
+class SynapseBase:
+    def __init__(self, neurons, connections):
+        self.neurons = neurons
+        for name, group in neurons.items():
+            setattr(self, name, group)
+        self.connections = connections
+        self.define_equations()
+
+    def define_equations(self):
+        self.equations = {
+            'AMPA': 'w : 1',
+            'NMDA': 'w : 1',
+            'GABA': 'w : 1',
+        }
+
+    def _get_on_pre(self, receptor_type, g0_value, pre_neuron):
+        saturation_factors = {
+            'AMPA': 7,
+            'NMDA': 10,
+            'GABA': 3
+        }
+        fac = saturation_factors.get(receptor_type, 10)
+        max_g = f"{fac * g0_value} * nS"
+        weight_term = (f"0.11 * w * {g0_value} * nS"
+                    if pre_neuron.startswith("Cortex")
+                    else f"w * {g0_value} * nS")
+        if receptor_type == 'AMPA':
+            return f"g_a += {weight_term}\ng_a = clip(g_a, g_a, {max_g})"
+        elif receptor_type == 'NMDA':
+            return f"g_n += {weight_term}\ng_n = clip(g_n, g_n, {max_g})"
+        elif receptor_type == 'GABA':
+            return f"g_g += {weight_term}\ng_g = clip(g_g, g_g, {max_g})"
+
+class Synapse(SynapseBase):
+    def __init__(self, neurons, connections):
+        super().__init__(neurons, connections)
+        self.params = {'Mg2': {'value': 1.0, 'unit': '1'}}
+
 def get_synapse_class(class_name):
     try:
         module = importlib.import_module('module.models.Synapse') 
@@ -90,34 +128,3 @@ def create_synapses(neuron_groups, connections, synapse_class):
     except Exception as e:
         print(f"Error creating synapses: {str(e)}")
         raise
-    
-class SynapseBase:
-    def __init__(self, neurons, connections):
-        self.neurons = neurons
-        for name, group in neurons.items():
-            setattr(self, name, group)
-        self.connections = connections
-        self.define_equations()
-
-    def define_equations(self):
-        self.equations = {
-            'AMPA': 'w : 1',
-            'NMDA': 'w : 1',
-            'GABA': 'w : 1',
-        }
-
-    def _get_on_pre(self, receptor_type, g0_value, pre_neuron):
-        max_g = f"{25 * g0_value} * nS"
-        weight_term = f"0.11 * w * {g0_value} * nS" if pre_neuron.startswith("Cortex") else f"w * {g0_value} * nS"
-
-        if receptor_type == 'AMPA':
-            return f"g_a += {weight_term}\ng_a = clip(g_a, g_a, {max_g})"
-        elif receptor_type == 'NMDA':
-            return f"g_n += {weight_term}\ng_n = clip(g_n, g_n, {max_g})"
-        elif receptor_type == 'GABA':
-            return f"g_g += {weight_term}\ng_g = clip(g_g, g_g, {max_g})"
-
-class Synapse(SynapseBase):
-    def __init__(self, neurons, connections):
-        super().__init__(neurons, connections)
-        self.params = {'Mg2': {'value': 1.0, 'unit': '1'}}
