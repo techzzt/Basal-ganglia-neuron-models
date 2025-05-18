@@ -2,7 +2,7 @@
     "neurons": [
         {
             "name": "Cortex",
-            "N": 18000, 
+            "N": 36000, 
             "neuron_type": "poisson",
             "target_rates": {
                 "FSN": {
@@ -80,7 +80,7 @@
             "post": "FSN",
             "receptor_type": "AMPA",
             "p": 0.9,
-            "weight": 5,
+            "weight": 4,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -146,8 +146,8 @@
             "pre": "Cortex_MSND1",
             "post": "MSND1",
             "receptor_type": ["AMPA", "NMDA"],
-            "p": 1,
-            "weight": 10,
+            "p": 0.8,
+            "weight": 20,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -237,7 +237,7 @@
             "post": "MSND2",
             "receptor_type": ["AMPA", "NMDA"],
             "p": 1,
-            "weight": 100,
+            "weight": 40,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -327,7 +327,7 @@
             "post": "STN",
             "receptor_type": ["AMPA", "NMDA"],
             "p": 0.8,
-            "weight": 15,
+            "weight": 5,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.25, "unit": "nS"},
@@ -367,7 +367,7 @@
             "post": "GPeT1",
             "receptor_type": "AMPA",
             "p": 0.7,
-            "weight": 0.1,
+            "weight": 0.8,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -451,7 +451,7 @@
             "post": "GPeTA",
             "receptor_type": "AMPA",
             "p": 1,
-            "weight": 15,
+            "weight": 8,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -515,11 +515,11 @@
     },
 
     "simulation": {
-        "duration": 20000
+        "duration": 10000
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
 
     "start_time": 2000,
-    "end_time": 20000
+    "end_time": 10000
 }
