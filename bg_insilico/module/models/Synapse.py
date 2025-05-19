@@ -21,11 +21,11 @@ class SynapseBase:
 
     def _get_on_pre(self, receptor_type, g0_value, pre_neuron):
         saturation_factors = {
-            'AMPA': 10,
-            'NMDA': 16,
-            'GABA': 2.5
+            'AMPA': 250,
+            'NMDA': 125,
+            'GABA': 0.35
         }
-        fac = saturation_factors.get(receptor_type, 10)
+        fac = saturation_factors.get(receptor_type, 1)
         max_g = f"{fac * g0_value} * nS"
         weight_term = (f"0.11 * w * {g0_value} * nS"
                     if pre_neuron.startswith("Cortex")
