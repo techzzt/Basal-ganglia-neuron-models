@@ -21,7 +21,7 @@ class SynapseBase:
 
     def _get_on_pre(self, receptor_type, g0_value, pre_neuron):
         saturation_factors = {
-            'AMPA': 8,
+            'AMPA': 10,
             'NMDA': 16,
             'GABA': 2.5
         }
