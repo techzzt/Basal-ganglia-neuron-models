@@ -80,7 +80,7 @@
             "post": "FSN",
             "receptor_type": "AMPA",
             "p": 0.9,
-            "weight": 4,
+            "weight": 1,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -147,7 +147,7 @@
             "post": "MSND1",
             "receptor_type": ["AMPA", "NMDA"],
             "p": 0.8,
-            "weight": 20,
+            "weight": 1,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -236,8 +236,8 @@
             "pre": "Cortex_MSND2",
             "post": "MSND2",
             "receptor_type": ["AMPA", "NMDA"],
-            "p": 1,
-            "weight": 40,
+            "p": 0.8,
+            "weight": 1,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -327,7 +327,7 @@
             "post": "STN",
             "receptor_type": ["AMPA", "NMDA"],
             "p": 0.8,
-            "weight": 5,
+            "weight": 1,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.25, "unit": "nS"},
@@ -367,7 +367,7 @@
             "post": "GPeT1",
             "receptor_type": "AMPA",
             "p": 0.7,
-            "weight": 0.8,
+            "weight": 1,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -451,7 +451,7 @@
             "post": "GPeTA",
             "receptor_type": "AMPA",
             "p": 1,
-            "weight": 8,
+            "weight": 1,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
