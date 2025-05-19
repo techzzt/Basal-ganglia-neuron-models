@@ -1,15 +1,16 @@
+import numpy as np
+import os
+from copy import deepcopy
+
 from brian2 import *
 from module.models.neuron_models import create_neurons
 from module.models.Synapse import create_synapses
-from module.utils.data_handler import (
+from module.utils.visualization import (
     plot_raster, plot_membrane_potential,
-    compute_firing_rates_all_neurons, 
-    plot_raster_all_neurons_stim_window,
-    estimate_required_weight)
+    plot_raster_all_neurons_stim_window
+    )
 
-from module.utils.sta import compute_sta 
-import numpy as np
-import os
+from module.utils.sta import compute_firing_rates_all_neurons, adjust_connection_weights, estimate_required_weight_adjustment
 
 os.environ['CC'] = 'gcc'
 os.environ['CXX'] = 'g++'
@@ -53,17 +54,26 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
             net.run(run_time)
             t += run_time
 
-        """
-        for name, monitor in voltage_monitors.items():
-            if monitor.v.size > 0:
-                v_vals = monitor.v[0] / mV
-                # print(f"{name} - Min Voltage: {np.min(v_vals):.2f} mV, Max Voltage: {np.max(v_vals):.2f} mV")
-        """
-        compute_firing_rates_all_neurons(spike_monitors, start_time=2000*ms, end_time=end_time, plot_order=plot_order)
-        plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time)
-        # plot_membrane_potential(voltage_monitors, plot_order)
-        # plot_raster_all_neurons_stim_window(spike_monitors, stim_start=2000*ms, end_time=end_time, plot_order=plot_order)
-        
+        target_firing_rates = {
+            'FSN': 15.0,
+            'STN': 15.0,
+            'GPeT1': 33.0,
+            'GPeTA': 33.0,
+            'MSND1': 0.1,
+            'MSND2': 0.1
+        }
+
+        observed_rates = compute_firing_rates_all_neurons(
+            spike_monitors,
+            start_time=2000 * ms,
+            end_time=end_time,
+            plot_order=plot_order,
+            return_dict=True
+        )
+
+        adjustment_factors = estimate_required_weight_adjustment(observed_rates, target_firing_rates)
+
+        updated_connections = adjust_connection_weights(deepcopy(connections), adjustment_factors)
         """
         sta_results, bins = compute_sta(
             pre_monitors={k: spike_monitors[k] for k in relevant_pres if k in spike_monitors},
@@ -75,12 +85,26 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class
             window=30*ms
         )
         """
+        print("\n=== Summary ===")
+        print(f"{'Neuron':<10} | {'Observed (Hz)':<14} | {'Target (Hz)':<12} | {'Adj. Factor':<12}")
+        for neuron in target_firing_rates:
+            obs = observed_rates.get(neuron, 0.0)
+            tgt = target_firing_rates[neuron]
+            adj = adjustment_factors.get(neuron)
+            obs_str = f"{obs:.2f}" if obs else "0.00"
+            adj_str = f"{adj:.3f}" if adj else "N/A"
+            print(f"{neuron:<10} | {obs_str:<14} | {tgt:<12} | {adj_str:<12}")
+
+        plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time)
 
         return {
             'spike_monitors': spike_monitors,
             'voltage_monitors': voltage_monitors,
             'neuron_groups': neuron_groups,
-            'synapse_connections': synapse_connections
+            'synapse_connections': synapse_connections,
+            'updated_connections': updated_connections,
+            'observed_firing_rates': observed_rates,
+            'adjustment_factors': adjustment_factors
         }
 
     except Exception as e:
