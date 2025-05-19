@@ -78,7 +78,6 @@ def adjust_connection_weights(connections, weight_adjustments):
             original_weight = conn.get('weight', 1.0)
             new_weight = round(original_weight * scale, 3)
 
-            # 업데이트
             conn = conn.copy()
             conn['weight'] = new_weight
 
