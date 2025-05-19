@@ -56,8 +56,8 @@ def estimate_required_weight_adjustment(observed, target):
         tgt_rate = target.get(neuron)
         if obs_rate > 0 and tgt_rate is not None:
             weight_adjustments[neuron] = round(tgt_rate / obs_rate, 3)
-        elif obs_rate == 0 and tgt_rate:  # avoid div by zero
-            weight_adjustments[neuron] = 10.0  # arbitrary large factor
+        elif obs_rate == 0 and tgt_rate: 
+            weight_adjustments[neuron] = 10.0  
         else:
             weight_adjustments[neuron] = None
     return weight_adjustments
