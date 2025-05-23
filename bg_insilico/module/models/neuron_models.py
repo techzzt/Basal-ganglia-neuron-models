@@ -55,7 +55,6 @@ def generate_non_overlapping_poisson_input(N, total_rate, duration, dt=1 * ms, c
             times = np.round(times / float(dt/second)) * float(dt/second)
             indices = np.random.choice(N, chunk_spikes, replace=True)
             
-            # 중복 제거
             unique_spikes = set(zip(indices, times))
             if unique_spikes:
                 chunk_indices, chunk_times = zip(*unique_spikes)
@@ -138,10 +137,7 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
                             
                             print(f"Target rate for {name}->{target}:")
                             print(f"  - Target rate per neuron: {total_rate} Hz")
-                            print(f"  - Total population rate: {population_rate} Hz")
                             print(f"  - Average rate per input: {population_rate/N:.3f} Hz")
-                            print(f"  - Input population size: {N}")
-                            print(f"  - Target population size: {target_N}")
                         
                         neuron_groups[f'{name}_{target}'] = group
                 continue
