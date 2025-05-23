@@ -1,112 +1,139 @@
 import numpy as np
 import os
 from copy import deepcopy
+import time
+from tqdm import tqdm
+import math
 
 from brian2 import *
 from module.models.neuron_models import create_neurons
-from module.models.Synapse import create_synapses
+from module.models.Synapse import create_synapses, get_synapse_class
 from module.utils.visualization import (
     plot_raster, plot_membrane_potential,
     plot_raster_all_neurons_stim_window
     )
 
 from module.utils.sta import compute_firing_rates_all_neurons, adjust_connection_weights, estimate_required_weight_adjustment
+from module.models.stimulus import create_poisson_inputs
 
 os.environ['CC'] = 'gcc'
 os.environ['CXX'] = 'g++'
+
 prefs.codegen.target = 'cython'
+prefs.codegen.cpp.extra_compile_args_gcc = ['-O3', '-ffast-math', '-march=native']
+prefs.codegen.cpp.extra_compile_args_msvc = ['/O2']
+prefs.devices.cpp_standalone.openmp_threads = 4  
 
-def run_simulation_with_inh_ext_input(neuron_configs, connections, synapse_class, simulation_params, plot_order=None, start_time=0*ms, end_time=30000*ms):
+class SimulationMonitor:
+    
+    def __init__(self, total_time, dt=1*ms, update_interval=100*ms):
+        self.total_time = float(total_time/second)
+        self.start_time = time.time()
+        self.last_t = 0
+        self.dt = float(dt/second)
+        self.update_interval = float(update_interval/second)
+        self.total_steps = int(self.total_time / self.dt)
+        self.pbar = tqdm(total=self.total_time, unit='s', desc='Simulation Progress')
+    
+    def update(self, t):
+        current_time = float(t/second)
+        progress = current_time - self.last_t
+        
+        if progress > 0:
+            self.pbar.update(progress)
+            self.last_t = current_time
+            
+            elapsed = time.time() - self.start_time
+            total_progress_fraction = current_time / self.total_time
+            
+            if total_progress_fraction > 0:
+                estimated_total = elapsed / total_progress_fraction
+                remaining = max(0, estimated_total - elapsed)
+                self.pbar.set_postfix(remaining=f"{remaining:.1f}s")
+    
+    def close(self):
+        self.pbar.close()
+
+def run_with_progress(net, duration, dt=0.1*ms, update_interval=100*ms):
+    monitor = SimulationMonitor(duration, dt=dt, update_interval=update_interval)
+    
+    @network_operation(dt=update_interval)
+    def update_progress(t):
+        monitor.update(t)
+    
+    net.add(update_progress)
+    
     try:
-        start_scope()
+        net.run(duration, report=None)
+    finally:
+        monitor.close()
 
-        neuron_groups = create_neurons(neuron_configs, simulation_params, connections)
-        synapse_connections = create_synapses(neuron_groups, connections, synapse_class)
-
-        net = Network()
-        net.add(neuron_groups.values())
-        net.add(synapse_connections)
-
-        spike_monitors = {}
-        voltage_monitors = {}
-
-        record_neurons = plot_order if plot_order else neuron_groups.keys()
-
-        for name, group in neuron_groups.items():
-            if name in record_neurons:
-                sample_size = min(30, group.N)
-                sample_indices = np.random.choice(group.N, size=sample_size, replace=False).tolist()
-                sp_mon = SpikeMonitor(group, record=sample_indices)
-                spike_monitors[name] = sp_mon
-                net.add(sp_mon)
-
+def run_simulation_with_inh_ext_input(neuron_configs, connections, simulation_params, stim_pattern=None, ext_inputs=None):
+    neuron_groups = create_neurons(neuron_configs, simulation_params, connections)
+    synapse_class = get_synapse_class('Synapse')
+    synapse_connections = create_synapses(neuron_groups, connections, synapse_class)
+    poisson_groups = create_poisson_inputs(neuron_groups, ext_inputs) if ext_inputs else []
+    
+    monitors = []
+    for name, group in neuron_groups.items():
+        if isinstance(group, (PoissonGroup, SpikeGeneratorGroup)):
+            spike_monitor = SpikeMonitor(group)
+            monitors.append(spike_monitor)
+        else:
+            try:
+                n_record = max(1, int(len(group) * 0.1))
+                record_indices = np.random.choice(len(group), n_record, replace=False)
+                
+                recordable_variables = []
                 if 'v' in group.variables:
-                    v_mon = StateMonitor(group, 'v', record=sample_indices, dt=1*ms)  
-                    voltage_monitors[name] = v_mon
-                    net.add(v_mon)
+                    recordable_variables.append('v')
+                if 'I' in group.variables:
+                    recordable_variables.append('I')
+                
+                if recordable_variables:
+                    state_monitor = StateMonitor(group, recordable_variables, record=record_indices)
+                    monitors.append(state_monitor)
+                    print(f"Created state monitor for {name} recording {recordable_variables}")
+                
+                spike_monitor = SpikeMonitor(group)
+                monitors.append(spike_monitor)
+            except Exception as e:
+                print(f"Warning: Could not create full monitors for {name}: {str(e)}")
+                spike_monitor = SpikeMonitor(group)
+                monitors.append(spike_monitor)
+    
+    net = Network(neuron_groups.values())
+    net.add(*synapse_connections)
+    net.add(*poisson_groups)
+    net.add(*monitors)
+    
+    run_time = simulation_params.get('run_time', 1) * second
+    dt = simulation_params.get('dt', 1) * ms
+    
+    print(f"Starting simulation: {run_time/ms} ms, dt={dt/ms} ms")
+    defaultclock.dt = dt
+    
+    run_with_progress(net, run_time, dt=dt, update_interval=100*ms)
+    
+    results = {
+        'neuron_groups': neuron_groups,
+        'monitors': {}
+    }
+    
+    monitor_index = 0
+    for name, group in neuron_groups.items():
+        results['monitors'][name] = {}
+        
+        if isinstance(group, (PoissonGroup, SpikeGeneratorGroup)):
+            results['monitors'][name]['spike'] = monitors[monitor_index]
+            monitor_index += 1
+        else:
+            if monitor_index < len(monitors) and isinstance(monitors[monitor_index], StateMonitor):
+                results['monitors'][name]['state'] = monitors[monitor_index]
+                monitor_index += 1
+            if monitor_index < len(monitors) and isinstance(monitors[monitor_index], SpikeMonitor):
+                results['monitors'][name]['spike'] = monitors[monitor_index]
+                monitor_index += 1
+    
+    return results
 
-        duration = simulation_params['duration'] * ms
-        chunk_size = 1000 * ms
-        t = 0 * ms
-        while t < duration:
-            run_time = min(chunk_size, duration - t)
-            print(f"Running simulation chunk: {t} to {t + run_time}")
-            net.run(run_time)
-            t += run_time
-
-        target_firing_rates = {
-            'FSN': 15.0,
-            'STN': 15.0,
-            'GPeT1': 33.0,
-            'GPeTA': 33.0,
-            'MSND1': 0.1,
-            'MSND2': 0.1
-        }
-
-        observed_rates = compute_firing_rates_all_neurons(
-            spike_monitors,
-            start_time=2000 * ms,
-            end_time=end_time,
-            plot_order=plot_order,
-            return_dict=True
-        )
-
-        adjustment_factors = estimate_required_weight_adjustment(observed_rates, target_firing_rates)
-
-        updated_connections = adjust_connection_weights(deepcopy(connections), adjustment_factors)
-        """
-        sta_results, bins = compute_sta(
-            pre_monitors={k: spike_monitors[k] for k in relevant_pres if k in spike_monitors},
-            post_monitors={k: spike_monitors[k] for k in plot_order if k in spike_monitors},
-            neuron_groups=neuron_groups,
-            synapses=synapse_connections, 
-            connections=connections,
-            start_from_end=5000*ms,
-            window=30*ms
-        )
-        """
-        print("\n=== Summary ===")
-        print(f"{'Neuron':<10} | {'Observed (Hz)':<14} | {'Target (Hz)':<12} | {'Adj. Factor':<12}")
-        for neuron in target_firing_rates:
-            obs = observed_rates.get(neuron, 0.0)
-            tgt = target_firing_rates[neuron]
-            adj = adjustment_factors.get(neuron)
-            obs_str = f"{obs:.2f}" if obs else "0.00"
-            adj_str = f"{adj:.3f}" if adj else "N/A"
-            print(f"{neuron:<10} | {obs_str:<14} | {tgt:<12} | {adj_str:<12}")
-
-        plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time)
-
-        return {
-            'spike_monitors': spike_monitors,
-            'voltage_monitors': voltage_monitors,
-            'neuron_groups': neuron_groups,
-            'synapse_connections': synapse_connections,
-            'updated_connections': updated_connections,
-            'observed_firing_rates': observed_rates,
-            'adjustment_factors': adjustment_factors
-        }
-
-    except Exception as e:
-        print(f"Error during simulation: {str(e)}")
-        raise
