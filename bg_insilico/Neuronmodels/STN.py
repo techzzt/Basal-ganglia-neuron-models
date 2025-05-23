@@ -1,6 +1,5 @@
 from brian2 import *
 import importlib
-from module.models import AdEx_STN
 from module.models import AdEx
 import numpy as np
 import bisect
@@ -43,7 +42,7 @@ class STN(NeuronModel):
         reset = '''
         temp = (z - 15*pA) / nS;
         vstn = clip(temp, 20*mV, inf*mV);
-        v = vr + (vstn - vr) * int(z < 0*pA)
+        v = vr + (vstn) * int(z < 0*pA)
         z += d
         '''
         
@@ -65,18 +64,5 @@ class STN(NeuronModel):
         self.neurons.I_ext = self.params['I_ext']['value'] * eval(self.params['I_ext']['unit'])
         self.neurons.z = self.params['z']['value'] * eval(self.params['z']['unit'])
 
-        self.neurons.E_AMPA = 0 * mV
-        self.neurons.tau_AMPA = 1 * ms
-        #self.neurons.ampa_beta = 0
-
-        self.neurons.E_NMDA = 0 * mV
-        self.neurons.tau_NMDA = 1 * ms
-        #self.neurons.nmda_beta = 0
-
-
-        self.neurons.E_GABA = 0 * mV
-        self.neurons.tau_GABA = 1 * ms
-        #self.neurons.gaba_beta = 0
-        
         return self.neurons
     
