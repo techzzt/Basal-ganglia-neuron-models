@@ -16,13 +16,18 @@ from module.utils.visualization import (
 from module.utils.sta import compute_firing_rates_all_neurons, adjust_connection_weights, estimate_required_weight_adjustment
 from module.models.stimulus import create_poisson_inputs
 
+# Compiler optimization settings
 os.environ['CC'] = 'gcc'
 os.environ['CXX'] = 'g++'
 
+# Brian2 optimization settings
 prefs.codegen.target = 'cython'
 prefs.codegen.cpp.extra_compile_args_gcc = ['-O3', '-ffast-math', '-march=native']
 prefs.codegen.cpp.extra_compile_args_msvc = ['/O2']
-prefs.devices.cpp_standalone.openmp_threads = 4  
+prefs.devices.cpp_standalone.openmp_threads = 8  
+prefs.core.default_float_dtype = float32        
+device.reinit()                                
+device.activate('cpp_standalone', directory=None)  
 
 class SimulationMonitor:
     
@@ -92,13 +97,10 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, simulation_pa
                 recordable_variables = []
                 if 'v' in group.variables:
                     recordable_variables.append('v')
-                if 'I' in group.variables:
-                    recordable_variables.append('I')
                 
                 if recordable_variables:
                     state_monitor = StateMonitor(group, recordable_variables, record=record_indices)
                     monitors.append(state_monitor)
-                    print(f"Created state monitor for {name} recording {recordable_variables}")
                 
                 spike_monitor = SpikeMonitor(group)
                 monitors.append(spike_monitor)
