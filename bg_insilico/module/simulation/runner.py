@@ -26,35 +26,40 @@ prefs.devices.cpp_standalone.openmp_threads = 4
 
 class SimulationMonitor:
     
-    def __init__(self, total_time, dt=1*ms, update_interval=100*ms):
-        self.total_time = float(total_time/second)
+    def __init__(self, total_time, dt=1*ms, update_interval=10*ms):
+        self.total_time = float(total_time/ms)  
         self.start_time = time.time()
         self.last_t = 0
-        self.dt = float(dt/second)
-        self.update_interval = float(update_interval/second)
+        self.dt = float(dt/ms)
+        self.update_interval = float(update_interval/ms)
         self.total_steps = int(self.total_time / self.dt)
-        self.pbar = tqdm(total=self.total_time, unit='s', desc='Simulation Progress')
+        self.pbar = tqdm(total=self.total_time, unit='ms', desc='Simulation Progress')
+        print(f"Total simulation time: {self.total_time} ms")
     
     def update(self, t):
-        current_time = float(t/second)
-        progress = current_time - self.last_t
-        
-        if progress > 0:
-            self.pbar.update(progress)
-            self.last_t = current_time
+        try:
+            current_time = float(t/ms) 
+            progress = current_time - self.last_t
             
-            elapsed = time.time() - self.start_time
-            total_progress_fraction = current_time / self.total_time
-            
-            if total_progress_fraction > 0:
-                estimated_total = elapsed / total_progress_fraction
-                remaining = max(0, estimated_total - elapsed)
-                self.pbar.set_postfix(remaining=f"{remaining:.1f}s")
+            if progress > 0:
+                self.pbar.update(progress)
+                self.last_t = current_time
+                
+                elapsed = time.time() - self.start_time
+                total_progress_fraction = current_time / self.total_time
+                
+                if total_progress_fraction > 0:
+                    estimated_total = elapsed / total_progress_fraction
+                    remaining = max(0, estimated_total - elapsed)
+                    self.pbar.set_postfix(remaining=f"{remaining:.1f}s", 
+                                        current=f"{current_time:.1f}ms")
+        except Exception as e:
+            print(f"Error updating progress: {str(e)}")
     
     def close(self):
         self.pbar.close()
 
-def run_with_progress(net, duration, dt=0.1*ms, update_interval=100*ms):
+def run_with_progress(net, duration, dt=0.1*ms, update_interval=10*ms):
     monitor = SimulationMonitor(duration, dt=dt, update_interval=update_interval)
     
     @network_operation(dt=update_interval)
@@ -64,7 +69,7 @@ def run_with_progress(net, duration, dt=0.1*ms, update_interval=100*ms):
     net.add(update_progress)
     
     try:
-        net.run(duration, report=None)
+        net.run(duration, report='text')  
     finally:
         monitor.close()
 
@@ -113,7 +118,7 @@ def run_simulation_with_inh_ext_input(neuron_configs, connections, simulation_pa
     print(f"Starting simulation: {run_time/ms} ms, dt={dt/ms} ms")
     defaultclock.dt = dt
     
-    run_with_progress(net, run_time, dt=dt, update_interval=100*ms)
+    run_with_progress(net, run_time, dt=dt, update_interval=10*ms)
     
     results = {
         'neuron_groups': neuron_groups,
