@@ -47,10 +47,7 @@ def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connection
     return sta_results, bins
 
 def estimate_required_weight_adjustment(observed, target):
-    """
-    Estimate how much input weight needs to be scaled to reach target firing rate.
-    Returns a dict: {neuron_name: weight_scale_factor}
-    """
+
     weight_adjustments = {}
     for neuron, obs_rate in observed.items():
         tgt_rate = target.get(neuron)
@@ -64,10 +61,7 @@ def estimate_required_weight_adjustment(observed, target):
 
 
 def adjust_connection_weights(connections, weight_adjustments):
-    """
-    Scale weights in the connections dict according to adjustment factors.
-    Returns a new connections dict with updated weights.
-    """
+
     updated_connections = {}
 
     for conn_name, conn in connections.items():
