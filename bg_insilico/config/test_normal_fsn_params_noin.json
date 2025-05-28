@@ -1,0 +1,120 @@
+{
+    "neurons": [
+        {"name": "Cortex_FSN", "N": 800, "neuron_type": "poisson", "target_rates": {"FSN": {"equation": "646*Hz"}}},
+        {"name": "Cortex_MSND1", "N": 18000, "neuron_type": "poisson", "target_rates": {"MSND1": {"equation": "448*Hz"}}},
+
+        {
+            "name": "FSN",
+            "N": 800,
+            "params_file": "./params_ref/FSN_1_nor.json",
+            "model_class": "FSN"
+        },
+        {
+            "name": "MSND1",
+            "N": 18000,
+            "params_file": "./params_ref/MSN_D1_1_nor.json",
+            "model_class": "MSND1"
+        }
+    ],
+    
+    "synapse_class": "Synapse",
+
+    "connections": {
+        "Cortex_to_FSN": {
+            "pre": "Cortex_FSN",
+            "post": "FSN",
+            "receptor_type": "AMPA",
+            "p": 1,
+            "weight": 3,
+            "receptor_params": {
+                "AMPA":{
+                "g0": {"value": 0.5, "unit": "nS"},
+                "tau_syn": {"value": 12, "unit": "ms"},
+                "E_rev": {"value": 0, "unit": "mV"},
+                "delay": {"value": 2.5, "unit": "ms"}
+                }
+            }
+        },
+        
+        "FSN_to_FSN": {
+            "pre": "FSN",
+            "post": "FSN",
+            "receptor_type": "GABA",
+            "p": 0.74,
+            "weight": 1,
+            "receptor_params": {
+                "GABA":{
+                "g0": {"value": 1, "unit": "nS"},
+                "tau_syn": {"value": 6, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 1.7, "unit": "ms"},
+                "beta": {"value": 0.746, "unit": "1"}
+                }
+            }
+        },
+            "Cortex_to_MSND1": {
+            "pre": "Cortex_MSND1",
+            "post": "MSND1",
+            "receptor_type": ["AMPA", "NMDA"],
+            "p": 0.9,
+            "weight": 0.5,
+            "receptor_params": {
+                "AMPA": {
+                    "g0": {"value": 0.5, "unit": "nS"},
+                    "tau_syn": {"value": 12, "unit": "ms"},
+                    "E_rev": {"value": 0, "unit": "mV"},
+                    "delay": {"value": 2.5, "unit": "ms"}
+                },
+                "NMDA": {
+                    "g0": {"value": 0.11, "unit": "nS"},
+                    "tau_syn": {"value": 160, "unit": "ms"},
+                    "E_rev": {"value": 0, "unit": "mV"},
+                    "beta": {"value": 1.208, "unit": "1"},
+                    "delay": {"value": 2.5, "unit": "ms"}
+                }
+            }
+        },
+
+        "FSN_to_MSND1": {
+            "pre": "FSN",
+            "post": "MSND1",
+            "receptor_type": "GABA",
+            "p": 0.27,
+            "weight": 1,
+            "receptor_params": {
+                "GABA":{
+                "g0": {"value": 6, "unit": "nS"},
+                "tau_syn": {"value": 11, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 1.7, "unit": "ms"}
+                }
+            }
+        },
+
+        "MSND1_to_MSND1": {
+            "pre": "MSND1",
+            "post": "MSND1",
+            "receptor_type": "GABA",
+            "p": 0.18,
+            "weight": 1,
+            "receptor_params": {
+                "GABA":{
+                "g0": {"value": 0.15, "unit": "nS"},
+                "tau_syn": {"value": 8, "unit": "ms"},
+                "E_rev": {"value": -74, "unit": "mV"},
+                "delay": {"value": 1.7, "unit": "ms"},
+                "beta": {"value": 1.176, "unit": "1"}
+                }
+            }
+        }    
+    },
+
+    "simulation": {
+        "duration": 5000
+    },
+
+    "plot_order": ["FSN", "MSND1"],
+
+    "start_time": 2000,
+    "end_time": 5000
+}
