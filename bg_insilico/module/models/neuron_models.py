@@ -3,6 +3,7 @@ import importlib
 import json
 import numpy as np 
 from brian2 import mV, ms, nS, Hz
+import gc  
 
 def load_params_from_file(params_file):
     try:
@@ -21,92 +22,78 @@ def get_neuron_count(neuron_configs, target_name):
 
 def create_poisson_input(N, rate_expr, duration, dt=1*ms):
     time_points = np.arange(0, duration/ms, dt/ms) * ms
-
-    # time-dependent total input rate 
-    total_rate_values = np.array([
-        eval(rate_expr, {"t": t, "Hz": Hz, "ms": ms, "second": second, "np": np})
-        for t in time_points
-    ]) 
-
-    per_neuron_rate_values = total_rate_values / N
+    chunk_size = 1000
+    total_chunks = int(np.ceil(len(time_points) / chunk_size))
+    rate_arrays = []
+    
+    for i in range(total_chunks):
+        start_idx = i * chunk_size
+        end_idx = min((i + 1) * chunk_size, len(time_points))
+        chunk_times = time_points[start_idx:end_idx]
+        chunk_rates = np.array([
+            eval(rate_expr, {"t": t, "Hz": Hz, "ms": ms, "second": second, "np": np})
+            for t in chunk_times
+        ])
+        rate_arrays.append(chunk_rates)
+    
+    rate_values = np.concatenate(rate_arrays)
+    per_neuron_rate_values = rate_values / N
     rate_array = TimedArray(per_neuron_rate_values * Hz, dt)
-
+    
+    del rate_arrays, rate_values, per_neuron_rate_values
+    gc.collect()
+    
     return PoissonGroup(N, rates='rate_array(t)', namespace={'rate_array': rate_array})
 
+def generate_non_overlapping_poisson_input(N, rate, duration, dt=1):
 
-def generate_non_overlapping_poisson_input(N, total_rate, duration, dt=1 * ms, chunk_size=1000):
-
-    try:
-        duration = duration * second 
-        total_chunks = int(np.ceil(duration / (chunk_size * dt)))
-        all_indices = []
-        all_times = []
-        
-        for chunk in range(total_chunks):
-            start_time = float(chunk * chunk_size * dt / second)
-            end_time = float(min((chunk + 1) * chunk_size * dt, duration) / second)
-            chunk_duration = end_time - start_time
-            
-            chunk_spikes = int(total_rate * chunk_duration)
-            if chunk_spikes == 0:
-                continue
-                
-            times = np.sort(np.random.uniform(start_time, end_time, chunk_spikes))
-            times = np.round(times / float(dt/second)) * float(dt/second)
-            indices = np.random.choice(N, chunk_spikes, replace=True)
-            
-            unique_spikes = set(zip(indices, times))
-            if unique_spikes:
-                chunk_indices, chunk_times = zip(*unique_spikes)
-                all_indices.extend(chunk_indices)
-                all_times.extend(chunk_times)
-        
-        return np.array(all_indices), np.array(all_times)
+    n_steps = int(np.ceil(duration / dt))
     
-    except Exception as e:
-        print(f"Error in generate_non_overlapping_poisson_input: {str(e)}")
-        raise
-
-def generate_non_overlapping_poisson_input_timevarying(N, rate_expr, duration, dt=1*ms, chunk_size=1000):
-
-    try:
-        duration = float(duration) * second  
-        all_indices = []
-        all_times = []
-        total_chunks = int(np.ceil(duration / (chunk_size * dt)))
-        
-        for chunk in range(total_chunks):
-            start_time = chunk * chunk_size * dt
-            end_time = min((chunk + 1) * chunk_size * dt, duration)
-            chunk_times = np.arange(float(start_time/second), float(end_time/second), float(dt/second)) * second
-            
-            rates = np.array([
-                eval(rate_expr, {"t": t, "Hz": Hz, "ms": ms, "second": second, "np": np})
-                for t in chunk_times
-            ])
-            mean_rate = np.mean(rates)
-            
-            n_spikes = np.random.poisson(float(mean_rate * len(chunk_times) * dt))
-            if n_spikes > 0:
-                times = np.random.choice(chunk_times, n_spikes, p=rates/np.sum(rates))
-                indices = np.random.choice(N, n_spikes, replace=True)
-                
-                unique_spikes = set(zip(indices, [float(t/second) for t in times]))
-                if unique_spikes:
-                    chunk_indices, chunk_times = zip(*unique_spikes)
-                    all_indices.extend(chunk_indices)
-                    all_times.extend(chunk_times)
-        
-        return np.array(all_indices), np.array(all_times)
+    indices_list = []
+    times_list = []
     
-    except Exception as e:
-        print(f"Error in generate_non_overlapping_poisson_input_timevarying: {str(e)}")
-        raise
+    for step in range(n_steps):
+        t = step * dt
+        n_spikes = np.random.poisson(rate * dt)
+        if n_spikes > 0:
+            n_spikes = min(n_spikes, N)
+            chosen = np.random.choice(N, size=n_spikes, replace=False)
+            for i in chosen:
+                indices_list.append(i)
+                times_list.append(t)
+    
+    if not indices_list:
+        return np.array([], dtype=int), np.array([], dtype=float)
+    
+    indices = np.array(indices_list, dtype=int)
+    times = np.array(times_list, dtype=float)
+    
+    order = np.lexsort((indices, times))
+    indices = indices[order]
+    times = times[order]
+    
+    return indices, times
+
+def analyze_input_requirements(name, total_rate, N, target_min_hz, target_max_hz):
+    current_input_per_neuron = total_rate / N
+    target_mean = (target_min_hz + target_max_hz) / 2
+    ratio = target_mean / current_input_per_neuron if current_input_per_neuron > 0 else float('inf')
+    
+    print(f"\nInput Analysis for {name}:")
+    print(f"  Current input per neuron: {current_input_per_neuron:.2f} Hz")
+    print(f"  Required scaling factor: {ratio:.3f}x")
+    
+    if ratio > 1:
+        print(f"  Need to increase weights/input by {ratio:.2f}x to reach target")
+    else:
+        print(f"  Need to decrease weights/input by {1/ratio:.2f}x to reach target")
+    
+    return ratio
 
 def create_neurons(neuron_configs, simulation_params, connections=None):
     np.random.seed(2025)
     duration = simulation_params.get('duration', 1.0) 
-    dt = float(simulation_params.get('dt', 0.001))  
+    dt = float(simulation_params.get('dt', 1))  
 
     try:
         neuron_groups = {}
@@ -115,31 +102,15 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
             name = config['name']
             N = config['N']
 
-            if name in ['Cortex', 'Ext']:
-                if 'target_rates' in config:
-                    for target, rate_info in config['target_rates'].items():
-                        target_N = get_neuron_count(neuron_configs, target)
-                        if target_N is None or target_N == 0:
-                            print(f"Warning: Could not find valid neuron count for target '{target}'")
-                            continue
-
-                        rate_expr = rate_info['equation']
-                        if 't' in rate_expr:
-                            # Time-varying rate
-                            total_rate = eval(rate_expr, {"Hz": Hz, "ms": ms, "second": second, "np": np})
-                            population_rate = float(total_rate/Hz) * target_N  # Total population rate
-                            group = PoissonGroup(N, rates=f'rand()*{2*population_rate/N}*Hz')  # Random variation around mean
-                        else:
-                            # Constant rate
-                            total_rate = float(eval(rate_expr, {"Hz": Hz}))
-                            population_rate = total_rate * target_N  
-                            group = PoissonGroup(N, rates=f'rand()*{2*population_rate/N}*Hz')  # Random variation around mean
-                            
-                            print(f"Target rate for {name}->{target}:")
-                            print(f"  - Target rate per neuron: {total_rate} Hz")
-                            print(f"  - Average rate per input: {population_rate/N:.3f} Hz")
-                        
-                        neuron_groups[f'{name}_{target}'] = group
+            if config.get('neuron_type', None) == 'poisson':
+                if 'target_rates' in config and len(config['target_rates']) > 0:
+                    target, rate_info = list(config['target_rates'].items())[0]
+                    rate_expr = rate_info['equation']
+                    N = config['N']
+                    total_rate = float(eval(rate_expr, {"Hz": Hz}))
+                    rate_per_neuron = total_rate / N
+                    group = PoissonGroup(N, rates=rate_per_neuron * Hz)
+                    neuron_groups[name] = group
                 continue
 
             if 'model_class' in config and 'params_file' in config:
