@@ -40,9 +40,9 @@ class STN(NeuronModel):
         eqs = AdEx.eqs
         
         reset = '''
-        temp = (z - 15*pA) / nS;
-        vstn = clip(temp, 20*mV, inf*mV);
-        v = vr + (vstn) * int(z < 0*pA)
+        v_reset_val = vr 
+        v_reset_applied = v_reset_val + ((z - 15*pA > 20*pA) ? (z - 15*pA) : (20*pA)) / nS
+        v = if condition(z < 0*pA): then(v_reset_applied) else(v)
         z += d
         '''
         
