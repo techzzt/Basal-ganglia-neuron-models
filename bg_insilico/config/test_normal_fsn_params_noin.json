@@ -24,7 +24,7 @@
             "pre": "Cortex_FSN",
             "post": "FSN",
             "receptor_type": "AMPA",
-            "p": 1,
+            "p": 0.7,
             "weight": 3,
             "receptor_params": {
                 "AMPA":{
@@ -40,7 +40,7 @@
             "pre": "FSN",
             "post": "FSN",
             "receptor_type": "GABA",
-            "p": 0.74,
+            "p": 0.5,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -56,8 +56,8 @@
             "pre": "Cortex_MSND1",
             "post": "MSND1",
             "receptor_type": ["AMPA", "NMDA"],
-            "p": 0.9,
-            "weight": 0.5,
+            "p": 0.7,
+            "weight": 0.6,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
