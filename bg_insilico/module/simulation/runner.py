@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from brian2 import *
 from brian2 import mV, ms, nS, Hz
 from module.models.neuron_models import create_neurons
-from module.models.Synapse import create_synapses, get_synapse_class
+from module.models.Synapse import create_synapses
 from module.utils.visualization import (
     plot_raster, plot_membrane_potential,
     plot_raster_all_neurons_stim_window
@@ -25,14 +25,13 @@ from module.models.stimulus import create_poisson_inputs
 # Compiler optimization settings
 os.environ['CC'] = 'gcc'
 os.environ['CXX'] = 'g++'
-prefs.codegen.target = 'cython'
-prefs.codegen.cpp.extra_compile_args_gcc = ['-O3', '-ffast-math', '-march=native']
+# prefs.codegen.target = 'numpy'
+prefs.codegen.cpp.extra_compile_args_gcc = ['-O2']
 prefs.codegen.cpp.extra_compile_args_msvc = ['/O2']
 prefs.devices.cpp_standalone.extra_make_args_unix = ['-j4'] 
-prefs.devices.cpp_standalone.openmp_threads = 4 
+prefs.devices.cpp_standalone.openmp_threads = 1
 
 class SimulationMonitor:
-    
     def __init__(self, total_time, dt=1*ms, update_interval=100*ms):  
         self.total_time = float(total_time/ms)  
         self.start_time = time.time()
@@ -67,7 +66,7 @@ class SimulationMonitor:
     def close(self):
         self.pbar.close()
 
-def run_with_progress(net, duration, dt=1*ms, update_interval=500*ms):
+def run_with_progress(net, duration, dt=10*ms, update_interval=500*ms):
     monitor = SimulationMonitor(duration, dt=dt, update_interval=update_interval)
     
     @network_operation(dt=update_interval)
@@ -116,13 +115,14 @@ def run_simulation_with_inh_ext_input(
                 sp_mon = SpikeMonitor(group, record=sample_indices)
                 spike_monitors[name] = sp_mon
         
-        net = Network(neuron_groups.values())
-        net.add(synapse_connections)
-        net.add(poisson_groups)
-        net.add(spike_monitors.values())
+        net = Network()
+        net.add(*neuron_groups.values())
+        net.add(*synapse_connections)
+        net.add(*poisson_groups)
+        net.add(*spike_monitors.values())
         
-        duration = simulation_params.get('duration', 2500) * ms
-        dt = simulation_params.get('dt', 1) * ms
+        duration = simulation_params.get('duration', 1000) * ms
+        dt = simulation_params.get('dt', 10) * ms
         
         print(f"\nStarting simulation for {duration/ms} ms")
         defaultclock.dt = dt
@@ -135,7 +135,7 @@ def run_simulation_with_inh_ext_input(
             net.run(run_time)
             t += run_time
         for name, mon in spike_monitors.items():
-            print(f"{name} 스파이크 개수: {mon.num_spikes}")
+            print(f"{name} Number of Spike: {mon.num_spikes}")
         print("\nSimulation completed. Processing results")
         
         if not spike_monitors:
@@ -170,4 +170,3 @@ def run_simulation_with_inh_ext_input(
         gc.collect()
     
     return results
-
