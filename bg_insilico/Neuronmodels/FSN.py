@@ -1,6 +1,7 @@
 import importlib
 from brian2 import *
 from brian2 import mV, ms, nS
+import numpy as np 
 
 from module.models import QIF_FSN
 
@@ -46,7 +47,10 @@ class FSN(NeuronModel):
         )
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
+        
+        # Use fixed initial membrane potential from JSON parameters
         self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
+        
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.k = self.params['k']['value'] 
         self.neurons.a = self.params['a']['value'] * eval(self.params['a']['unit'])

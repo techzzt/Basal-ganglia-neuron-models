@@ -2,6 +2,7 @@ import importlib
 from brian2 import *
 from module.models import QIF
 from brian2 import mV, ms, nS
+import numpy as np 
 
 class NeuronModel:
     def __init__(self, N, params):
@@ -37,7 +38,10 @@ class MSND2(NeuronModel):
 
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
-        self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
+        vr_val = self.params['vr']['value'] 
+        vt_val = self.params['vt']['value']
+        v_random = np.random.uniform(vr_val, vt_val, self.N)
+        self.neurons.v = v_random * mV
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.k = self.params['k']['value'] 
         self.neurons.a = self.params['a']['value'] * eval(self.params['a']['unit'])

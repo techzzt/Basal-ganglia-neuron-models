@@ -2,6 +2,7 @@ from brian2 import *
 import importlib
 from module.models import AdEx
 from brian2 import mV, ms, nS
+import numpy as np 
 
 class NeuronModel:
     def __init__(self, N, params):
@@ -43,7 +44,10 @@ class GPeTA(NeuronModel):
         self.neurons.Delta_T = self.params['Delta_T']['value'] * eval(self.params['Delta_T']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
-        self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
+        vr_val = self.params['vr']['value'] 
+        vt_val = self.params['vt']['value']
+        v_random = np.random.uniform(vr_val, vt_val, self.N)
+        self.neurons.v = v_random * mV
         self.neurons.tau_w = self.params['tau_w']['value'] * eval(self.params['tau_w']['unit'])
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.a = self.params['a']['value'] * eval(self.params['a']['unit'])
