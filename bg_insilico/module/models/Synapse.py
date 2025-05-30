@@ -3,19 +3,15 @@ import importlib
 import json
 from pathlib import Path
 import numpy as np
-
-from brian2 import mV, ms, nS, Hz
 import logging
 from collections import defaultdict
 
 logging.getLogger('brian2').setLevel(logging.ERROR)
-prefs.codegen.target = 'cython'
+
 
 class SynapseBase:
     def __init__(self, neurons, connections):
         self.neurons = neurons
-        for name, group in neurons.items():
-            setattr(self, name, group)
         self.connections = connections
         self.define_equations()
 
@@ -23,169 +19,221 @@ class SynapseBase:
         self.equations = {
             'AMPA': '''
                 w : 1
-                dg_a/dt = -g_a / tau_AMPA : siemens (clock-driven)
-                tau_AMPA : second
-                E_AMPA : volt
-                ampa_beta : 1
             ''',
             'NMDA': '''
                 w : 1
-                dg_n/dt = -g_n / tau_NMDA : siemens (clock-driven)
-                tau_NMDA : second
-                E_NMDA : volt
-                nmda_beta : 1
-                Mg : 1
             ''',
             'GABA': '''
                 w : 1
-                dg_g/dt = -g_g / tau_GABA : siemens (clock-driven)
-                tau_GABA : second
-                E_GABA : volt
-                gaba_beta : 1
             '''
         }
 
-    def _get_on_pre(self, receptor_type, g0_value, pre_neuron, post_neuron):
-        saturation_factors = {
-            'AMPA': 2,
-            'NMDA': 1,
-            'GABA': 0.1
-        }
-        fac = saturation_factors.get(receptor_type, 1)
-        max_g = f"{fac * g0_value} * nS"
-        
+    def _get_on_pre(self, receptor_type, g0_value):
+
+        fac = {'AMPA': 5, 'NMDA': 2.5, 'GABA': 2}.get(receptor_type, 1)
+        max_g_val = fac * g0_value
+        max_g = f"{max_g_val}*nS"
+        clip_min = "0*nS"
+        conductance_increase = f"w * {g0_value} * nS"
+
         if receptor_type == 'AMPA':
-            if pre_neuron.startswith("Cortex"):
-                return f"""
-                g_a += w * 0.11 * {g0_value} * nS
-                g_a = clip(g_a, -inf * nS, {max_g})
-                I_syn_AMPA_post += ampa_beta * g_a * (E_AMPA - v_post)
-                """
-            else:
-                return f"""
-                g_a += w * {g0_value} * nS
-                g_a = clip(g_a, -inf * nS, {max_g})
-                I_syn_AMPA_post += ampa_beta * g_a * (E_AMPA - v_post)
-                """
+            return f"""
+            g_a += {conductance_increase}
+            g_a = clip(g_a, {clip_min}, {max_g})
+            """
         elif receptor_type == 'NMDA':
-            if pre_neuron.startswith("Cortex"):
-                return f"""
-                g_n += w * 0.11 * {g0_value} * nS
-                g_n = clip(g_n, -inf * nS, {max_g})
-                I_syn_NMDA_post += nmda_beta * g_n * (E_NMDA - v_post) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57)
-                """
-            else:
-                return f"""
-                g_n += w * {g0_value} * nS
-                g_n = clip(g_n, -inf * nS, {max_g})
-                I_syn_NMDA_post += nmda_beta * g_n * (E_NMDA - v_post) / (1 + Mg2 * exp(-0.062 * v_post / mV) / 3.57)
-                """
+            return f"""
+            g_n += {conductance_increase}
+            g_n = clip(g_n, {clip_min}, {max_g})
+            """
         elif receptor_type == 'GABA':
-            if pre_neuron.startswith("Cortex"):
-                return f"""
-                g_g += w * 0.11 * {g0_value} * nS
-                g_g = clip(g_g, -inf * nS, {max_g})
-                I_syn_GABA_post += gaba_beta * g_g * (E_GABA - v_post)
-                """
-            else:
-                return f"""
-                g_g += w * {g0_value} * nS
-                g_g = clip(g_g, -inf * nS, {max_g})
-                I_syn_GABA_post += gaba_beta * g_g * (E_GABA - v_post)
-                """
+            return f"""
+            g_g += {conductance_increase}
+            g_g = clip(g_g, {clip_min}, {max_g})
+            """
+        else:
+            return ''
 
 class Synapse(SynapseBase):
     def __init__(self, neurons, connections):
         super().__init__(neurons, connections)
-        self.params = {'Mg2': {'value': 1.0, 'unit': '1'}}
 
 def get_synapse_class(class_name):
     try:
-        module = importlib.import_module('module.models.Synapse') 
+        module = importlib.import_module('module.models.Synapse')
         return getattr(module, class_name)
     except ModuleNotFoundError:
         raise ImportError(f"Module 'module.models.Synapse' not found. Check if the path is correct.")
     except AttributeError:
         raise ImportError(f"Class '{class_name}' not found in 'module.models.Synapse'.")
 
-def create_synapses(neuron_groups, connections, synapse_class):
+def create_synapses(neuron_groups, connections, synapse_class_name):
     try:
         synapse_connections = []
-        if isinstance(synapse_class, str):
-            SynapseClass = get_synapse_class(synapse_class)
+
+        if isinstance(synapse_class_name, str):
+            synapse_class = get_synapse_class(synapse_class_name)
         else:
-            SynapseClass = synapse_class
-        synapse_instance = SynapseClass(neurons=neuron_groups, connections=connections)
+            synapse_class = synapse_class_name
 
-        created_synapses = {}
+        synapse_instance = synapse_class(neurons=neuron_groups, connections=connections)
+        unit_mapping = {'nS': nS, 'ms': ms, 'mV': mV, 'second': second, 'Hz': Hz, 'volt': volt, 'siemens': siemens, 'farad': farad, 'amp': amp, 'pA': pA, 'pF': pF}
+        created_synapses_map = {}
 
-        unit_mapping = {'nS': nS, 'ms': ms, 'mV': mV}
-
+        # First pass: create synapse objects and connections
         for conn_name, conn_config in connections.items():
             pre, post = conn_config['pre'], conn_config['post']
             pre_group, post_group = neuron_groups.get(pre), neuron_groups.get(post)
 
             if not pre_group or not post_group:
-                print(f"Error: Neuron group '{pre if not pre_group else post}' not found.")
+                print(f"Error: Neuron group '{pre if not pre_group else post}' not found. Skipping connection '{conn_name}'.")
                 continue
 
             receptor_types = conn_config['receptor_type']
             receptor_types = receptor_types if isinstance(receptor_types, list) else [receptor_types]
 
             for receptor_type in receptor_types:
-                syn_name = f"synapse_{pre}_{post}_{receptor_type}"
+                syn_key = (pre, post, receptor_type)
 
-                if syn_name not in created_synapses:
-                    g0_value = conn_config.get('receptor_params', {}).get(receptor_type, {}).get('g0', {}).get('value', 0.0)
-                    on_pre_code = synapse_instance._get_on_pre(receptor_type, g0_value, pre, post)
+                if syn_key not in created_synapses_map:
+                    if receptor_type not in synapse_instance.equations:
+                        print(f"Error: Equations for receptor type '{receptor_type}' not defined in SynapseBase. Skipping connection '{conn_name}'.")
+                        continue
+
+                    model_eqns = synapse_instance.equations[receptor_type]
+                    g0_value_for_on_pre = conn_config.get('receptor_params', {}).get(receptor_type, {}).get('g0', {}).get('value', 0.0)
+                    on_pre_code = synapse_instance._get_on_pre(receptor_type, g0_value_for_on_pre)
+                    syn_object_name = f'synapses_{pre}_to_{post}_{receptor_type}'
 
                     syn = Synapses(
-                        pre_group, 
+                        pre_group,
                         post_group,
-                        model=synapse_instance.equations[receptor_type],
+                        model=model_eqns,
                         on_pre=on_pre_code,
-                        namespace={'Mg2': 1.0}  
+                        name=syn_object_name
                     )
-                    syn.connect(p=conn_config.get('p', 1.0))
-                    created_synapses[syn_name] = syn
+                    created_synapses_map[syn_key] = syn
                     synapse_connections.append(syn)
-                    
-                else:
-                    syn = created_synapses[syn_name]
-                    if syn not in synapse_connections:
-                        synapse_connections.append(syn)
 
-                syn.w = conn_config.get('weight', 1.0)
-                current_params = conn_config['receptor_params'].get(receptor_type, {})
+                syn = created_synapses_map[syn_key]
+                p_connect = conn_config.get('p', 1.0)
+                syn.connect(p=p_connect)
 
-                param_map = {
-                    'AMPA': {'g': 'g_a', 'tau': 'tau_AMPA', 'E': 'E_AMPA', 'beta': 'ampa_beta'},
-                    'NMDA': {'g': 'g_n', 'tau': 'tau_NMDA', 'E': 'E_NMDA', 'beta': 'nmda_beta'},
-                    'GABA': {'g': 'g_g', 'tau': 'tau_GABA', 'E': 'E_GABA', 'beta': 'gaba_beta'},
-                }
+                if len(syn.i) == 0:
+                    print(f"Warning: No connections made for {conn_name} ({receptor_type}) with probability {p_connect}. Skipping parameter assignment.")
+                    continue
 
-                if receptor_type in param_map:
-                    map_ = param_map[receptor_type]
+                weight = conn_config.get('weight', 1.0)
+                syn.w = weight
 
-                    g0_val = current_params.get('g0', {}).get('value', 0.0)
-                    g0_unit = unit_mapping.get(current_params.get('g0', {}).get('unit', 'nS'), nS)
-                    setattr(syn, map_['g'], g0_val * g0_unit)
-
-                    tau_val = current_params.get('tau_syn', {}).get('value', 1.0)
-                    setattr(syn, map_['tau'], tau_val * ms)
-                    E_val = current_params.get('E_rev', {}).get('value', 0.0)
-                    setattr(syn, map_['E'], E_val * mV)
-
-                    beta_val = current_params.get('beta', {}).get('value', 1.0)
-                    setattr(syn, map_['beta'], beta_val)
-
-                    if 'delay' in current_params:
-                        delay_val = current_params['delay'].get('value', 0.0)
-                        delay_unit = unit_mapping.get(current_params['delay'].get('unit', 'ms'), ms)
+                if 'delay' in conn_config.get('receptor_params', {}).get(receptor_type, {}):
+                    delay_params = conn_config['receptor_params'][receptor_type]['delay']
+                    delay_val = delay_params.get('value', 0.0)
+                    delay_unit_str = delay_params.get('unit', 'ms')
+                    delay_unit = unit_mapping.get(delay_unit_str, ms)
+                    if delay_val >= 0:
                         syn.delay = delay_val * delay_unit
+
+        # Second pass: set neuron group parameters with validation
+        for neuron_name, neuron_group in neuron_groups.items():
+            # Set default values first to prevent division by zero
+            if hasattr(neuron_group, 'tau_AMPA'):
+                neuron_group.tau_AMPA = 12.0 * ms  # Default AMPA tau
+            if hasattr(neuron_group, 'tau_NMDA'):
+                neuron_group.tau_NMDA = 160.0 * ms  # Default NMDA tau
+            if hasattr(neuron_group, 'tau_GABA'):
+                neuron_group.tau_GABA = 8.0 * ms  # Default GABA tau
+            if hasattr(neuron_group, 'E_AMPA'):
+                neuron_group.E_AMPA = 0.0 * mV
+            if hasattr(neuron_group, 'E_NMDA'):
+                neuron_group.E_NMDA = 0.0 * mV
+            if hasattr(neuron_group, 'E_GABA'):
+                neuron_group.E_GABA = -74.0 * mV
+            if hasattr(neuron_group, 'ampa_beta'):
+                neuron_group.ampa_beta = 1.0
+            if hasattr(neuron_group, 'nmda_beta'):
+                neuron_group.nmda_beta = 1.0
+            if hasattr(neuron_group, 'gaba_beta'):
+                neuron_group.gaba_beta = 1.0
+            if hasattr(neuron_group, 'Mg2'):
+                neuron_group.Mg2 = 1.0
+                
+            # Override with connection-specific parameters if available
+            for conn_name, conn_config in connections.items():
+                if conn_config['post'] == neuron_name:
+                    receptor_types = conn_config['receptor_type']
+                    receptor_types = receptor_types if isinstance(receptor_types, list) else [receptor_types]
+                    
+                    for receptor_type in receptor_types:
+                        current_params = conn_config.get('receptor_params', {}).get(receptor_type, {})
+                        
+                        if receptor_type == 'AMPA':
+                            if hasattr(neuron_group, 'tau_AMPA'):
+                                tau_val = current_params.get('tau_syn', {}).get('value', 12.0)
+                                # Ensure tau is never zero or negative
+                                tau_val = max(tau_val, 0.1)  # Minimum 0.1 ms
+                                neuron_group.tau_AMPA = tau_val * ms
+                            if hasattr(neuron_group, 'E_AMPA'):
+                                E_val = current_params.get('E_rev', {}).get('value', 0.0)
+                                neuron_group.E_AMPA = E_val * mV
+                            if hasattr(neuron_group, 'ampa_beta'):
+                                beta_val = current_params.get('beta', {}).get('value', 1.0)
+                                neuron_group.ampa_beta = beta_val
+                                
+                        elif receptor_type == 'NMDA':
+                            if hasattr(neuron_group, 'tau_NMDA'):
+                                tau_val = current_params.get('tau_syn', {}).get('value', 160.0)
+                                # Ensure tau is never zero or negative
+                                tau_val = max(tau_val, 0.1)  # Minimum 0.1 ms
+                                neuron_group.tau_NMDA = tau_val * ms
+                            if hasattr(neuron_group, 'E_NMDA'):
+                                E_val = current_params.get('E_rev', {}).get('value', 0.0)
+                                neuron_group.E_NMDA = E_val * mV
+                            if hasattr(neuron_group, 'nmda_beta'):
+                                beta_val = current_params.get('beta', {}).get('value', 1.0)
+                                neuron_group.nmda_beta = beta_val
+                            if hasattr(neuron_group, 'Mg2'):
+                                neuron_group.Mg2 = 1.0
+                                
+                        elif receptor_type == 'GABA':
+                            if hasattr(neuron_group, 'tau_GABA'):
+                                tau_val = current_params.get('tau_syn', {}).get('value', 8.0)
+                                # Ensure tau is never zero or negative
+                                tau_val = max(tau_val, 0.1)  # Minimum 0.1 ms
+                                neuron_group.tau_GABA = tau_val * ms
+                            if hasattr(neuron_group, 'E_GABA'):
+                                E_val = current_params.get('E_rev', {}).get('value', -74.0)
+                                neuron_group.E_GABA = E_val * mV
+                            if hasattr(neuron_group, 'gaba_beta'):
+                                beta_val = current_params.get('beta', {}).get('value', 1.0)
+                                neuron_group.gaba_beta = beta_val
 
         return synapse_connections
 
     except Exception as e:
         print(f"Error creating synapses: {str(e)}")
         raise
+
+def generate_synapse_inputs(receptors=None):
+    if receptors is None:
+        receptors = ['AMPA', 'NMDA', 'GABA']
+
+    eqs = ''
+    if 'AMPA' in receptors:
+        eqs += 'I_AMPA = ampa_beta * g_a * (E_AMPA - v) : amp\n'
+    if 'GABA' in receptors:
+        eqs += 'I_GABA = gaba_beta * g_g * (E_GABA - v) : amp\n'
+    if 'NMDA' in receptors:
+        eqs += 'I_NMDA = nmda_beta * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp\n'
+
+    total_terms = []
+    if 'AMPA' in receptors: total_terms.append('I_AMPA')
+    if 'NMDA' in receptors: total_terms.append('I_NMDA')
+    if 'GABA' in receptors: total_terms.append('I_GABA')
+
+    if total_terms:
+        eqs += f'Isyn = {" + ".join(total_terms)} : amp\n'
+    else:
+        eqs += f'Isyn = 0 * amp : amp\n'
+
+    return eqs

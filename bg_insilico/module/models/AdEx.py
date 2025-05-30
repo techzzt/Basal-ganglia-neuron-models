@@ -1,38 +1,37 @@
 from brian2 import *
 
-def generate_synapse_model(max_receptors=5):
+eqs = '''
+dv/dt = (-g_L * (v - E_L) + g_L * Delta_T * exp((v - vt) / Delta_T) - z + Isyn + I_ext) / C : volt
+dz/dt = (a * (v - E_L) - z) / tau_w : amp
+Isyn = I_AMPA + I_NMDA + I_GABA : amp
+I_AMPA = ampa_beta * g_a * (E_AMPA - v) : amp 
+I_GABA =  gaba_beta * g_g * (E_GABA - v) : amp
+I_NMDA =  nmda_beta * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp 
 
-    base_eqs = '''
-    dv/dt = (-g_L * (v - E_L) + g_L * Delta_T * exp((v - vt) / Delta_T) - z + I_syn_total + I_ext) / C : volt
-    dz/dt = (a * (v - E_L) - z) / tau_w : amp
-    '''
-    
-    receptors = ['AMPA', 'NMDA', 'GABA']
-    
-    for receptor in receptors:
-        for i in range(max_receptors):
-            base_eqs += f'I_syn_{receptor}_{i} : amp\n'
-    
-    for receptor in receptors:
-        terms = [f'I_syn_{receptor}_{i}' for i in range(max_receptors)]
-        base_eqs += f'I_syn_{receptor} = {" + ".join(terms)} : amp\n'
-    
-    base_eqs += 'I_syn_total = I_syn_AMPA + I_syn_NMDA + I_syn_GABA : amp\n'
-    
-    base_eqs += '''
-    g_L    : siemens  
-    E_L    : volt
-    Delta_T: volt
-    vt     : volt
-    vr     : volt 
-    tau_w  : second
-    th     : volt
-    a      : siemens 
-    d      : amp
-    C      : farad
-    I_ext  : amp
-    '''
-    
-    return base_eqs
+tau_GABA : second
+tau_AMPA : second
+tau_NMDA : second
+dg_g/dt = -g_g / tau_GABA : siemens
+dg_a/dt = -g_a / tau_AMPA : siemens
+dg_n/dt = -g_n / tau_NMDA : siemens
+ampa_beta : 1
+gaba_beta : 1
+nmda_beta : 1
 
-eqs = generate_synapse_model(max_receptors=5)
+E_AMPA : volt
+E_GABA : volt
+E_NMDA : volt
+Mg2 : 1
+
+g_L    : siemens  
+E_L    : volt
+Delta_T: volt
+vt     : volt
+vr     : volt 
+tau_w  : second
+th     : volt
+a      : siemens 
+d      : amp
+C      : farad
+I_ext  : amp
+'''
