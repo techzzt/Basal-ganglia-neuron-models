@@ -41,8 +41,8 @@ class STN(NeuronModel):
         
         reset = '''
         v_reset_val = vr 
-        v_reset_applied = v_reset_val + ((z - 15*pA > 20*pA) ? (z - 15*pA) : (20*pA)) / nS
-        v = if condition(z < 0*pA): then(v_reset_applied) else(v)
+        v_reset_applied = v_reset_val + clip(z - 15*pA, 20*pA, 1000*pA) / nS
+        v = v_reset_applied * int(z < 0*pA) + v * int(z >= 0*pA)
         z += d
         '''
         
