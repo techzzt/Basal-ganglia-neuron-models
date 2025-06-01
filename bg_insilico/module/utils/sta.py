@@ -2,6 +2,8 @@ from brian2 import *
 import numpy as np 
 
 def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connections, window=100*ms, bin_size=10*ms, start_from_end=5000*ms, min_spikes=10):
+    from module.simulation.runner import get_monitor_spikes
+    
     sta_results = {}
     t_end = defaultclock.t
     t_start = t_end - start_from_end
@@ -13,7 +15,7 @@ def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connection
     connected_pairs = set((conn['pre'], conn['post']) for conn in connections.values())
 
     for post_name, post_mon in post_monitors.items():
-        post_spike_times = post_mon.t
+        post_spike_times, _ = get_monitor_spikes(post_mon)
         valid_mask = (post_spike_times >= t_start)
         post_spike_times = post_spike_times[valid_mask]
 
@@ -31,7 +33,7 @@ def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connection
             if (pre_name, post_name) not in connected_pairs:
                 continue
 
-            pre_spike_times = pre_mon.t
+            pre_spike_times, _ = get_monitor_spikes(pre_mon)
             all_deltas = []
 
             for t_post in post_spike_times:
@@ -80,22 +82,27 @@ def adjust_connection_weights(connections, weight_adjustments):
     return updated_connections
 
 def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=10000*ms, plot_order=None, return_dict=True):
+    from module.simulation.runner import get_monitor_spikes
+    
     firing_rates = {}
     for name, monitor in spike_monitors.items():
         if plot_order and name not in plot_order:
             continue
-        if len(monitor.i) == 0:
+            
+        spike_times, spike_indices = get_monitor_spikes(monitor)
+        
+        if len(spike_indices) == 0:
             print(f"No spikes recorded for {name}")
             firing_rates[name] = 0.0
             continue
 
-        time_mask = (monitor.t >= start_time) & (monitor.t <= end_time)
-        spike_times = monitor.t[time_mask]
-        neuron_ids = monitor.i[time_mask]
+        time_mask = (spike_times >= start_time) & (spike_times <= end_time)
+        spike_times_filtered = spike_times[time_mask]
+        neuron_ids_filtered = spike_indices[time_mask]
 
         num_neurons = monitor.source.N
         time_window_sec = (end_time - start_time) / second
-        total_spikes = len(spike_times)
+        total_spikes = len(spike_times_filtered)
 
         avg_rate = total_spikes / (num_neurons * time_window_sec)
         firing_rates[name] = avg_rate

@@ -4,7 +4,8 @@ import numpy as np
 from brian2 import *
 from datetime import datetime
 
-def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms, end_time=10000*ms):
+def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms, end_time=1000*ms):
+    from module.simulation.runner import get_monitor_spikes
     np.random.seed(2025)
     try:
         if plot_order:
@@ -22,19 +23,21 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms
         firing_rates = {}
           
         for i, (name, monitor) in enumerate(spike_monitors.items()):
-            if len(monitor.i) == 0:
+            spike_times, spike_indices = get_monitor_spikes(monitor)
+            
+            if len(spike_indices) == 0:
                 print(f"No spikes recorded for {name}")
                 continue
 
             total_neurons = monitor.source.N
             chosen_neurons = np.random.choice(total_neurons, size=min(sample_size, total_neurons), replace=False)
 
-            time_mask = (monitor.t >= start_time) & (monitor.t <= end_time)
-            neuron_mask = np.isin(monitor.i, chosen_neurons)
+            time_mask = (spike_times >= start_time) & (spike_times <= end_time)
+            neuron_mask = np.isin(spike_indices, chosen_neurons)
             combined_mask = time_mask & neuron_mask
 
-            display_t = monitor.t[combined_mask]
-            display_i = monitor.i[combined_mask]
+            display_t = spike_times[combined_mask]
+            display_i = spike_indices[combined_mask]
 
             axes[i].scatter(display_t / ms, display_i, s=0.35)
             axes[i].set_title(f'{name} Raster Plot (subset of {len(chosen_neurons)} neurons)')
@@ -97,21 +100,26 @@ def plot_single_neuron_raster(spike_monitors, neuron_index, plot_order=None):
             axes = [axes]
 
         for i, (name, monitor) in enumerate(spike_monitors.items()):
-            if len(monitor.i) == 0:
+            spike_times, spike_indices = get_monitor_spikes(monitor)
+            
+            if len(spike_indices) == 0:
                 print(f"No spikes recorded for {name}")
                 continue
 
-            neuron_mask = monitor.i == neuron_index
-            spike_times = monitor.t[neuron_mask]
+            neuron_mask = spike_indices == neuron_index
+            neuron_spike_times = spike_times[neuron_mask]
 
-            if len(spike_times) == 0:
+            if len(neuron_spike_times) == 0:
                 print(f"{name} - Neuron {neuron_index} has no spikes.")
                 continue
 
-            axes[i].scatter(spike_times/ms, np.full_like(spike_times/ms, neuron_index), s=0.5, color='red')
+            axes[i].scatter(neuron_spike_times/ms, np.full_like(neuron_spike_times/ms, neuron_index), s=0.5, color='red')
             axes[i].set_title(f'{name} Neuron {neuron_index} Raster')
             axes[i].set_ylabel('Neuron index')
-            axes[i].set_xlim(0, int(monitor.t[-1] / ms))
+            
+            # Use the last spike time for xlim if available
+            if len(spike_times) > 0:
+                axes[i].set_xlim(0, int(spike_times[-1] / ms))
             axes[i].set_ylim(neuron_index - 1, neuron_index + 1)
 
         plt.xlabel('Time (ms)')
@@ -137,13 +145,15 @@ def plot_raster_all_neurons_stim_window(spike_monitors, stim_start=200*ms, end_t
             axes = [axes]
 
         for i, (name, monitor) in enumerate(spike_monitors.items()):
-            if len(monitor.i) == 0:
+            spike_times, spike_indices = get_monitor_spikes(monitor)
+            
+            if len(spike_indices) == 0:
                 print(f"No spikes recorded for {name}")
                 continue
 
-            time_mask = (monitor.t >= stim_start) & (monitor.t <= end_time)
-            display_t = monitor.t[time_mask]
-            display_i = monitor.i[time_mask]
+            time_mask = (spike_times >= stim_start) & (spike_times <= end_time)
+            display_t = spike_times[time_mask]
+            display_i = spike_indices[time_mask]
 
             axes[i].scatter(display_t / ms, display_i, s=0.5, color='darkblue')
             axes[i].set_title(f'{name} Raster (All neurons, {int(stim_start/ms)}–{int(end_time/ms)} ms)')
