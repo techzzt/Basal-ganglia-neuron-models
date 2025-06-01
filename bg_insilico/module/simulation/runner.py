@@ -120,6 +120,21 @@ def clear_monitor_history(spike_monitors, save_data=True, save_dir="./spike_data
     gc.collect()
     print(f"Monitor history cleared, data saved to {save_dir}")
 
+def get_monitor_spikes(monitor):
+    """Helper function to get spike data from monitor, handling both regular and reconstructed monitors"""
+    try:
+        # Try to access regular monitor data first
+        if hasattr(monitor, 't') and hasattr(monitor, 'i') and len(monitor.t) > 0:
+            return monitor.t, monitor.i
+        # Fall back to reconstructed data
+        elif hasattr(monitor, '_spike_times') and hasattr(monitor, '_spike_indices'):
+            return monitor._spike_times, monitor._spike_indices
+        else:
+            return np.array([]) * ms, np.array([])
+    except:
+        # Final fallback
+        return np.array([]) * ms, np.array([])
+
 def run_simulation_with_inh_ext_input(
     neuron_configs,
     connections,
@@ -223,12 +238,15 @@ def run_simulation_with_inh_ext_input(
         for name, data in all_spike_data.items():
             monitor = spike_monitors[name]
             if len(data['times']) > 0:
-                monitor.t = np.array(data['times']) * ms
-                monitor.i = np.array(data['indices'])
+                # Store in custom attributes to avoid read-only variable issues
+                monitor._spike_times = np.array(data['times']) * ms
+                monitor._spike_indices = np.array(data['indices'])
+                monitor._total_spikes = len(data['times'])
                 monitor.num_spikes = len(data['times'])
             else:
-                monitor.t = np.array([]) * ms
-                monitor.i = np.array([])
+                monitor._spike_times = np.array([]) * ms
+                monitor._spike_indices = np.array([])
+                monitor._total_spikes = 0
                 monitor.num_spikes = 0
         
         print("\nSimulation completed with memory management. Processing results")
