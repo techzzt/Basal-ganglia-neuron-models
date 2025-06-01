@@ -22,15 +22,19 @@ from module.models.stimulus import create_poisson_inputs
 # Matplotlib backend setup
 # plt.ion() 
 
-# Compiler optimization settings
-os.environ['CC'] = 'gcc'
-os.environ['CXX'] = 'g++'
-# prefs.codegen.target = 'numpy'
-prefs.codegen.cpp.extra_compile_args_gcc = ['-O2']
-prefs.codegen.cpp.extra_compile_args_msvc = ['/O2']
-prefs.devices.cpp_standalone.extra_make_args_unix = ['-j4'] 
-prefs.devices.cpp_standalone.openmp_threads = 1
+try:
+    from brian2.devices.device import reset_device, get_device
+    reset_device()
+except:
+    pass
 
+import platform
+if platform.system() == 'Darwin':
+    os.environ['CC'] = '/usr/bin/clang'
+    os.environ['CXX'] = '/usr/bin/clang++'
+
+prefs.codegen.target = 'cython'
+prefs.core.default_float_dtype = np.float32  
 class SimulationMonitor:
     def __init__(self, total_time, dt=1*ms, update_interval=100*ms):  
         self.total_time = float(total_time/ms)  
@@ -81,6 +85,41 @@ def run_with_progress(net, duration, dt=10*ms, update_interval=500*ms):
         monitor.close()
         gc.collect()
 
+def clear_monitor_history(spike_monitors, save_data=True, save_dir="./spike_data"):
+    """
+    Clear monitor history to save memory while optionally saving data
+    """
+    if save_data:
+        os.makedirs(save_dir, exist_ok=True)
+        timestamp = time.time()
+        
+        for name, monitor in spike_monitors.items():
+            if monitor.num_spikes > 0:
+                # Save spike data before clearing
+                spike_data = {
+                    'spike_times': np.array(monitor.t/ms),
+                    'spike_indices': np.array(monitor.i),
+                    'timestamp': timestamp
+                }
+                filename = f"{save_dir}/{name}_spikes_{int(timestamp)}.npz"
+                np.savez_compressed(filename, **spike_data)
+    
+    # Clear monitor data (this doesn't affect neuron states)
+    for monitor in spike_monitors.values():
+        try:
+            # Clear the monitor's internal arrays
+            monitor.source._spikemonitor_indices = []
+            monitor.source._spikemonitor_times = []
+            if hasattr(monitor, 't'):
+                monitor.t.resize(0)
+            if hasattr(monitor, 'i'):
+                monitor.i.resize(0)
+        except:
+            pass 
+    
+    gc.collect()
+    print(f"Monitor history cleared, data saved to {save_dir}")
+
 def run_simulation_with_inh_ext_input(
     neuron_configs,
     connections,
@@ -90,8 +129,18 @@ def run_simulation_with_inh_ext_input(
     start_time=0*ms,
     end_time=1000*ms,
     stim_pattern=None,
-    ext_inputs=None
+    ext_inputs=None,
+    cleanup_interval=1000
 ):
+    
+    try:
+        from brian2.devices.device import reset_device, get_device
+        current_device = get_device()
+        if hasattr(current_device, 'build') and hasattr(current_device, 'run'): 
+            print("Reset device to runtime mode")
+    except:
+        pass
+    
     spike_monitors = {}
     neuron_groups = None
     synapse_connections = None
@@ -110,7 +159,12 @@ def run_simulation_with_inh_ext_input(
         
         for name, group in neuron_groups.items():
             if not name.startswith(('Cortex_', 'Ext_')):  
-                sample_size = min(30, group.N)
+                if group.N > 10000:  
+                    sample_size = min(5, group.N) 
+                elif group.N > 1000:
+                    sample_size = min(10, group.N) 
+                else:
+                    sample_size = min(15, group.N) 
                 sample_indices = np.random.choice(group.N, size=sample_size, replace=False).tolist()
                 sp_mon = SpikeMonitor(group, record=sample_indices)
                 spike_monitors[name] = sp_mon
@@ -122,21 +176,65 @@ def run_simulation_with_inh_ext_input(
         net.add(*spike_monitors.values())
         
         duration = simulation_params.get('duration', 1000) * ms
-        dt = simulation_params.get('dt', 10) * ms
-        
-        print(f"\nStarting simulation for {duration/ms} ms")
+        dt = simulation_params.get('dt', 10) * ms 
+        print(f"\nStarting optimized simulation for {duration/ms} ms with memory management")
+        print(f"History cleanup interval: {cleanup_interval} ms")
+        print(f"Using timestep: {dt/ms} ms")
         defaultclock.dt = dt
         
-        chunk_size = 1000 * ms
+        chunk_size = cleanup_interval * ms
         t = 0 * ms
+        chunk_number = 0
+        
+        all_spike_data = {name: {'times': [], 'indices': []} for name in spike_monitors.keys()}
+        
         while t < duration:
             run_time = min(chunk_size, duration - t)
-            print(f"Running simulation chunk: {t/ms} to {(t + run_time)/ms} ms")
-            net.run(run_time)
+            if chunk_number % 2 == 0:  
+                print(f"Running chunk {chunk_number}: {t/ms} to {(t + run_time)/ms} ms")
+            
+            net.run(run_time, report=None)
+            
+            for name, monitor in spike_monitors.items():
+                if monitor.num_spikes > 0:
+                    absolute_times = np.array(monitor.t/ms) + (t/ms)
+                    all_spike_data[name]['times'].extend(absolute_times)
+                    all_spike_data[name]['indices'].extend(monitor.i)
+            
+            if chunk_number > 0:  
+                if chunk_number % 2 == 0: 
+                    print(f"Clearing monitor history at {(t + run_time)/ms} ms")
+                for monitor in spike_monitors.values():
+                    try:
+                        monitor._resize(0)
+                    except:
+                        pass
+                gc.collect()
+            
             t += run_time
+            chunk_number += 1
+            
+            if chunk_number % 3 == 0:  
+                progress_pct = (t/duration)*100
+                total_spikes = sum(len(data['times']) for data in all_spike_data.values())
+                print(f"Progress: {progress_pct:.1f}% ({t/ms:.0f}/{duration/ms:.0f} ms), Total spikes: {total_spikes}")
+        
+        print("\nReconstructing final spike data...")
+        for name, data in all_spike_data.items():
+            monitor = spike_monitors[name]
+            if len(data['times']) > 0:
+                monitor.t = np.array(data['times']) * ms
+                monitor.i = np.array(data['indices'])
+                monitor.num_spikes = len(data['times'])
+            else:
+                monitor.t = np.array([]) * ms
+                monitor.i = np.array([])
+                monitor.num_spikes = 0
+        
+        print("\nSimulation completed with memory management. Processing results")
+        
         for name, mon in spike_monitors.items():
-            print(f"{name} Number of Spike: {mon.num_spikes}")
-        print("\nSimulation completed. Processing results")
+            print(f"{name} Total Number of Spikes: {mon.num_spikes}")
         
         if not spike_monitors:
             print("Warning: No spike monitors were created!")
@@ -166,6 +264,12 @@ def run_simulation_with_inh_ext_input(
         for obj in [spike_monitors, neuron_groups, synapse_connections, poisson_groups]:
             if obj is not None:
                 del obj
+        
+        try:
+            device.reinit()
+            device.activate()
+        except:
+            pass
         
         gc.collect()
     
