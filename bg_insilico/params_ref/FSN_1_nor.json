@@ -7,7 +7,7 @@
         "vb": {"value": -55, "unit": "mV"},
         "vt": {"value": -50, "unit": "mV"},
         "th": {"value": 25, "unit": "mV"},
-        "a": {"value": 0.2, "unit": "second"},
+        "a": {"value": 20, "unit": "second"},
         "b": {"value": 0.025, "unit": "1"},
         "c": {"value": -60, "unit": "mV"},
         "C": {"value": 80, "unit": "pF"},
