@@ -1,12 +1,14 @@
 import importlib
 from brian2 import *
 from module.models import QIF
+from module.models.Synapse import generate_neuron_specific_synapse_inputs
 from brian2 import mV, ms, nS
 import numpy as np 
 
 class NeuronModel:
     def __init__(self, N, params):
-        super().__init__(N, params)
+        self.N = N
+        self.params = params
         self.neurons = None
 
     def create_neurons(self):
@@ -14,8 +16,10 @@ class NeuronModel:
 
 class MSND1(NeuronModel):
     def __init__(self, N, params, connections=None):  
+        super().__init__(N, params)
         self.N = N
         self.params = params
+        self.connections = connections
         self.receptor_params = self.get_receptor_params(connections) if connections else {}
         self.neurons = None
 
@@ -33,15 +37,19 @@ class MSND1(NeuronModel):
         return receptor_params
 
     def create_neurons(self):
-        eqs = QIF.eqs 
-        self.neurons = NeuronGroup(self.N, eqs, threshold='v > th', reset='v = c; u += d', method='euler')
-
+        base_eqs = QIF.eqs 
+        
+        if self.connections:
+            synapse_eqs = generate_neuron_specific_synapse_inputs("MSND1", self.connections)
+            full_eqs = base_eqs + '\n' + synapse_eqs
+        else:
+            full_eqs = base_eqs + '\nIsyn = 0*amp : amp\n'
+        
+        self.neurons = NeuronGroup(self.N, full_eqs, threshold='v > th', reset='v = c; u += d', method='euler')
+        
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
-        vr_val = self.params['vr']['value'] 
-        vt_val = self.params['vt']['value']
-        v_random = np.random.uniform(vr_val, vt_val, self.N)
-        self.neurons.v = v_random * mV
+        self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.k = self.params['k']['value'] 
         self.neurons.a = self.params['a']['value'] * eval(self.params['a']['unit'])
@@ -50,5 +58,25 @@ class MSND1(NeuronModel):
         self.neurons.c = self.params['c']['value'] * eval(self.params['c']['unit'])
         self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit']) 
         self.neurons.u = self.params['u']['value'] * eval(self.params['u']['unit'])
+
+        if hasattr(self.neurons, 'g_a'):
+            self.neurons.g_a = 0 * nS
+        if hasattr(self.neurons, 'g_g'):
+            self.neurons.g_g = 0 * nS
+        if hasattr(self.neurons, 'g_n'):
+            self.neurons.g_n = 0 * nS
+            
+        if hasattr(self.neurons, 'tau_AMPA'):
+            self.neurons.tau_AMPA = 12 * ms
+        if hasattr(self.neurons, 'E_AMPA'):
+            self.neurons.E_AMPA = 0 * mV
+        if hasattr(self.neurons, 'ampa_beta'):
+            self.neurons.ampa_beta = 1.0
+        if hasattr(self.neurons, 'tau_GABA'):
+            self.neurons.tau_GABA = 6 * ms
+        if hasattr(self.neurons, 'E_GABA'):
+            self.neurons.E_GABA = -74 * mV
+        if hasattr(self.neurons, 'gaba_beta'):
+            self.neurons.gaba_beta = 1.0
 
         return self.neurons
