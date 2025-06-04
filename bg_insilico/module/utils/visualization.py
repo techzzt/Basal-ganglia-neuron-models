@@ -3,9 +3,9 @@ import os
 import numpy as np 
 from brian2 import *
 from datetime import datetime
+from module.simulation.runner import get_monitor_spikes
 
 def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms, end_time=1000*ms):
-    from module.simulation.runner import get_monitor_spikes
     np.random.seed(2025)
     try:
         if plot_order:
@@ -117,7 +117,6 @@ def plot_single_neuron_raster(spike_monitors, neuron_index, plot_order=None):
             axes[i].set_title(f'{name} Neuron {neuron_index} Raster')
             axes[i].set_ylabel('Neuron index')
             
-            # Use the last spike time for xlim if available
             if len(spike_times) > 0:
                 axes[i].set_xlim(0, int(spike_times[-1] / ms))
             axes[i].set_ylim(neuron_index - 1, neuron_index + 1)

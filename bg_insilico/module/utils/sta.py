@@ -1,5 +1,10 @@
 from brian2 import *
 import numpy as np 
+import time
+from module.simulation.runner import get_monitor_spikes
+
+seed(int(time.time()))  
+print(f"Using random seed: {int(time.time())}")
 
 def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connections, window=100*ms, bin_size=10*ms, start_from_end=5000*ms, min_spikes=10):
     from module.simulation.runner import get_monitor_spikes
@@ -82,7 +87,6 @@ def adjust_connection_weights(connections, weight_adjustments):
     return updated_connections
 
 def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=10000*ms, plot_order=None, return_dict=True):
-    from module.simulation.runner import get_monitor_spikes
     
     firing_rates = {}
     for name, monitor in spike_monitors.items():
@@ -90,9 +94,16 @@ def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=1
             continue
             
         spike_times, spike_indices = get_monitor_spikes(monitor)
+        total_neurons = monitor.source.N
+        time_window_sec = (end_time - start_time) / second
+        
+        print(f"[{name}] Debug info:")
+        print(f"  total_neurons: {total_neurons}")
+        print(f"  time_window_sec: {time_window_sec}")
+        print(f"  start_time: {start_time}")
+        print(f"  end_time: {end_time}")
         
         if len(spike_indices) == 0:
-            print(f"No spikes recorded for {name}")
             firing_rates[name] = 0.0
             continue
 
@@ -100,14 +111,16 @@ def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=1
         spike_times_filtered = spike_times[time_mask]
         neuron_ids_filtered = spike_indices[time_mask]
 
-        num_neurons = monitor.source.N
-        time_window_sec = (end_time - start_time) / second
+        num_monitored_neurons = total_neurons
         total_spikes = len(spike_times_filtered)
 
-        avg_rate = total_spikes / (num_neurons * time_window_sec)
-        firing_rates[name] = avg_rate
-
-        print(f"[{name}] Mean Firing Rates ({int(start_time/ms)}–{int(end_time/ms)}ms): {avg_rate:.2f} Hz")
+        if num_monitored_neurons > 0 and time_window_sec > 0:
+            network_avg_rate = total_spikes / (num_monitored_neurons * time_window_sec)
+            firing_rates[name] = network_avg_rate
+            print(f"[{name}] Mean Firing Rates: {network_avg_rate:.2f} Hz")
+        else:
+            firing_rates[name] = 0.0
+            print(f"[{name}] Mean Firing Rates: 0.00 Hz (division by zero prevented)")
 
     if return_dict:
         return firing_rates
