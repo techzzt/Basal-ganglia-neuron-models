@@ -1,9 +1,9 @@
 {
     "neurons": [
-        {"name": "Cortex_FSN", "N": 18000, "neuron_type": "poisson", "target_rates": {"FSN": {"equation": "646*Hz"}}},
+        {"name": "Cortex_FSN", "N": 800, "neuron_type": "poisson", "target_rates": {"FSN": {"equation": "646*Hz"}}},
         {"name": "Cortex_MSND1", "N": 18000, "neuron_type": "poisson", "target_rates": {"MSND1": {"equation": "448*Hz"}}},  
         {"name": "Cortex_MSND2", "N": 18000, "neuron_type": "poisson", "target_rates": {"MSND2": {"equation": "592*Hz"}}},
-        {"name": "Cortex_STN", "N": 18000, "neuron_type": "poisson", "target_rates": {"STN": {"equation": "170*Hz"}}},
+        {"name": "Cortex_STN", "N": 200, "neuron_type": "poisson", "target_rates": {"STN": {"equation": "170*Hz"}}},
         {"name": "Ext_GPeT1", "N": 500, "neuron_type": "poisson", "target_rates": {"GPeT1": {"equation": "720*Hz"}}},
         {"name": "Ext_GPeTA", "N": 160, "neuron_type": "poisson", "target_rates": {"GPeTA": {"equation": "100*Hz"}}},
        
@@ -52,8 +52,8 @@
             "pre": "Cortex_FSN",
             "post": "FSN",
             "receptor_type": "AMPA",
-            "p": 1,
-            "weight": 0.8,
+            "p": 0.7,
+            "weight": 0.25,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -120,7 +120,7 @@
             "post": "MSND1",
             "receptor_type": ["AMPA", "NMDA"],
             "p": 0.9,
-            "weight": 0.1,
+            "weight": 0.12,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -193,7 +193,7 @@
             "post": "MSND1",
             "receptor_type": "GABA",
             "p": 0.18,
-            "weight": 1.5,
+            "weight": 1,
             "receptor_params": {
                 "GABA":{
                 "g0": {"value": 0.04, "unit": "nS"},
@@ -210,7 +210,7 @@
             "post": "MSND2",
             "receptor_type": ["AMPA", "NMDA"],
             "p": 0.7,
-            "weight": 0.1,
+            "weight": 0.12,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -300,7 +300,7 @@
             "post": "STN",
             "receptor_type": ["AMPA", "NMDA"],
             "p": 1,
-            "weight": 1.0,
+            "weight": 0.5,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.25, "unit": "nS"},
@@ -340,7 +340,7 @@
             "post": "GPeT1",
             "receptor_type": "AMPA",
             "p": 0.9,
-            "weight": 0.8,
+            "weight": 0.08,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -373,7 +373,7 @@
             "post": "GPeT1",
             "receptor_type": "AMPA",
             "p": 0.1,
-            "weight": 1.5,
+            "weight": 1,
             "receptor_params": {
                 "AMPA": {
                 "g0": {"value": 0.35, "unit": "nS"},
@@ -424,7 +424,7 @@
             "post": "GPeTA",
             "receptor_type": "AMPA",
             "p": 1,
-            "weight": 1.5,
+            "weight": 0.4,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -488,11 +488,11 @@
     },
 
     "simulation": {
-        "duration": 30000
+        "duration": 2000
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
 
     "start_time": 5000,
-    "end_time": 30000
+    "end_time": 5000
 }
