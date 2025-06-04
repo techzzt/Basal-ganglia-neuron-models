@@ -21,7 +21,6 @@ def get_neuron_count(neuron_configs, target_name):
     return None  
 
 def create_poisson_input(N, rate_expr, duration, dt=1*ms):
-    # Convert duration to ms for calculation
     duration_ms = duration/ms if hasattr(duration, 'dim') else duration
     dt_ms = dt/ms if hasattr(dt, 'dim') else dt
     
@@ -40,8 +39,7 @@ def create_poisson_input(N, rate_expr, duration, dt=1*ms):
         ])
         rate_arrays.append(chunk_rates)
     
-    # Each neuron should have the same rate profile (not divided by N)
-    # Ensure proper Hz units for TimedArray
+
     rate_values = np.concatenate(rate_arrays)
     rate_array = TimedArray(rate_values * Hz, dt)
     
