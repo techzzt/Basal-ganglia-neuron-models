@@ -32,7 +32,7 @@ neuron models should be put under ```./bg_insilico```
 | PV+ | SNr | AdEx Model | High-frequency firing | SNr-PV+ | GABA | - | Atherton & Bevan 2005 |
 | SST+ | SNr | AdEx Model | Heterogeneous firing, motor control | - | GABA | - | Atherton & Bevan 2005 |
 | GABAergic | SNc | LIF Model | local inhibition | - | GABA | - | Tritsch et al. 2012 |
-| Dopaminergic | SNc | HH-based | phasic bursting | SNc-DA, DA neuron | DA + GABA | - | Schultz 2007 |
+| Dopaminergic | SNc | HH-based | phasic bursting | SNc-DA, DA neuron | DA + GABA |  |  |
 
 #### Population Value 
 Neuron type | [References 1](https://www.eneuro.org/content/3/6/ENEURO.0156-16.2016.short) | References 2 | [Reference 3](https://www.eneuro.org/content/9/2/ENEURO.0376-21.2022.abstract) | [Reference 4](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1010645) | [Reference 5](https://www.biorxiv.org/content/10.1101/2023.03.07.531640v1) | [Reference 6](https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0189109&type=printable) | [Reference 7](https://www.biorxiv.org/content/10.1101/2023.09.05.556301v3.full.pdf)
