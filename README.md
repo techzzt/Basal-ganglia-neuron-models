@@ -21,18 +21,18 @@ neuron models should be put under ```./bg_insilico```
 |-------------|--------------|------------|----------------------|-------------------|-------------|---------------------|
 | MSN D1 | Striatum | QIF Model | Direct pathway, D1 receptors | dSPN, Direct SPN | GABA | Implemented | 
 | MSN D2 | Striatum | QIF Model | Indirect pathway, D2 receptors | iSPN, Indirect SPN | GABA | Implemented | 
-| FSN | Striatum | QIF + Type-2 | Fast-spiking, feedforward inhibition | FSI, FS | GABA | Implemented |
-| ChIN | Striatum | HH-based | Tonically active | TANs | ACh | Planned | 
+| FSN | Striatum | QIF and Type-2 | Fast-spiking, feedforward inhibition | FSI, FS | GABA | Implemented |
+| ChIN | Striatum | HH Model | Tonically active | TANs | ACh | Planned | 
 | Prototypic | GPe | AdEx Model | High firing rate | GPe-TI, Proto | GABA | Implemented |
-| Arkypallidal | GPe | AdEx Model | - | GPe-TA, Arky | GABA | Implemented | 
+| Arkypallidal | GPe | AdEx Model |  | GPe-TA, Arky | GABA | Implemented | 
 | PV+ | STN | AdEx Model | high frequency bursting | paravalbumin PV+ | Glutamate | Implemented | 
-| PV- | STN | AdEx Model | - | paravalbumin PV+ | Glutamate | Implemented | 
-| PV+ | GPi | AdEx Model | High-frequency tonic firing | - | GABA | - | 
-| SST+ | GPi | AdEx Model | Lower baseline firing | - | GABA | - |
-| PV+ | SNr | AdEx Model | High-frequency firing | SNr-PV+ | GABA | - | 
-| SST+ | SNr | AdEx Model | Heterogeneous firing, motor control | - | GABA | - | 
-| GABAergic | SNc | LIF Model | local inhibition | - | GABA | - | 
-| Dopaminergic | SNc | HH-based | phasic bursting | SNc-DA, DA neuron | DA + GABA |  |  |
+| PV- | STN | AdEx Model |  | paravalbumin PV+ | Glutamate | Implemented | 
+| PV+ | GPi | AdEx Model | High-frequency tonic firing |  | GABA |  | 
+| SST+ | GPi | AdEx Model | Lower baseline firing |  | GABA |  |
+| PV+ | SNr | AdEx Model | High-frequency firing | SNr-PV+ | GABA |  | 
+| SST+ | SNr | AdEx Model | Heterogeneous firing, motor control |  | GABA |  | 
+| GABAergic | SNc | LIF Model | local inhibition |  | GABA |  | 
+| Dopaminergic | SNc | HH Model | phasic bursting | SNc-DA, DA neuron | DA + GABA |  |  |
 
 #### Population Value 
 Neuron type | [References 1](https://www.eneuro.org/content/3/6/ENEURO.0156-16.2016.short) | References 2 | [Reference 3](https://www.eneuro.org/content/9/2/ENEURO.0376-21.2022.abstract) | [Reference 4](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1010645) | [Reference 5](https://www.biorxiv.org/content/10.1101/2023.03.07.531640v1) | [Reference 6](https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0189109&type=printable) | [Reference 7](https://www.biorxiv.org/content/10.1101/2023.09.05.556301v3.full.pdf)
