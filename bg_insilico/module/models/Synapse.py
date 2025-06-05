@@ -28,12 +28,17 @@ class SynapseBase:
         }
 
     def _get_on_pre(self, receptor_type, g0_value):
-        fac = {'AMPA': 2.2, 'NMDA': 1.1, 'GABA': 2}.get(receptor_type, 1)
+        fac = {'AMPA': 2.2, 'NMDA': 5.0, 'GABA': 2}.get(receptor_type, 1)
         max_g_val = fac * g0_value
         max_g = f"{max_g_val}*nS"
         conductance_increase = f"w * {g0_value} * nS"
 
-        var = {'AMPA': 'g_a', 'NMDA': 'g_n', 'GABA': 'g_g'}.get(receptor_type)
+        var_map = {
+            'AMPA': 'g_a', 
+            'NMDA': 'g_n', 
+            'GABA': 'g_g'
+        }
+        var = var_map.get(receptor_type)
         if var is None:
             return ''
 
@@ -41,7 +46,6 @@ class SynapseBase:
         {var} += {conductance_increase}
         {var} = clip({var}, 0 * nS, {max_g})
         """
-
 
 class Synapse(SynapseBase):
     def __init__(self, neurons, connections):
@@ -85,39 +89,41 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
                     g0_value_for_on_pre = g0_value_for_on_pre.get('g0', {}).get('value', 0.0)
                     
                     on_pre_code = synapse_instance._get_on_pre(receptor_type, g0_value_for_on_pre)
-                    # cortex_factor = 0.11 if pre.startswith("Cortex") else 1.0
 
-                    syn = Synapses(
-                        pre_group,
-                        post_group,
-                        model=model_eqns,
-                        on_pre=on_pre_code
-                    )
-                    created_synapses_map[syn_key] = syn
-                    synapse_connections.append(syn)
+                    try:
+                        syn = Synapses(
+                            pre_group,
+                            post_group,
+                            model=model_eqns,
+                            on_pre=on_pre_code
+                        )
+                        created_synapses_map[syn_key] = syn
+                        synapse_connections.append(syn)
 
-                    p_connect = conn_config.get('p', 1.0)
-                    syn.connect(p=p_connect)
+                        p_connect = conn_config.get('p', 1.0)
+                        syn.connect(p=p_connect)
 
-                    if len(syn.i) > 0:
-                        weight = conn_config.get('weight', 1.0)
-                        syn.w = weight
-                        
-                        current_params = conn_config.get('receptor_params', {}).get(receptor_type, {})
-                        
-                        if hasattr(syn, 'tau_' + receptor_type):
-                            tau_val = current_params.get('tau_syn', {}).get('value', 160.0)
-                            setattr(syn, f'tau_{receptor_type}', tau_val * ms)
+                        if len(syn.i) > 0:
+                            weight = conn_config.get('weight', 1.0)
+                            syn.w = weight
                             
-                        if hasattr(syn, 'E_' + receptor_type):
-                            e_val = current_params.get('E_rev', {}).get('value', 0.0)
-                            setattr(syn, f'E_{receptor_type}', e_val * mV)
+                            current_params = conn_config.get('receptor_params', {}).get(receptor_type, {})
                             
-                        if hasattr(syn, receptor_type.lower() + '_beta'):
-                            beta_val = current_params.get('beta', {}).get('value', 1.0)
-                            setattr(syn, f'{receptor_type.lower()}_beta', beta_val)
-                        
-                        print(f"Connection {conn_name}: {pre}->{post} ({receptor_type}), weight={weight}, {len(syn.i)} synapses created")
+                            if hasattr(syn, 'tau_' + receptor_type):
+                                tau_val = current_params.get('tau_syn', {}).get('value', 160.0)
+                                setattr(syn, f'tau_{receptor_type}', tau_val * ms)
+                                
+                            if hasattr(syn, 'E_' + receptor_type):
+                                e_val = current_params.get('E_rev', {}).get('value', 0.0)
+                                setattr(syn, f'E_{receptor_type}', e_val * mV)
+                                
+                            if hasattr(syn, receptor_type.lower() + '_beta'):
+                                beta_val = current_params.get('beta', {}).get('value', 1.0)
+                                setattr(syn, f'{receptor_type.lower()}_beta', beta_val)
+                    except Exception as e:
+                        print(f"ERROR creating {receptor_type} synapse: {str(e)}")
+                else:
+                    pass  
 
         return synapse_connections
 
