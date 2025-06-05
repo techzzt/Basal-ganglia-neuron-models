@@ -18,7 +18,7 @@ Izhikevich |$$\frac{dv}{dt} = \left(0.04 \, \frac{1}{\text{ms} \cdot \text{mV}}\
 neuron models should be put under ```./bg_insilico```
 
 | Neuron Type | Brain Region | Model Type | Description | Alternative Terms | Transmitter | Implementation Status |
-|-------------|--------------|------------|----------------------|-------------------|-------------|---------------------|
+|-----------|--------------|--------------|--------------------|-------------------|-----------|-------------------|
 | MSN D1 | Striatum | QIF Model | Direct pathway, D1 receptors | dSPN, Direct SPN | GABA | Implemented | 
 | MSN D2 | Striatum | QIF Model | Indirect pathway, D2 receptors | iSPN, Indirect SPN | GABA | Implemented | 
 | FSN | Striatum | QIF and Type-2 | Fast-spiking, feedforward inhibition | FSI, FS | GABA | Implemented |
