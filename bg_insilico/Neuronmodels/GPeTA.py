@@ -69,17 +69,40 @@ class GPeTA(NeuronModel):
         if hasattr(self.neurons, 'g_n'):
             self.neurons.g_n = 0 * nS
             
-        if hasattr(self.neurons, 'tau_AMPA'):
-            self.neurons.tau_AMPA = 12 * ms
-        if hasattr(self.neurons, 'E_AMPA'):
-            self.neurons.E_AMPA = 0 * mV
-        if hasattr(self.neurons, 'ampa_beta'):
-            self.neurons.ampa_beta = 1.0
-        if hasattr(self.neurons, 'tau_GABA'):
-            self.neurons.tau_GABA = 6 * ms
-        if hasattr(self.neurons, 'E_GABA'):
-            self.neurons.E_GABA = -74 * mV
-        if hasattr(self.neurons, 'gaba_beta'):
-            self.neurons.gaba_beta = 1.0
+        if 'AMPA' in self.receptor_params:
+            ampa_param_list = self.receptor_params['AMPA']
+            dominant_params = max(ampa_param_list, key=lambda p: p['g0']['value'])
             
+            if hasattr(self.neurons, 'tau_AMPA'):
+                self.neurons.tau_AMPA = dominant_params['tau_syn']['value'] * eval(dominant_params['tau_syn']['unit'])
+            if hasattr(self.neurons, 'E_AMPA'):
+                self.neurons.E_AMPA = dominant_params['E_rev']['value'] * eval(dominant_params['E_rev']['unit'])
+            if hasattr(self.neurons, 'ampa_beta'):
+                self.neurons.ampa_beta = dominant_params.get('beta', {'value': 1.0})['value']
+        else:
+            if hasattr(self.neurons, 'tau_AMPA'):
+                self.neurons.tau_AMPA = 12 * ms
+            if hasattr(self.neurons, 'E_AMPA'):
+                self.neurons.E_AMPA = 0 * mV
+            if hasattr(self.neurons, 'ampa_beta'):
+                self.neurons.ampa_beta = 1.0
+                
+        if 'GABA' in self.receptor_params:
+            gaba_param_list = self.receptor_params['GABA']
+            dominant_params = max(gaba_param_list, key=lambda p: p['g0']['value'])
+            
+            if hasattr(self.neurons, 'tau_GABA'):
+                self.neurons.tau_GABA = dominant_params['tau_syn']['value'] * eval(dominant_params['tau_syn']['unit'])
+            if hasattr(self.neurons, 'E_GABA'):
+                self.neurons.E_GABA = dominant_params['E_rev']['value'] * eval(dominant_params['E_rev']['unit'])
+            if hasattr(self.neurons, 'gaba_beta'):
+                self.neurons.gaba_beta = dominant_params.get('beta', {'value': 1.0})['value']
+        else:
+            if hasattr(self.neurons, 'tau_GABA'):
+                self.neurons.tau_GABA = 6 * ms
+            if hasattr(self.neurons, 'E_GABA'):
+                self.neurons.E_GABA = -74 * mV
+            if hasattr(self.neurons, 'gaba_beta'):
+                self.neurons.gaba_beta = 1.0
+
         return self.neurons
