@@ -1,13 +1,22 @@
 from brian2 import *
 import numpy as np 
 import time
-from module.simulation.runner import get_monitor_spikes
+
+def get_monitor_spikes(monitor):
+    try:
+        if hasattr(monitor, 't') and hasattr(monitor, 'i') and len(monitor.t) > 0:
+            return monitor.t, monitor.i
+        elif hasattr(monitor, '_spike_times') and hasattr(monitor, '_spike_indices'):
+            return monitor._spike_times, monitor._spike_indices
+        else:
+            return np.array([]) * ms, np.array([])
+    except:
+        return np.array([]) * ms, np.array([])
 
 seed(int(time.time()))  
 print(f"Using random seed: {int(time.time())}")
 
 def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connections, window=100*ms, bin_size=10*ms, start_from_end=5000*ms, min_spikes=10):
-    from module.simulation.runner import get_monitor_spikes
     
     sta_results = {}
     t_end = defaultclock.t
@@ -97,12 +106,6 @@ def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=1
         total_neurons = monitor.source.N
         time_window_sec = (end_time - start_time) / second
         
-        print(f"[{name}] Debug info:")
-        print(f"  total_neurons: {total_neurons}")
-        print(f"  time_window_sec: {time_window_sec}")
-        print(f"  start_time: {start_time}")
-        print(f"  end_time: {end_time}")
-        
         if len(spike_indices) == 0:
             firing_rates[name] = 0.0
             continue
@@ -117,10 +120,10 @@ def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=1
         if num_monitored_neurons > 0 and time_window_sec > 0:
             network_avg_rate = total_spikes / (num_monitored_neurons * time_window_sec)
             firing_rates[name] = network_avg_rate
-            print(f"[{name}] Mean Firing Rates: {network_avg_rate:.2f} Hz")
+            print(f"[{name}] Mean Firing Rate: {network_avg_rate:.2f} Hz")
         else:
             firing_rates[name] = 0.0
-            print(f"[{name}] Mean Firing Rates: 0.00 Hz (division by zero prevented)")
+            print(f"[{name}] Mean Firing Rate: 0.00 Hz")
 
     if return_dict:
         return firing_rates

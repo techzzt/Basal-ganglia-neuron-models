@@ -3,7 +3,17 @@ import os
 import numpy as np 
 from brian2 import *
 from datetime import datetime
-from module.simulation.runner import get_monitor_spikes
+
+def get_monitor_spikes(monitor):
+    try:
+        if hasattr(monitor, 't') and hasattr(monitor, 'i') and len(monitor.t) > 0:
+            return monitor.t, monitor.i
+        elif hasattr(monitor, '_spike_times') and hasattr(monitor, '_spike_indices'):
+            return monitor._spike_times, monitor._spike_indices
+        else:
+            return np.array([]) * ms, np.array([])
+    except:
+        return np.array([]) * ms, np.array([])
 
 def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms, end_time=1000*ms):
     np.random.seed(2025)
