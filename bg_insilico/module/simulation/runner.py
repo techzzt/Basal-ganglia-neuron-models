@@ -4,6 +4,7 @@ from copy import deepcopy
 import time
 from tqdm import tqdm
 import gc
+import random as python_random
 
 from brian2 import *
 from brian2 import mV, ms, nS, Hz
@@ -32,7 +33,9 @@ if platform.system() == 'Darwin':
     os.environ['CXX'] = '/usr/bin/clang++'
 
 prefs.codegen.target = 'cython'
-prefs.core.default_float_dtype = np.float32  
+prefs.core.default_float_dtype = np.float32
+prefs.codegen.runtime.cython.multiprocess_safe = False
+prefs.codegen.runtime.numpy.discard_units = True
 
 class SimulationMonitor:
     def __init__(self, total_time, dt=1*ms, update_interval=100*ms):  
@@ -100,9 +103,26 @@ def run_simulation_with_inh_ext_input(
     results = {'spike_monitors': {}, 'firing_rates': {}}
     
     try:
-        start_scope()
+        try:
+            device.reinit()
+            device.activate()
+        except:
+            pass
+
+        seed_value = python_random.randint(1, 2**31-1)
+        print(f"Using random seed: {seed_value}")
+        seed(seed_value)
         
         neuron_groups = create_neurons(neuron_configs, simulation_params, connections)
+        
+        for name, group in neuron_groups.items():
+            if not name.startswith(('Cortex_', 'Ext_')):
+                if hasattr(group, 'g_a'):
+                    group.g_a = 0 * nS
+                if hasattr(group, 'g_g'):
+                    group.g_g = 0 * nS
+                if hasattr(group, 'g_n'):
+                    group.g_n = 0 * nS
         
         synapse_connections = create_synapses(neuron_groups, connections, synapse_class)
         
@@ -120,7 +140,7 @@ def run_simulation_with_inh_ext_input(
         net.add(*spike_monitors.values())
         
         duration = simulation_params.get('duration', 1000) * ms
-        dt = simulation_params.get('dt', 0.1) * ms 
+        dt = simulation_params.get('dt', 1) * ms 
         defaultclock.dt = dt
         
         report_interval = duration * 0.5
@@ -129,7 +149,7 @@ def run_simulation_with_inh_ext_input(
         if not spike_monitors:
             return results
         
-        compute_firing_rates_all_neurons(spike_monitors, start_time=start_time, end_time=end_time, plot_order=plot_order)
+        firing_rates = compute_firing_rates_all_neurons(spike_monitors, start_time=start_time, end_time=end_time, plot_order=plot_order)
         
         plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time)
         
