@@ -5,7 +5,7 @@ from module.utils.param_loader import load_params
 from brian2 import ms 
 
 def main():
-    params_file = 'config/test_normal_fsn_params_noin.json'
+    params_file = 'config/test_normal_noin.json'
     
     params = load_params(params_file)
     neuron_configs = params['neurons']
@@ -16,7 +16,16 @@ def main():
     start_time = params.get('start_time', 0) * ms
     end_time = params.get('end_time', 10000) * ms
 
-    # Simulation 
+    ext_inputs = {}
+    for neuron_config in neuron_configs:
+        if neuron_config.get('neuron_type') == 'poisson':
+            name = neuron_config['name']
+            if 'target_rates' in neuron_config:
+                target, rate_info = list(neuron_config['target_rates'].items())[0]
+                rate_expr = rate_info['equation']
+                ext_inputs[target] = {'rate': rate_expr}
+                print(f"Setting up external input for {target}: {rate_expr}")
+
     results = run_simulation_with_inh_ext_input(
         neuron_configs=neuron_configs,
         connections=connections,
@@ -24,7 +33,8 @@ def main():
         simulation_params=simulation_params,    
         plot_order=plot_order, 
         start_time=start_time,
-        end_time=end_time
+        end_time=end_time,
+        ext_inputs=ext_inputs
         )
     
     print("Simulation completed successfully")
