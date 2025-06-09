@@ -3,7 +3,7 @@
     "params": {
         "k": {"value": 1, "unit": ""},
         "u": {"value": 0, "unit": "pA"},
-        "v": {"value": -40, "unit": "mV"},
+        "v": {"value": -79, "unit": "mV"},
         "vr": {"value": -80, "unit": "mV"},
         "vt": {"value": -29.7, "unit": "mV"},
         "th": {"value": 40, "unit": "mV"},
@@ -14,5 +14,6 @@
         "c": {"value": -60, "unit": "mV"}
     },
     "reference": {
-        "title": "Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model"    }
+        "title": "Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model"
+    }
 }

@@ -6,7 +6,7 @@
         "Delta_T": {"value": 16.2, "unit": "mV"},
         "vt": {"value": -64.0, "unit": "mV"},
         "vr": {"value": -70, "unit": "mV"},
-        "v": {"value": -65, "unit": "mV"},
+        "v": {"value": -67, "unit": "mV"},
         "tau_w": {"value": 333, "unit": "ms"},
         "th": {"value": 15, "unit": "mV"},
         "a": {"value": 0.3, "unit": "nS"},
