@@ -52,8 +52,8 @@
             "pre": "Cortex_FSN",
             "post": "FSN",
             "receptor_type": "AMPA",
-            "p": 0.7,
-            "weight": 0.25,
+            "p": 0.5,
+            "weight": 0.001,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -68,7 +68,7 @@
             "pre": "FSN",
             "post": "FSN",
             "receptor_type": "GABA",
-            "p": 0.74,
+            "p": 0.0063,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -85,7 +85,7 @@
             "pre": "GPeT1",
             "post": "FSN",
             "receptor_type": "GABA",
-            "p": 0.01,
+            "p": 0.0101,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -102,7 +102,7 @@
             "pre": "GPeTA",
             "post": "FSN",
             "receptor_type": "GABA",
-            "p": 0.03,
+            "p": 0.0305,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -119,8 +119,8 @@
             "pre": "Cortex_MSND1",
             "post": "MSND1",
             "receptor_type": ["AMPA", "NMDA"],
-            "p": 0.9,
-            "weight": 0.12,
+            "p": 0.1,
+            "weight": 0.0001,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -142,7 +142,7 @@
             "pre": "FSN",
             "post": "MSND1",
             "receptor_type": "GABA",
-            "p": 0.27,
+            "p": 0.010,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -158,7 +158,7 @@
             "pre": "MSND1",
             "post": "MSND1",
             "receptor_type": "GABA",
-            "p": 0.02,
+            "p": 0.0096,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -175,7 +175,7 @@
             "pre": "MSND2",
             "post": "MSND1",
             "receptor_type": "GABA",
-            "p": 0.022,
+            "p": 0.0103,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -192,7 +192,7 @@
             "pre": "GPeTA",
             "post": "MSND1",
             "receptor_type": "GABA",
-            "p": 0.18,
+            "p": 0.030,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -209,8 +209,8 @@
             "pre": "Cortex_MSND2",
             "post": "MSND2",
             "receptor_type": ["AMPA", "NMDA"],
-            "p": 0.7,
-            "weight": 0.12,
+            "p": 0.1,
+            "weight": 0.0001,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -232,7 +232,7 @@
             "pre": "FSN",
             "post": "MSND2",
             "receptor_type": "GABA",
-            "p": 0.18,
+            "p": 0.007,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -249,7 +249,7 @@
             "pre": "MSND1",
             "post": "MSND2",
             "receptor_type": "GABA",
-            "p": 0.0047,
+            "p": 0.0022,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -266,7 +266,7 @@
             "pre": "MSND2",
             "post": "MSND2",
             "receptor_type": "GABA",
-            "p": 0.028,
+            "p": 0.0133,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -283,7 +283,7 @@
             "pre": "GPeTA",
             "post": "MSND2",
             "receptor_type": "GABA",
-            "p": 0.03,
+            "p": 0.030,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -299,8 +299,8 @@
             "pre": "Cortex_STN",
             "post": "STN",
             "receptor_type": ["AMPA", "NMDA"],
-            "p": 1,
-            "weight": 0.5,
+            "p": 0.5,
+            "weight": 0.01,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.25, "unit": "nS"},
@@ -322,7 +322,7 @@
             "pre": "GPeT1",
             "post": "STN",
             "receptor_type": "GABA",
-            "p": 0.3,
+            "p": 0.0304,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -340,7 +340,7 @@
             "post": "GPeT1",
             "receptor_type": "AMPA",
             "p": 0.9,
-            "weight": 0.08,
+            "weight": 0.15,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -355,7 +355,7 @@
             "pre": "MSND2",
             "post": "GPeT1",
             "receptor_type": "GABA",
-            "p": 0.1,
+            "p": 0.0132,
             "weight": 1,
             "receptor_params": {
                 "GABA": {
@@ -372,7 +372,7 @@
             "pre": "STN",
             "post": "GPeT1",
             "receptor_type": "AMPA",
-            "p": 0.1,
+            "p": 0.0775,
             "weight": 1,
             "receptor_params": {
                 "AMPA": {
@@ -389,7 +389,7 @@
             "pre": "GPeT1",
             "post": "GPeT1",
             "receptor_type": "GABA",
-            "p": 0.02,
+            "p": 0.0253,
             "weight": 1,
             "receptor_params": {
                 "GABA": {
@@ -406,11 +406,11 @@
             "pre": "GPeTA",
             "post": "GPeT1",
             "receptor_type": "GABA",
-            "p": 0.02,
+            "p": 0.0152,
             "weight": 1,
             "receptor_params": {
                 "GABA": {
-                "g0": {"value": 0.765, "unit": "nS"},
+                "g0": {"value": 1.3, "unit": "nS"},
                 "tau_syn": {"value": 5, "unit": "ms"},
                 "E_rev": {"value": -65, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
@@ -424,7 +424,7 @@
             "post": "GPeTA",
             "receptor_type": "AMPA",
             "p": 1,
-            "weight": 0.4,
+            "weight": 3,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -439,7 +439,7 @@
             "pre": "GPeTA",
             "post": "GPeTA",
             "receptor_type": "GABA",
-            "p": 0.02,
+            "p": 0.0152,
             "weight": 1,
             "receptor_params": {
                 "GABA": {
@@ -456,7 +456,7 @@
             "pre": "GPeT1",
             "post": "GPeTA",
             "receptor_type": "GABA",
-            "p": 0.02,
+            "p": 0.0253,
             "weight": 1,
             "receptor_params": {
                 "GABA": {
@@ -488,11 +488,11 @@
     },
 
     "simulation": {
-        "duration": 2000
+        "duration": 20000
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
 
-    "start_time": 5000,
-    "end_time": 5000
+    "start_time": 2000,
+    "end_time": 20000
 }

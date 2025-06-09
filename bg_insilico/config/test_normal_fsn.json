@@ -17,8 +17,8 @@
             "pre": "Cortex_FSN",
             "post": "FSN",
             "receptor_type": "AMPA",
-            "p": 0.8,
-            "weight": 1.3,
+            "p": 0.6,
+            "weight": 0.5,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -33,7 +33,7 @@
             "pre": "FSN",
             "post": "FSN",
             "receptor_type": "GABA",
-            "p": 0.74,
+            "p": 0.0125,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
