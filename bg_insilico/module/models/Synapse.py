@@ -27,25 +27,40 @@ class SynapseBase:
             '''
         }
 
-    def _get_on_pre(self, receptor_type, g0_value):
-        fac = {'AMPA': 2.2, 'NMDA': 5.0, 'GABA': 2}.get(receptor_type, 1)
-        max_g_val = fac * g0_value
-        max_g = f"{max_g_val}*nS"
+    def _get_on_pre(self, receptor_type, g0_value, tau_value=None, conn_name=None):
+        ref_values = {
+            'AMPA': {'tau': 12.0, 'g0': 0.5},
+            'NMDA': {'tau': 160.0, 'g0': 0.019}, 
+            'GABA': {'tau': 6.0, 'g0': 1.0}  
+        }
+
+        if tau_value is None:
+            tau_value = ref_values[receptor_type]['tau']
+        base_g0 = ref_values[receptor_type]['g0']
+
+        conductance_size = tau_value * g0_value
+
+        if receptor_type == 'NMDA' and conn_name and 'AMPA' in self.connections.get(conn_name, {}).get('receptor_type', []):
+            ampa_params = self.connections[conn_name]['receptor_params']['AMPA']
+            ampa_g0 = ampa_params['g0']['value']
+            ampa_tau = ampa_params['tau_syn']['value']
+            ampa_size = ampa_tau * ampa_g0 * 0.5
+            nmda_size = ampa_size / 2  
+            g0_value = nmda_size / tau_value
+            conductance_size = nmda_size
+
+        max_g = f"{conductance_size}*nS"
         conductance_increase = f"w * {g0_value} * nS"
 
-        var_map = {
-            'AMPA': 'g_a', 
-            'NMDA': 'g_n', 
-            'GABA': 'g_g'
-        }
+        var_map = {'AMPA': 'g_a', 'NMDA': 'g_n', 'GABA': 'g_g'}
         var = var_map.get(receptor_type)
         if var is None:
             return ''
 
         return f"""
-        {var} += {conductance_increase}
-        {var} = clip({var}, 0 * nS, {max_g})
+        {var} = clip({var} + {conductance_increase}, 0 * nS, {max_g})
         """
+
 
 class Synapse(SynapseBase):
     def __init__(self, neurons, connections):
@@ -65,12 +80,12 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
         synapse_connections = []
         synapse_class = get_synapse_class(synapse_class_name) if isinstance(synapse_class_name, str) else synapse_class_name
         synapse_instance = synapse_class(neurons=neuron_groups, connections=connections)
-        created_synapses_map = {}
+
+        created_synapses_map = {}  
 
         for conn_name, conn_config in connections.items():
             pre, post = conn_config['pre'], conn_config['post']
             pre_group, post_group = neuron_groups.get(pre), neuron_groups.get(post)
-
             if not pre_group or not post_group:
                 continue
 
@@ -78,52 +93,67 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
             receptor_types = receptor_types if isinstance(receptor_types, list) else [receptor_types]
 
             for receptor_type in receptor_types:
-                syn_key = (pre, post, receptor_type, conn_name) 
+                syn_key = (pre, post, receptor_type, conn_name)
 
-                if syn_key not in created_synapses_map:
-                    if receptor_type not in synapse_instance.equations:
-                        continue
+                if syn_key in created_synapses_map:
+                    continue
 
-                    model_eqns = synapse_instance.equations[receptor_type]
-                    g0_value_for_on_pre = conn_config.get('receptor_params', {}).get(receptor_type, {})
-                    g0_value_for_on_pre = g0_value_for_on_pre.get('g0', {}).get('value', 0.0)
-                    
-                    on_pre_code = synapse_instance._get_on_pre(receptor_type, g0_value_for_on_pre)
+                if receptor_type not in synapse_instance.equations:
+                    continue
 
-                    try:
-                        syn = Synapses(
-                            pre_group,
-                            post_group,
-                            model=model_eqns,
-                            on_pre=on_pre_code
-                        )
-                        created_synapses_map[syn_key] = syn
-                        synapse_connections.append(syn)
+                model_eqns = synapse_instance.equations[receptor_type]
+                current_params = conn_config.get('receptor_params', {}).get(receptor_type, {})
+                g0_value_for_on_pre = current_params.get('g0', {}).get('value', 0.0)
+                tau_value_for_on_pre = current_params.get('tau_syn', {}).get('value', None)
 
-                        p_connect = conn_config.get('p', 1.0)
-                        syn.connect(p=p_connect)
+                on_pre_code = synapse_instance._get_on_pre(
+                    receptor_type, 
+                    g0_value_for_on_pre, 
+                    tau_value_for_on_pre,
+                    conn_name=conn_name
+                )
 
-                        if len(syn.i) > 0:
-                            weight = conn_config.get('weight', 1.0)
-                            syn.w = weight
-                            
-                            current_params = conn_config.get('receptor_params', {}).get(receptor_type, {})
-                            
-                            if hasattr(syn, 'tau_' + receptor_type):
-                                tau_val = current_params.get('tau_syn', {}).get('value', 160.0)
-                                setattr(syn, f'tau_{receptor_type}', tau_val * ms)
-                                
-                            if hasattr(syn, 'E_' + receptor_type):
-                                e_val = current_params.get('E_rev', {}).get('value', 0.0)
-                                setattr(syn, f'E_{receptor_type}', e_val * mV)
-                                
-                            if hasattr(syn, receptor_type.lower() + '_beta'):
-                                beta_val = current_params.get('beta', {}).get('value', 1.0)
-                                setattr(syn, f'{receptor_type.lower()}_beta', beta_val)
-                    except Exception as e:
-                        print(f"ERROR creating {receptor_type} synapse: {str(e)}")
-                else:
-                    pass  
+                try:
+                    syn = Synapses(
+                        pre_group,
+                        post_group,
+                        model=model_eqns,
+                        on_pre=on_pre_code
+                    )
+                    created_synapses_map[syn_key] = syn
+                    synapse_connections.append(syn)
+
+                    p_connect = conn_config.get('p', 1.0)
+                    syn.connect(p=p_connect)
+
+                    if len(syn.i) > 0:
+                        weight = conn_config.get('weight', 1.0)
+                        syn.w = weight
+
+                        if hasattr(syn, 'tau_' + receptor_type):
+                            tau_val = current_params.get('tau_syn', {}).get('value', 160.0)
+                            setattr(syn, f'tau_{receptor_type}', tau_val * ms)
+
+                        if hasattr(syn, 'E_' + receptor_type):
+                            e_val = current_params.get('E_rev', {}).get('value', 0.0)
+                            setattr(syn, f'E_{receptor_type}', e_val * mV)
+
+                        if hasattr(syn, receptor_type.lower() + '_beta'):
+                            beta_val = current_params.get('beta', {}).get('value', 1.0)
+                            setattr(syn, f'{receptor_type.lower()}_beta', beta_val)
+
+                except Exception as e:
+                    print(f"ERROR creating {receptor_type} synapse: {str(e)}")
+
+        print("\n External Input Synapse Connections:")
+        for syn in synapse_connections:
+            pre_name = getattr(syn.source, 'name', 'unknown_pre')
+            post_name = getattr(syn.target, 'name', 'unknown_post')
+            n_conn = len(syn.i)
+            if pre_name.startswith(('Cortex_', 'Ext_')):
+                print(f"  {pre_name} → {post_name} : {n_conn} connections")
+                if n_conn == 0:
+                    print(" No connections found")
 
         return synapse_connections
 
