@@ -101,6 +101,8 @@ def run_simulation_with_inh_ext_input(
     poisson_groups = None
     firing_rates = {}
     results = {'spike_monitors': {}, 'firing_rates': {}}
+    net = None
+    duration = None
     
     try:
         try:
@@ -113,8 +115,10 @@ def run_simulation_with_inh_ext_input(
         print(f"Using random seed: {seed_value}")
         seed(seed_value)
         
-        neuron_groups = create_neurons(neuron_configs, simulation_params, connections)
+        net = Network()
         
+        neuron_groups = create_neurons(neuron_configs, simulation_params, connections)
+
         for name, group in neuron_groups.items():
             if not name.startswith(('Cortex_', 'Ext_')):
                 if hasattr(group, 'g_a'):
@@ -123,7 +127,7 @@ def run_simulation_with_inh_ext_input(
                     group.g_g = 0 * nS
                 if hasattr(group, 'g_n'):
                     group.g_n = 0 * nS
-        
+
         synapse_connections = create_synapses(neuron_groups, connections, synapse_class)
         
         poisson_groups = create_poisson_inputs(neuron_groups, ext_inputs) if ext_inputs else []
@@ -133,7 +137,6 @@ def run_simulation_with_inh_ext_input(
                 sp_mon = SpikeMonitor(group)
                 spike_monitors[name] = sp_mon
         
-        net = Network()
         net.add(*neuron_groups.values())
         net.add(*synapse_connections)
         net.add(*poisson_groups)
@@ -151,6 +154,9 @@ def run_simulation_with_inh_ext_input(
         
         firing_rates = compute_firing_rates_all_neurons(spike_monitors, start_time=start_time, end_time=end_time, plot_order=plot_order)
         
+        print(f"  start_time: {start_time}")
+        print(f"  end_time: {end_time}")
+        
         plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time)
         
         results = {
@@ -163,13 +169,14 @@ def run_simulation_with_inh_ext_input(
         import traceback
         traceback.print_exc()
         raise
-        
+
     finally:
         if spike_monitors:
             for mon in spike_monitors.values():
                 if hasattr(mon, 'active'):
                     mon.active = False
-        
+        print("\nExternal Input Firing Rates:")
+
         for obj in [spike_monitors, neuron_groups, synapse_connections, poisson_groups]:
             if obj is not None:
                 del obj
