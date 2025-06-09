@@ -35,10 +35,8 @@ class SNr(NeuronModel):
         return receptor_params
 
     def create_neurons(self):
-        # Get base neuron equations
         base_eqs = AdEx.eqs
         
-        # Add synapse equations
         if self.connections:
             synapse_eqs = generate_neuron_specific_synapse_inputs("SNr", self.connections)
             full_eqs = base_eqs + '\n' + synapse_eqs

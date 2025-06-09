@@ -3,11 +3,8 @@ import importlib
 from module.models import AdEx
 from module.models.Synapse import generate_neuron_specific_synapse_inputs
 import numpy as np
-import bisect
 from brian2 import mV, ms, nS, pA
 
-from brian2.utils.arrays import calc_repeats
-from brian2.utils.logger import get_logger
 
 class NeuronModel:
     def __init__(self, N, params):
@@ -50,14 +47,16 @@ class STN(NeuronModel):
             full_eqs = base_eqs + '\nIsyn = 0*amp : amp\n'
         
         reset = '''
-        v_reset_val = vr 
-        v_reset_applied = v_reset_val + clip(z - 15*pA, 20*pA, 1000*pA) / nS
-        v = v_reset_applied * int(z < 0*pA) + v * int(z >= 0*pA)
+        w_adaptation = z/pA
+        w_minus_15 = w_adaptation - 15
+        use_paper_reset = int(w_adaptation < 0)
+        reset_offset_val = use_paper_reset * (w_minus_15 * int(w_minus_15 >= 20) + 20 * int(w_minus_15 < 20))
+        v = vr + reset_offset_val * mV
         z += d
         '''
         
         self.neurons = NeuronGroup(
-            self.N, full_eqs, threshold='v > th', reset=reset, method='euler'
+            self.N, full_eqs, threshold='v > th', reset=reset, method='euler'  # Correct: th is spike cutoff
         )
 
         self.neurons.g_L = self.params['g_L']['value'] * eval(self.params['g_L']['unit'])
@@ -65,10 +64,7 @@ class STN(NeuronModel):
         self.neurons.Delta_T = self.params['Delta_T']['value'] * eval(self.params['Delta_T']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
-        np.random.seed(2025) 
-        base_v = self.params['v']['value'] * eval(self.params['v']['unit'])
-        v_noise = np.random.normal(0, 2, self.N) * mV 
-        self.neurons.v = base_v + v_noise
+        self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
         self.neurons.tau_w = self.params['tau_w']['value'] * eval(self.params['tau_w']['unit'])
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.a = self.params['a']['value'] * eval(self.params['a']['unit'])
@@ -94,13 +90,6 @@ class STN(NeuronModel):
                 self.neurons.E_AMPA = dominant_params['E_rev']['value'] * eval(dominant_params['E_rev']['unit'])
             if hasattr(self.neurons, 'ampa_beta'):
                 self.neurons.ampa_beta = dominant_params.get('beta', {'value': 1.0})['value']
-        else:
-            if hasattr(self.neurons, 'tau_AMPA'):
-                self.neurons.tau_AMPA = 12 * ms
-            if hasattr(self.neurons, 'E_AMPA'):
-                self.neurons.E_AMPA = 0 * mV
-            if hasattr(self.neurons, 'ampa_beta'):
-                self.neurons.ampa_beta = 1.0
                 
         if 'GABA' in self.receptor_params:
             gaba_param_list = self.receptor_params['GABA']
@@ -112,12 +101,18 @@ class STN(NeuronModel):
                 self.neurons.E_GABA = dominant_params['E_rev']['value'] * eval(dominant_params['E_rev']['unit'])
             if hasattr(self.neurons, 'gaba_beta'):
                 self.neurons.gaba_beta = dominant_params.get('beta', {'value': 1.0})['value']
-        else:
-            if hasattr(self.neurons, 'tau_GABA'):
-                self.neurons.tau_GABA = 6 * ms
-            if hasattr(self.neurons, 'E_GABA'):
-                self.neurons.E_GABA = -74 * mV
-            if hasattr(self.neurons, 'gaba_beta'):
-                self.neurons.gaba_beta = 1.0
+
+        if 'NMDA' in self.receptor_params:
+            nmda_param_list = self.receptor_params['NMDA']
+            dominant_params = max(nmda_param_list, key=lambda p: p['g0']['value'])
+            
+            if hasattr(self.neurons, 'tau_NMDA'):
+                self.neurons.tau_NMDA = dominant_params['tau_syn']['value'] * eval(dominant_params['tau_syn']['unit'])
+            if hasattr(self.neurons, 'E_NMDA'):
+                self.neurons.E_NMDA = dominant_params['E_rev']['value'] * eval(dominant_params['E_rev']['unit'])
+            if hasattr(self.neurons, 'nmda_beta'):
+                self.neurons.nmda_beta = dominant_params.get('beta', {'value': 1.0})['value']
+            if hasattr(self.neurons, 'Mg2'):
+                self.neurons.Mg2 = 1.0  # Default Mg2+ concentration
 
         return self.neurons

@@ -49,10 +49,8 @@ class MSND2(NeuronModel):
 
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
-        np.random.seed(2025) 
-        base_v = self.params['v']['value'] * eval(self.params['v']['unit'])
-        v_noise = np.random.normal(0, 2, self.N) * mV  
-        self.neurons.v = base_v + v_noise
+        self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
+        
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.k = self.params['k']['value'] 
         self.neurons.a = self.params['a']['value'] * eval(self.params['a']['unit'])
@@ -79,13 +77,6 @@ class MSND2(NeuronModel):
                 self.neurons.E_AMPA = dominant_params['E_rev']['value'] * eval(dominant_params['E_rev']['unit'])
             if hasattr(self.neurons, 'ampa_beta'):
                 self.neurons.ampa_beta = dominant_params.get('beta', {'value': 1.0})['value']
-        else:
-            if hasattr(self.neurons, 'tau_AMPA'):
-                self.neurons.tau_AMPA = 12 * ms
-            if hasattr(self.neurons, 'E_AMPA'):
-                self.neurons.E_AMPA = 0 * mV
-            if hasattr(self.neurons, 'ampa_beta'):
-                self.neurons.ampa_beta = 1.0
                 
         if 'GABA' in self.receptor_params:
             gaba_param_list = self.receptor_params['GABA']
@@ -97,13 +88,19 @@ class MSND2(NeuronModel):
                 self.neurons.E_GABA = dominant_params['E_rev']['value'] * eval(dominant_params['E_rev']['unit'])
             if hasattr(self.neurons, 'gaba_beta'):
                 self.neurons.gaba_beta = dominant_params.get('beta', {'value': 1.0})['value']
-        else:
-            if hasattr(self.neurons, 'tau_GABA'):
-                self.neurons.tau_GABA = 6 * ms
-            if hasattr(self.neurons, 'E_GABA'):
-                self.neurons.E_GABA = -74 * mV
-            if hasattr(self.neurons, 'gaba_beta'):
-                self.neurons.gaba_beta = 1.0
+
+        if 'NMDA' in self.receptor_params:
+            nmda_param_list = self.receptor_params['NMDA']
+            dominant_params = max(nmda_param_list, key=lambda p: p['g0']['value'])
+            
+            if hasattr(self.neurons, 'tau_NMDA'):
+                self.neurons.tau_NMDA = dominant_params['tau_syn']['value'] * eval(dominant_params['tau_syn']['unit'])
+            if hasattr(self.neurons, 'E_NMDA'):
+                self.neurons.E_NMDA = dominant_params['E_rev']['value'] * eval(dominant_params['E_rev']['unit'])
+            if hasattr(self.neurons, 'nmda_beta'):
+                self.neurons.nmda_beta = dominant_params.get('beta', {'value': 1.0})['value']
+            if hasattr(self.neurons, 'Mg2'):
+                self.neurons.Mg2 = 1.0
 
         return self.neurons
                         
