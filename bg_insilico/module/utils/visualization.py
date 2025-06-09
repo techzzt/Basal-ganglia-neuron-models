@@ -26,11 +26,13 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms
             return
         
         n_plots = len(spike_monitors)
-        fig, axes = plt.subplots(n_plots, 1, figsize=(10, 2 * n_plots), sharex=True)
+        fig, axes = plt.subplots(n_plots, 1, figsize=(12, 2 * n_plots), sharex=True)
         if n_plots == 1:
             axes = [axes]
 
         firing_rates = {}
+        
+        print(f"\nRaster plot Range: {start_time/ms:.0f}ms - {end_time/ms:.0f}ms")
           
         for i, (name, monitor) in enumerate(spike_monitors.items()):
             spike_times, spike_indices = get_monitor_spikes(monitor)
@@ -55,6 +57,8 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms
 
             axes[i].set_ylim(min(chosen_neurons) - 1, max(chosen_neurons) + 1)
             axes[i].set_xlim(int(start_time/ms), int(end_time/ms))
+            
+            print(f"{name}: {len(display_t)} spikes shown (sampled from {sample_size} neurons)")
 
         plt.xlabel('Time (ms)')
         plt.tight_layout()

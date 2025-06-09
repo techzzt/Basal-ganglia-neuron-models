@@ -98,6 +98,8 @@ def adjust_connection_weights(connections, weight_adjustments):
 def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=10000*ms, plot_order=None, return_dict=True):
     
     firing_rates = {}
+    print(f"Time window: {start_time/ms:.0f}ms - {end_time/ms:.0f}ms")
+    
     for name, monitor in spike_monitors.items():
         if plot_order and name not in plot_order:
             continue
@@ -106,24 +108,31 @@ def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=1
         total_neurons = monitor.source.N
         time_window_sec = (end_time - start_time) / second
         
+        print(f"\n[{name}]")
+        
         if len(spike_indices) == 0:
             firing_rates[name] = 0.0
+            print(f"No spikes")
             continue
 
         time_mask = (spike_times >= start_time) & (spike_times <= end_time)
         spike_times_filtered = spike_times[time_mask]
         neuron_ids_filtered = spike_indices[time_mask]
 
-        num_monitored_neurons = total_neurons
-        total_spikes = len(spike_times_filtered)
+        total_spikes_in_window = len(spike_times_filtered)
+        unique_active_neurons = len(np.unique(neuron_ids_filtered)) if len(neuron_ids_filtered) > 0 else 0
+        
+        print(f"Time window spikes: {total_spikes_in_window}")
+        print(f"Number of activate neurons: {unique_active_neurons}")
 
-        if num_monitored_neurons > 0 and time_window_sec > 0:
-            network_avg_rate = total_spikes / (num_monitored_neurons * time_window_sec)
+        if total_neurons > 0 and time_window_sec > 0:
+            network_avg_rate = total_spikes_in_window / (total_neurons * time_window_sec)
             firing_rates[name] = network_avg_rate
-            print(f"[{name}] Mean Firing Rate: {network_avg_rate:.2f} Hz")
+            print(f" Rates: {total_spikes_in_window} / ({total_neurons} × {time_window_sec:.1f}) = {network_avg_rate:.4f} Hz")
+            print(f"Mean Firing Rates {network_avg_rate:.2f} Hz")
         else:
             firing_rates[name] = 0.0
-            print(f"[{name}] Mean Firing Rate: 0.00 Hz")
+            print(f"No spikes")
 
     if return_dict:
         return firing_rates
