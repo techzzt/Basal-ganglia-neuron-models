@@ -112,7 +112,6 @@ def run_simulation_with_inh_ext_input(
             pass
 
         seed_value = python_random.randint(1, 2**31-1)
-        print(f"Using random seed: {seed_value}")
         seed(seed_value)
         
         net = Network()
@@ -154,9 +153,6 @@ def run_simulation_with_inh_ext_input(
         
         firing_rates = compute_firing_rates_all_neurons(spike_monitors, start_time=start_time, end_time=end_time, plot_order=plot_order)
         
-        print(f"  start_time: {start_time}")
-        print(f"  end_time: {end_time}")
-        
         plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time)
         
         results = {
@@ -175,7 +171,6 @@ def run_simulation_with_inh_ext_input(
             for mon in spike_monitors.values():
                 if hasattr(mon, 'active'):
                     mon.active = False
-        print("\nExternal Input Firing Rates:")
 
         for obj in [spike_monitors, neuron_groups, synapse_connections, poisson_groups]:
             if obj is not None:
