@@ -50,7 +50,6 @@ class MSND2(NeuronModel):
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
         self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
-        
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.k = self.params['k']['value'] 
         self.neurons.a = self.params['a']['value'] * eval(self.params['a']['unit'])

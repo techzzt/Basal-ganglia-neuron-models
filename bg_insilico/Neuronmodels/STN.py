@@ -56,7 +56,7 @@ class STN(NeuronModel):
         '''
         
         self.neurons = NeuronGroup(
-            self.N, full_eqs, threshold='v > th', reset=reset, method='euler'  # Correct: th is spike cutoff
+            self.N, full_eqs, threshold='v > th', reset=reset, method='euler'  
         )
 
         self.neurons.g_L = self.params['g_L']['value'] * eval(self.params['g_L']['unit'])
