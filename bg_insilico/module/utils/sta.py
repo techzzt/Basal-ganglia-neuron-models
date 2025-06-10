@@ -24,8 +24,6 @@ def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connection
     n_bins = int(window/bin_size)
     bins = np.linspace(-window/ms, 0, n_bins+1)
 
-    print(f"\n== Spike Triggered Histogram (Window={window/ms} ms, Bin={bin_size/ms} ms, Last {start_from_end/ms} ms) ==")
-
     connected_pairs = set((conn['pre'], conn['post']) for conn in connections.values())
 
     for post_name, post_mon in post_monitors.items():
@@ -57,8 +55,6 @@ def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connection
 
             hist, _ = np.histogram(all_deltas, bins=bins)
             sta_results[post_name][pre_name] = hist
-
-            print(f" ← {pre_name:10s}: {hist.sum()} pre-spikes in window")
 
     return sta_results, bins
 
@@ -98,7 +94,6 @@ def adjust_connection_weights(connections, weight_adjustments):
 def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=10000*ms, plot_order=None, return_dict=True):
     
     firing_rates = {}
-    print(f"Time window: {start_time/ms:.0f}ms - {end_time/ms:.0f}ms")
     
     for name, monitor in spike_monitors.items():
         if plot_order and name not in plot_order:
@@ -122,9 +117,6 @@ def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=1
         total_spikes_in_window = len(spike_times_filtered)
         unique_active_neurons = len(np.unique(neuron_ids_filtered)) if len(neuron_ids_filtered) > 0 else 0
         
-        print(f"Time window spikes: {total_spikes_in_window}")
-        print(f"Number of activate neurons: {unique_active_neurons}")
-
         if total_neurons > 0 and time_window_sec > 0:
             network_avg_rate = total_spikes_in_window / (total_neurons * time_window_sec)
             firing_rates[name] = network_avg_rate

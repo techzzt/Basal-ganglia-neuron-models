@@ -51,7 +51,7 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms
             display_t = spike_times[combined_mask]
             display_i = spike_indices[combined_mask]
 
-            axes[i].scatter(display_t / ms, display_i, s=0.35)
+            axes[i].scatter(display_t / ms, display_i, s=0.2)
             axes[i].set_title(f'{name} Raster Plot (subset of {len(chosen_neurons)} neurons)')
             axes[i].set_ylabel('Neuron index')
 
