@@ -82,7 +82,7 @@ class GPeTA(NeuronModel):
         if 'GABA' in self.receptor_params:
             gaba_param_list = self.receptor_params['GABA']
             dominant_params = max(gaba_param_list, key=lambda p: p['g0']['value'])
-            
+
             if hasattr(self.neurons, 'tau_GABA'):
                 self.neurons.tau_GABA = dominant_params['tau_syn']['value'] * eval(dominant_params['tau_syn']['unit'])
             if hasattr(self.neurons, 'E_GABA'):
