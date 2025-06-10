@@ -4,6 +4,7 @@ import json
 import numpy as np 
 from brian2 import mV, ms, nS, Hz
 import gc  
+from module.models.stimulus import create_poisson_inputs
 
 def load_params_from_file(params_file):
     try:
@@ -19,34 +20,6 @@ def get_neuron_count(neuron_configs, target_name):
         if config["name"] == target_name:
             return config["N"]
     return None  
-
-def create_poisson_input(N, rate_expr, duration, dt=1*ms):
-    duration_ms = duration/ms if hasattr(duration, 'dim') else duration
-    dt_ms = dt/ms if hasattr(dt, 'dim') else dt
-    
-    time_points = np.arange(0, duration_ms, dt_ms)
-    chunk_size = 1000
-    total_chunks = int(np.ceil(len(time_points) / chunk_size))
-    rate_arrays = []
-    
-    for i in range(total_chunks):
-        start_idx = i * chunk_size
-        end_idx = min((i + 1) * chunk_size, len(time_points))
-        chunk_times = time_points[start_idx:end_idx] * ms
-        chunk_rates = np.array([
-            eval(rate_expr, {"t": t, "Hz": Hz, "ms": ms, "second": second, "np": np})
-            for t in chunk_times
-        ])
-        rate_arrays.append(chunk_rates)
-    
-
-    rate_values = np.concatenate(rate_arrays)
-    rate_array = TimedArray(rate_values * Hz, dt)
-    
-    del rate_arrays, rate_values
-    gc.collect()
-    
-    return PoissonGroup(N, rates='rate_array(t)', namespace={'rate_array': rate_array})
 
 def generate_non_overlapping_poisson_input(N, rate, duration, dt=1):
     n_steps = int(np.ceil(duration / dt))
@@ -109,9 +82,12 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
                     rate_expr = rate_info['equation']
                     N = config['N']
                     
-                    group = create_poisson_input(N, rate_expr, duration*ms, dt*ms)
+                    # Create PoissonGroup directly
+                    total_rate = eval(rate_expr)
+                    rate_per_neuron = total_rate / N
+                    group = PoissonGroup(N, rates=rate_per_neuron)
                     neuron_groups[name] = group
-                    print(f"Created PoissonGroup for {name} with rate {rate_expr}")
+                    print(f"Created PoissonGroup for {name}: {N} neurons @ {rate_per_neuron} each = {total_rate} total")
 
                 continue
 
