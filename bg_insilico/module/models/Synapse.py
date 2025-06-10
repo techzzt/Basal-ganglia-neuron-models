@@ -1,10 +1,6 @@
 from brian2 import *
 import importlib
-import json
-from pathlib import Path
-import numpy as np
 import logging
-from collections import defaultdict
 
 logging.getLogger('brian2').setLevel(logging.ERROR)
 
@@ -29,24 +25,23 @@ class SynapseBase:
 
     def _get_on_pre(self, receptor_type, g0_value, tau_value=None, conn_name=None):
         ref_values = {
-            'AMPA': {'tau': 12.0, 'g0': 0.5},
-            'NMDA': {'tau': 160.0, 'g0': 0.019}, 
-            'GABA': {'tau': 6.0, 'g0': 1.0}  
+            'AMPA': {'tau': 12.0, 'g0': 0.5, 'size': 6.0},
+            'NMDA': {'tau': 160.0, 'g0': 0.019, 'size': 3.0},
+            'GABA': {'tau': 6.0, 'g0': 1.0, 'size': 6.0}
         }
 
         if tau_value is None:
             tau_value = ref_values[receptor_type]['tau']
-        base_g0 = ref_values[receptor_type]['g0']
 
         conductance_size = tau_value * g0_value
 
-        if receptor_type == 'NMDA' and conn_name and 'AMPA' in self.connections.get(conn_name, {}).get('receptor_type', []):
-            ampa_params = self.connections[conn_name]['receptor_params']['AMPA']
-            ampa_g0 = ampa_params['g0']['value']
-            ampa_tau = ampa_params['tau_syn']['value']
-            ampa_size = ampa_tau * ampa_g0 * 0.5
-            nmda_size = ampa_size / 2  
-            g0_value = nmda_size / tau_value
+        conn_data = self.connections.get(conn_name, {})
+        if receptor_type == 'NMDA' and 'AMPA' in conn_data.get('receptor_type', []):
+            ampa_params = conn_data['receptor_params'].get('AMPA', {})
+            ampa_g0 = ampa_params.get('g0', {}).get('value', 0.5)
+            ampa_tau = ampa_params.get('tau_syn', {}).get('value', 12.0)
+            ampa_size = ampa_tau * ampa_g0
+            nmda_size = ampa_size / 2 
             conductance_size = nmda_size
 
         max_g = f"{conductance_size}*nS"
@@ -66,6 +61,7 @@ class Synapse(SynapseBase):
     def __init__(self, neurons, connections):
         super().__init__(neurons, connections)
 
+
 def get_synapse_class(class_name):
     try:
         module = importlib.import_module('module.models.Synapse')
@@ -75,13 +71,14 @@ def get_synapse_class(class_name):
     except AttributeError:
         raise ImportError(f"Class '{class_name}' not found in 'module.models.Synapse'.")
 
+
 def create_synapses(neuron_groups, connections, synapse_class_name):
     try:
         synapse_connections = []
         synapse_class = get_synapse_class(synapse_class_name) if isinstance(synapse_class_name, str) else synapse_class_name
         synapse_instance = synapse_class(neurons=neuron_groups, connections=connections)
 
-        created_synapses_map = {}  
+        created_synapses_map = {}
 
         for conn_name, conn_config in connections.items():
             pre, post = conn_config['pre'], conn_config['post']
@@ -126,21 +123,20 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
                     p_connect = conn_config.get('p', 1.0)
                     syn.connect(p=p_connect)
 
-                    if len(syn.i) > 0:
-                        weight = conn_config.get('weight', 1.0)
-                        syn.w = weight
+                    weight = conn_config.get('weight', 1.0)
+                    syn.w = weight
 
-                        if hasattr(syn, 'tau_' + receptor_type):
-                            tau_val = current_params.get('tau_syn', {}).get('value', 160.0)
-                            setattr(syn, f'tau_{receptor_type}', tau_val * ms)
+                    if hasattr(syn, 'tau_' + receptor_type):
+                        tau_val = current_params.get('tau_syn', {}).get('value', 160.0)
+                        setattr(syn, f'tau_{receptor_type}', tau_val * ms)
 
-                        if hasattr(syn, 'E_' + receptor_type):
-                            e_val = current_params.get('E_rev', {}).get('value', 0.0)
-                            setattr(syn, f'E_{receptor_type}', e_val * mV)
+                    if hasattr(syn, 'E_' + receptor_type):
+                        e_val = current_params.get('E_rev', {}).get('value', 0.0)
+                        setattr(syn, f'E_{receptor_type}', e_val * mV)
 
-                        if hasattr(syn, receptor_type.lower() + '_beta'):
-                            beta_val = current_params.get('beta', {}).get('value', 1.0)
-                            setattr(syn, f'{receptor_type.lower()}_beta', beta_val)
+                    if hasattr(syn, receptor_type.lower() + '_beta'):
+                        beta_val = current_params.get('beta', {}).get('value', 1.0)
+                        setattr(syn, f'{receptor_type.lower()}_beta', beta_val)
 
                 except Exception as e:
                     print(f"ERROR creating {receptor_type} synapse: {str(e)}")
@@ -161,6 +157,7 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
         print(f"Error creating synapses: {str(e)}")
         raise
 
+
 def generate_neuron_specific_synapse_inputs(neuron_name, connections, already_defined=None):
     used_receptors = set()
     for conn_name, conn_config in connections.items():
@@ -168,7 +165,7 @@ def generate_neuron_specific_synapse_inputs(neuron_name, connections, already_de
             receptor_types = conn_config['receptor_type']
             receptor_types = receptor_types if isinstance(receptor_types, list) else [receptor_types]
             used_receptors.update(receptor_types)
-    
+
     return generate_synapse_inputs(list(used_receptors), already_defined=already_defined)
 
 
@@ -212,4 +209,5 @@ def generate_synapse_inputs(receptors=None, already_defined=None):
         eqs += f'Isyn = 0 * amp : amp\n'
 
     return eqs
+
 

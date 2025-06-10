@@ -6,6 +6,7 @@ def create_poisson_inputs(neuron_groups, ext_inputs, chunk_size=1000):
         return []
     poisson_groups = []
     try:
+        start_scope()
         for target, input_config in ext_inputs.items():
             if target not in neuron_groups:
                 print(f"Warning: Target group '{target}' not found in neuron groups")
