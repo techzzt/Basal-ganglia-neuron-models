@@ -3,7 +3,7 @@
     "params": {
         "k": {"value": 1, "unit": ""},
         "u": {"value": 0, "unit": "pA"},
-        "v": {"value": -79, "unit": "mV"},
+        "v": {"value": -80, "unit": "mV"},
         "vr": {"value": -80, "unit": "mV"},
         "vt": {"value": -29.7, "unit": "mV"},
         "th": {"value": 40, "unit": "mV"},
