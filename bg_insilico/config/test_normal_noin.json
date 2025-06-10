@@ -52,7 +52,7 @@
             "pre": "Cortex_FSN",
             "post": "FSN",
             "receptor_type": "AMPA",
-            "p": 0.5,
+            "p": 0.3,
             "weight": 0.001,
             "receptor_params": {
                 "AMPA":{
@@ -119,8 +119,8 @@
             "pre": "Cortex_MSND1",
             "post": "MSND1",
             "receptor_type": ["AMPA", "NMDA"],
-            "p": 0.1,
-            "weight": 0.0001,
+            "p": 0.01,
+            "weight": 0.000001,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -209,8 +209,8 @@
             "pre": "Cortex_MSND2",
             "post": "MSND2",
             "receptor_type": ["AMPA", "NMDA"],
-            "p": 0.1,
-            "weight": 0.0001,
+            "p": 0.05,
+            "weight": 0.000001,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -339,7 +339,7 @@
             "pre": "Ext_GPeT1",
             "post": "GPeT1",
             "receptor_type": "AMPA",
-            "p": 0.9,
+            "p": 0.7,
             "weight": 0.15,
             "receptor_params": {
                 "AMPA":{
