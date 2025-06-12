@@ -13,9 +13,6 @@ def get_monitor_spikes(monitor):
     except:
         return np.array([]) * ms, np.array([])
 
-seed(int(time.time()))  
-print(f"Using random seed: {int(time.time())}")
-
 def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connections, window=100*ms, bin_size=10*ms, start_from_end=5000*ms, min_spikes=10):
     
     sta_results = {}
