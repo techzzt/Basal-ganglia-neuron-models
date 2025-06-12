@@ -2,11 +2,11 @@
     "model": "AdEx",
     "params": {
         "g_L": {"value": 1, "unit": "nS"},
-        "E_L": {"value": -53.11, "unit": "mV"},
+        "E_L": {"value": -53.105, "unit": "mV"},
         "Delta_T": {"value": 2.55, "unit": "mV"},
         "vt": {"value": -54.7, "unit": "mV"},
         "vr": {"value": -60, "unit": "mV"},
-        "v": {"value": -53.11, "unit": "mV"},
+        "v": {"value": -59.5, "unit": "mV"},
         "tau_w": {"value": 20, "unit": "ms"},
         "th": {"value": 15, "unit": "mV"},
         "a": {"value": 2.5, "unit": "nS"},
