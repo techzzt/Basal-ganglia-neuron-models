@@ -24,28 +24,34 @@ class SynapseBase:
         }
 
     def _get_on_pre(self, receptor_type, g0_value, tau_value=None, conn_name=None):
-        ref_values = {
-            'AMPA': {'tau': 12.0, 'g0': 0.5, 'size': 6.0},
-            'NMDA': {'tau': 160.0, 'g0': 0.019, 'size': 3.0},
-            'GABA': {'tau': 6.0, 'g0': 1.0, 'size': 6.0}
+        default_tau = {
+            'AMPA': 12.0,
+            'NMDA': 160.0, 
+            'GABA': 6.0
         }
 
         if tau_value is None:
-            tau_value = ref_values[receptor_type]['tau']
-
-        conductance_size = tau_value * g0_value
+            tau_value = default_tau[receptor_type]
+        conductance_size = tau_value * g0_value * 0.35
 
         conn_data = self.connections.get(conn_name, {})
         if receptor_type == 'NMDA' and 'AMPA' in conn_data.get('receptor_type', []):
             ampa_params = conn_data['receptor_params'].get('AMPA', {})
             ampa_g0 = ampa_params.get('g0', {}).get('value', 0.5)
             ampa_tau = ampa_params.get('tau_syn', {}).get('value', 12.0)
-            ampa_size = ampa_tau * ampa_g0
-            nmda_size = ampa_size / 2 
+            ampa_size = ampa_tau * ampa_g0 * 0.35
+            ampa_limited_size = min(ampa_size, 4.5)
+            nmda_size = ampa_limited_size / 2 
             conductance_size = nmda_size
 
-        max_g = f"{conductance_size}*nS"
         conductance_increase = f"w * {g0_value} * nS"
+        
+        if receptor_type == 'GABA':
+            max_g_value = min(conductance_size, 4)  
+        elif receptor_type == 'AMPA':
+            max_g_value = min(conductance_size, 4.5)
+        else:
+            max_g_value = conductance_size  
 
         var_map = {'AMPA': 'g_a', 'NMDA': 'g_n', 'GABA': 'g_g'}
         var = var_map.get(receptor_type)
@@ -53,7 +59,7 @@ class SynapseBase:
             return ''
 
         return f"""
-        {var} = clip({var} + {conductance_increase}, 0 * nS, {max_g})
+        {var} = clip({var} + {conductance_increase}, 0 * nS, {max_g_value} * nS)
         """
 
 
@@ -141,16 +147,6 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
                 except Exception as e:
                     print(f"ERROR creating {receptor_type} synapse: {str(e)}")
 
-        print("\n External Input Synapse Connections:")
-        for syn in synapse_connections:
-            pre_name = getattr(syn.source, 'name', 'unknown_pre')
-            post_name = getattr(syn.target, 'name', 'unknown_post')
-            n_conn = len(syn.i)
-            if pre_name.startswith(('Cortex_', 'Ext_')):
-                print(f"  {pre_name} → {post_name} : {n_conn} connections")
-                if n_conn == 0:
-                    print(" No connections found")
-
         return synapse_connections
 
     except Exception as e:
@@ -200,7 +196,7 @@ def generate_synapse_inputs(receptors=None, already_defined=None):
         eqs += 'nmda_beta : 1\n'
         eqs += 'E_NMDA : volt\n'
         eqs += 'Mg2 : 1\n'
-        eqs += 'I_NMDA = nmda_beta * g_n * (E_NMDA - v) / (1 + Mg2 * exp(-0.062 * v / mV) / 3.57) : amp\n'
+        eqs += 'I_NMDA = nmda_beta * g_n * (E_NMDA - v) / (1 + (Mg2/3.57) * exp(-0.062 * v / mV)) : amp\n'
         current_vars.append('I_NMDA')
 
     if current_vars:
