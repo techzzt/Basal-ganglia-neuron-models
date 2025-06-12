@@ -92,7 +92,8 @@ def run_simulation_with_inh_ext_input(
     plot_order=None,
     start_time=0*ms,
     end_time=1000*ms,
-    ext_inputs=None
+    ext_inputs=None,
+    amplitude_oscillations=None
     ):
     
     spike_monitors = {}
@@ -110,26 +111,23 @@ def run_simulation_with_inh_ext_input(
             device.activate()
         except:
             pass
-
-        seed_value = python_random.randint(1, 2**31-1)
-        seed(seed_value)
+        start_scope()
+        
+        seed(2025)
         
         net = Network()
-        
         neuron_groups = create_neurons(neuron_configs, simulation_params, connections)
-
-        for name, group in neuron_groups.items():
-            if not name.startswith(('Cortex_', 'Ext_')):
-                if hasattr(group, 'g_a'):
-                    group.g_a = 0 * nS
-                if hasattr(group, 'g_g'):
-                    group.g_g = 0 * nS
-                if hasattr(group, 'g_n'):
-                    group.g_n = 0 * nS
 
         synapse_connections = create_synapses(neuron_groups, connections, synapse_class)
         
-        poisson_groups = create_poisson_inputs(neuron_groups, ext_inputs) if ext_inputs else []
+        # Support amplitude oscillation
+        scaled_neuron_counts = {name: group.N for name, group in neuron_groups.items()}
+        poisson_groups, _ = create_poisson_inputs(
+            neuron_groups, 
+            ext_inputs, 
+            scaled_neuron_counts,
+            amplitude_oscillations
+        ) if ext_inputs else ({}, [])
         
         for name, group in neuron_groups.items():
             if not name.startswith(('Cortex_', 'Ext_')):  
@@ -138,7 +136,7 @@ def run_simulation_with_inh_ext_input(
         
         net.add(*neuron_groups.values())
         net.add(*synapse_connections)
-        net.add(*poisson_groups)
+        net.add(*poisson_groups.values())
         net.add(*spike_monitors.values())
         
         duration = simulation_params.get('duration', 1000) * ms
