@@ -59,20 +59,21 @@ class STN(NeuronModel):
             self.N, full_eqs, threshold='v > th', reset=reset, method='euler'  
         )
 
-        self.neurons.g_L = self.params['g_L']['value'] * eval(self.params['g_L']['unit'])
-        self.neurons.E_L = self.params['E_L']['value'] * eval(self.params['E_L']['unit'])
-        self.neurons.Delta_T = self.params['Delta_T']['value'] * eval(self.params['Delta_T']['unit'])
-        self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
-        self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
-        self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
-        self.neurons.tau_w = self.params['tau_w']['value'] * eval(self.params['tau_w']['unit'])
-        self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.a = self.params['a']['value'] * eval(self.params['a']['unit'])
         self.neurons.d = self.params['d']['value'] * eval(self.params['d']['unit'])
         self.neurons.C = self.params['C']['value'] * eval(self.params['C']['unit'])
+        self.neurons.Delta_T = self.params['Delta_T']['value'] * eval(self.params['Delta_T']['unit'])
+        self.neurons.E_L = self.params['E_L']['value'] * eval(self.params['E_L']['unit'])
+        self.neurons.g_L = self.params['g_L']['value'] * eval(self.params['g_L']['unit'])
+        self.neurons.tau_w = self.params['tau_w']['value'] * eval(self.params['tau_w']['unit'])
+      
+        self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
+        self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
+        self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
+        self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         self.neurons.I_ext = self.params['I_ext']['value'] * eval(self.params['I_ext']['unit'])
         self.neurons.z = self.params['z']['value'] * eval(self.params['z']['unit'])
-
+        
         if hasattr(self.neurons, 'g_a'):
             self.neurons.g_a = 0 * nS
         if hasattr(self.neurons, 'g_g'):
@@ -81,38 +82,34 @@ class STN(NeuronModel):
             self.neurons.g_n = 0 * nS
             
         if 'AMPA' in self.receptor_params:
-            ampa_param_list = self.receptor_params['AMPA']
-            dominant_params = max(ampa_param_list, key=lambda p: p['g0']['value'])
-            
+            params = self.receptor_params['AMPA'][0] 
             if hasattr(self.neurons, 'tau_AMPA'):
-                self.neurons.tau_AMPA = dominant_params['tau_syn']['value'] * eval(dominant_params['tau_syn']['unit'])
+                self.neurons.tau_AMPA = params['tau_syn']['value'] * eval(params['tau_syn']['unit'])
             if hasattr(self.neurons, 'E_AMPA'):
-                self.neurons.E_AMPA = dominant_params['E_rev']['value'] * eval(dominant_params['E_rev']['unit'])
+                self.neurons.E_AMPA = params['E_rev']['value'] * eval(params['E_rev']['unit'])
             if hasattr(self.neurons, 'ampa_beta'):
-                self.neurons.ampa_beta = dominant_params.get('beta', {'value': 1.0})['value']
+                self.neurons.ampa_beta = params.get('beta', {'value': 1.0})['value']
                 
         if 'GABA' in self.receptor_params:
-            gaba_param_list = self.receptor_params['GABA']
-            dominant_params = max(gaba_param_list, key=lambda p: p['g0']['value'])
+            params = self.receptor_params['GABA'][0]  
             
             if hasattr(self.neurons, 'tau_GABA'):
-                self.neurons.tau_GABA = dominant_params['tau_syn']['value'] * eval(dominant_params['tau_syn']['unit'])
+                self.neurons.tau_GABA = params['tau_syn']['value'] * eval(params['tau_syn']['unit'])
             if hasattr(self.neurons, 'E_GABA'):
-                self.neurons.E_GABA = dominant_params['E_rev']['value'] * eval(dominant_params['E_rev']['unit'])
+                self.neurons.E_GABA = params['E_rev']['value'] * eval(params['E_rev']['unit'])
             if hasattr(self.neurons, 'gaba_beta'):
-                self.neurons.gaba_beta = dominant_params.get('beta', {'value': 1.0})['value']
+                self.neurons.gaba_beta = params.get('beta', {'value': 1.0})['value']
 
         if 'NMDA' in self.receptor_params:
-            nmda_param_list = self.receptor_params['NMDA']
-            dominant_params = max(nmda_param_list, key=lambda p: p['g0']['value'])
+            params = self.receptor_params['NMDA'][0] 
             
             if hasattr(self.neurons, 'tau_NMDA'):
-                self.neurons.tau_NMDA = dominant_params['tau_syn']['value'] * eval(dominant_params['tau_syn']['unit'])
+                self.neurons.tau_NMDA = params['tau_syn']['value'] * eval(params['tau_syn']['unit'])
             if hasattr(self.neurons, 'E_NMDA'):
-                self.neurons.E_NMDA = dominant_params['E_rev']['value'] * eval(dominant_params['E_rev']['unit'])
+                self.neurons.E_NMDA = params['E_rev']['value'] * eval(params['E_rev']['unit'])
             if hasattr(self.neurons, 'nmda_beta'):
-                self.neurons.nmda_beta = dominant_params.get('beta', {'value': 1.0})['value']
+                self.neurons.nmda_beta = params.get('beta', {'value': 1.0})['value']
             if hasattr(self.neurons, 'Mg2'):
-                self.neurons.Mg2 = 1.0  # Default Mg2+ concentration
+                self.neurons.Mg2 = 1.0  
 
         return self.neurons
