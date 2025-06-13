@@ -120,7 +120,6 @@ def run_simulation_with_inh_ext_input(
 
         synapse_connections = create_synapses(neuron_groups, connections, synapse_class)
         
-        # Support amplitude oscillation
         scaled_neuron_counts = {name: group.N for name, group in neuron_groups.items()}
         poisson_groups, _ = create_poisson_inputs(
             neuron_groups, 
