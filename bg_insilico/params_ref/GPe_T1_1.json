@@ -8,11 +8,11 @@
         "E_L": {"value": -53.105, "unit": "mV"},
         "g_L": {"value": 1, "unit": "nS"},
         "I_ext": {"value": 12, "unit": "pA"},
-        "v": {"value": -59, "unit": "mV"},
-        "vt": {"value": -54.7, "unit": "mV"},
-        "vr": {"value": -60, "unit": "mV"},
         "tau_w": {"value": 20, "unit": "ms"},
         "th": {"value": 15, "unit": "mV"},
+        "vt": {"value": -54.7, "unit": "mV"},
+        "vr": {"value": -60, "unit": "mV"},
+        "v": {"value": -59, "unit": "mV"},
         "z": {"value": 0, "unit": "pA"}
         },
     "reference": {

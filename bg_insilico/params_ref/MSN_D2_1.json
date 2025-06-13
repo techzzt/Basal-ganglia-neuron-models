@@ -1,17 +1,18 @@
 {
     "model": "QIF",
     "params": {
-        "k": {"value": 1.0288, "unit": ""},
-        "u": {"value": 0, "unit": "pA"},
-        "v": {"value": -78.5, "unit": "mV"},
-        "vr": {"value": -80, "unit": "mV"},
-        "vt": {"value": -29.7, "unit": "mV"},
-        "th": {"value": 40, "unit": "mV"},
         "a": {"value": 0.01, "unit": "second"},
         "b": {"value": -20, "unit": "1"},
         "C": {"value": 15.2, "unit": "pF"},
-        "d": {"value": 91, "unit": "pA"},
-        "c": {"value": -60, "unit": "mV"}
+        "c": {"value": -60, "unit": "mV"},
+        "d": {"value": 91, "unit": "pA"},        
+        "k": {"value": 1.0288, "unit": ""},
+        "vr": {"value": -80, "unit": "mV"},
+        "vt": {"value": -29.7, "unit": "mV"},
+        "th": {"value": 40, "unit": "mV"},
+        "v": {"value": -77, "unit": "mV"},
+        "u": {"value": 0, "unit": "pA"}
+
     },
     "reference": {
         "title": "Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model"

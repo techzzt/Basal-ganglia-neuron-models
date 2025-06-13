@@ -1,18 +1,18 @@
 {
     "model": "AdEx",
     "params": {
-        "g_L": {"value": 10, "unit": "nS"},
-        "E_L": {"value": -80.2, "unit": "mV"},
-        "Delta_T": {"value": 16.2, "unit": "mV"},
-        "vt": {"value": -64.0, "unit": "mV"},
-        "vr": {"value": -70, "unit": "mV"},
-        "v": {"value": -64.5, "unit": "mV"},
-        "tau_w": {"value": 333, "unit": "ms"},
-        "th": {"value": 15, "unit": "mV"},
         "a": {"value": 0.3, "unit": "nS"},
         "d": {"value": 0.05, "unit": "pA"},
         "C": {"value": 60, "unit": "pF"},
+        "Delta_T": {"value": 16.2, "unit": "mV"},
+        "E_L": {"value": -80.2, "unit": "mV"},
+        "g_L": {"value": 10, "unit": "nS"},
         "I_ext": {"value": 5, "unit": "pA"},
+        "tau_w": {"value": 333, "unit": "ms"},
+        "th": {"value": 15, "unit": "mV"},
+        "vt": {"value": -64.0, "unit": "mV"},
+        "vr": {"value": -70, "unit": "mV"},
+        "v": {"value": -65, "unit": "mV"},
         "z": {"value": 0, "unit": "pA"}
         },
     "reference": {
