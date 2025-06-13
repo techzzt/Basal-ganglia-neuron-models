@@ -52,8 +52,8 @@
             "pre": "Cortex_FSN",
             "post": "FSN",
             "receptor_type": "AMPA",
-            "p": 0.02,
-            "weight": 1,
+            "p": 0.6,
+            "weight": 1.2,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -299,8 +299,8 @@
             "pre": "Cortex_STN",
             "post": "STN",
             "receptor_type": ["AMPA", "NMDA"],
-            "p": 0.005,
-            "weight": 1,
+            "p": 0.8,
+            "weight": 2.5,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.25, "unit": "nS"},
@@ -341,7 +341,7 @@
             "post": "GPeT1",
             "receptor_type": "AMPA",
             "p": 0.012,
-            "weight": 1,
+            "weight": 0.05,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -425,7 +425,7 @@
             "post": "GPeTA",
             "receptor_type": "AMPA",
             "p": 0.004,
-            "weight": 1,
+            "weight": 0.05,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -489,11 +489,11 @@
     },
 
     "simulation": {
-        "duration": 30000
+        "duration": 10000
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
 
     "start_time": 2000,
-    "end_time": 30000
+    "end_time": 10000
 }
