@@ -23,45 +23,36 @@ class SynapseBase:
             '''
         }
 
-    def _get_on_pre(self, receptor_type, g0_value, tau_value=None, conn_name=None):
-        default_tau = {
-            'AMPA': 12.0,
-            'NMDA': 160.0, 
-            'GABA': 6.0
-        }
+    def _get_on_pre(self, receptor_type, g0_value, tau_value, weight, conn_name=None):
 
-        if tau_value is None:
-            tau_value = default_tau[receptor_type]
-        conductance_size = tau_value * g0_value * 0.35
-
-        conn_data = self.connections.get(conn_name, {})
-        if receptor_type == 'NMDA' and 'AMPA' in conn_data.get('receptor_type', []):
-            ampa_params = conn_data['receptor_params'].get('AMPA', {})
-            ampa_g0 = ampa_params.get('g0', {}).get('value', 0.5)
-            ampa_tau = ampa_params.get('tau_syn', {}).get('value', 12.0)
-            ampa_size = ampa_tau * ampa_g0 * 0.35
-            ampa_limited_size = min(ampa_size, 4.5)
-            nmda_size = ampa_limited_size / 2 
-            conductance_size = nmda_size
-
-        conductance_increase = f"w * {g0_value} * nS"
-        
-        if receptor_type == 'GABA':
-            max_g_value = min(conductance_size, 4)  
-        elif receptor_type == 'AMPA':
-            max_g_value = min(conductance_size, 4.5)
-        else:
-            max_g_value = conductance_size  
-
+        g_increase = f"w * {g0_value} * nS"
         var_map = {'AMPA': 'g_a', 'NMDA': 'g_n', 'GABA': 'g_g'}
         var = var_map.get(receptor_type)
-        if var is None:
+
+        if not var:
             return ''
 
-        return f"""
-        {var} = clip({var} + {conductance_increase}, 0 * nS, {max_g_value} * nS)
-        """
+        is_ext_input = conn_name and conn_name.lower().startswith('ext')
+        if is_ext_input:
+            return f"\n{var} += {g_increase}\n"
 
+        max_g_limits = {'AMPA': 3.2, 'NMDA': 1.6, 'GABA': 5.2}
+        hard_limit = max_g_limits.get(receptor_type, float('inf'))
+
+
+        if tau_value is not None:
+            calculated_limit = tau_value * g0_value * weight
+        else:
+            calculated_limit = float('inf')
+
+        max_g_value = min(calculated_limit, hard_limit)
+
+        if max_g_value == float('inf'):
+            return f"\n{var} += {g_increase}\n"
+
+        return f"""
+        {var} = clip({var} + {g_increase}, 0 * nS, {max_g_value} * nS)
+        """
 
 class Synapse(SynapseBase):
     def __init__(self, neurons, connections):
@@ -94,6 +85,8 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
 
             receptor_types = conn_config['receptor_type']
             receptor_types = receptor_types if isinstance(receptor_types, list) else [receptor_types]
+            
+            weight_from_config = conn_config.get('weight', 1.0)
 
             for receptor_type in receptor_types:
                 syn_key = (pre, post, receptor_type, conn_name)
@@ -113,6 +106,7 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
                     receptor_type, 
                     g0_value_for_on_pre, 
                     tau_value_for_on_pre,
+                    weight=weight_from_config,
                     conn_name=conn_name
                 )
 
@@ -129,8 +123,8 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
                     p_connect = conn_config.get('p', 1.0)
                     syn.connect(p=p_connect)
 
-                    weight = conn_config.get('weight', 1.0)
-                    syn.w = weight
+                    # Set the 'w' variable in the Synapses object, used by 'g_increase'
+                    syn.w = weight_from_config
 
                     if hasattr(syn, 'tau_' + receptor_type):
                         tau_val = current_params.get('tau_syn', {}).get('value', 160.0)
