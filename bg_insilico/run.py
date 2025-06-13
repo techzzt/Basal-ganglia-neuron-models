@@ -23,15 +23,13 @@ def main():
             if 'target_rates' in neuron_config:
                 target, rate_info = list(neuron_config['target_rates'].items())[0]
                 rate_expr = rate_info['equation']
-                ext_inputs[target] = rate_expr  # Store rate_expr only
-                # print(f"Setting up external input for {target}: {rate_expr}")
+                ext_inputs[target] = rate_expr 
 
-    # Default amplitude oscillation values
     amplitude_oscillations = {
         'MSND1': 0.11,
         'MSND2': 0.11, 
         'FSN': 0.11,
-        'STN': 0.11  # slow-wave state
+        'STN': 0.11 
     }
 
     results = run_simulation_with_inh_ext_input(
@@ -43,7 +41,7 @@ def main():
         start_time=start_time,
         end_time=end_time,
         ext_inputs=ext_inputs,
-        amplitude_oscillations=amplitude_oscillations  # Apply amplitude oscillation
+        amplitude_oscillations=amplitude_oscillations  
         )
     
     print("Simulation completed successfully")
