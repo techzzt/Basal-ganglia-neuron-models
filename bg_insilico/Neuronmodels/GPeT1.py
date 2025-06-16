@@ -37,7 +37,6 @@ class GPeT1(NeuronModel):
         return receptor_params
 
     def create_neurons(self):
-
         base_eqs = AdEx.eqs 
         
         if self.connections:
@@ -56,7 +55,6 @@ class GPeT1(NeuronModel):
         self.neurons.E_L = self.params['E_L']['value'] * eval(self.params['E_L']['unit'])
         self.neurons.g_L = self.params['g_L']['value'] * eval(self.params['g_L']['unit'])
         self.neurons.tau_w = self.params['tau_w']['value'] * eval(self.params['tau_w']['unit'])
-      
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
