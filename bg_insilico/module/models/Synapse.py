@@ -36,7 +36,7 @@ class SynapseBase:
         if is_ext_input:
             return f"\n{var} += {g_increase}\n"
 
-        max_g_limits = {'AMPA': 3.2, 'NMDA': 1.6, 'GABA': 5.2}
+        max_g_limits = {'AMPA': 3.2, 'NMDA': 1.6, 'GABA': 5}
         hard_limit = max_g_limits.get(receptor_type, float('inf'))
 
 
@@ -120,8 +120,13 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
                     created_synapses_map[syn_key] = syn
                     synapse_connections.append(syn)
 
-                    p_connect = conn_config.get('p', 1.0)
-                    syn.connect(p=p_connect)
+                    p = conn_config.get('p', 1.0)
+                    N_pre = pre_group.N
+                    fan_in = p * N_pre
+                    N_beta = conn_config.get('N_beta', 1.0)
+                    effective_p = (fan_in * N_beta) / N_pre
+                    effective_p = min(effective_p, 1.0)
+                    syn.connect(p=effective_p)
 
                     # Set the 'w' variable in the Synapses object, used by 'g_increase'
                     syn.w = weight_from_config
