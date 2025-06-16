@@ -18,6 +18,7 @@ from module.utils.visualization import (
 from module.utils.sta import compute_firing_rates_all_neurons
 from module.models.stimulus import create_poisson_inputs
 from brian2.devices.device import reset_device
+from module.utils.param_loader import load_params
 
 # Matplotlib backend setup
 # plt.ion() 
@@ -150,7 +151,9 @@ def run_simulation_with_inh_ext_input(
         
         firing_rates = compute_firing_rates_all_neurons(spike_monitors, start_time=start_time, end_time=end_time, plot_order=plot_order)
         
-        plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time)
+        params = load_params('config/test_dop_noin.json')
+        display_names = params.get('display_names', None)
+        plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time, display_names=display_names)
         
         results = {
             'spike_monitors': spike_monitors,
