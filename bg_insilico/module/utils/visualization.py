@@ -15,7 +15,7 @@ def get_monitor_spikes(monitor):
     except:
         return np.array([]) * ms, np.array([])
 
-def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms, end_time=1000*ms):
+def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms, end_time=1000*ms, display_names=None):
     np.random.seed(2025)
     try:
         if plot_order:
@@ -51,14 +51,15 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms
             display_t = spike_times[combined_mask]
             display_i = spike_indices[combined_mask]
 
+            display_name = display_names.get(name, name) if display_names else name
             axes[i].scatter(display_t / ms, display_i, s=0.2)
-            axes[i].set_title(f'{name} Raster Plot (subset of {len(chosen_neurons)} neurons)')
+            axes[i].set_title(f'{display_name} Raster Plot (subset of {len(chosen_neurons)} neurons)')
             axes[i].set_ylabel('Neuron index')
 
             axes[i].set_ylim(min(chosen_neurons) - 1, max(chosen_neurons) + 1)
             axes[i].set_xlim(int(start_time/ms), int(end_time/ms))
             
-            print(f"{name}: {len(display_t)} spikes shown (sampled from {sample_size} neurons)")
+            print(f"{display_name}: {len(display_t)} spikes shown (sampled from {sample_size} neurons)")
 
         plt.xlabel('Time (ms)')
         plt.tight_layout()
