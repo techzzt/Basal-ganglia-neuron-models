@@ -34,7 +34,7 @@
         {
             "name": "GPeT1",
             "N": 988,
-            "params_file": "./params_ref/GPe_T1_1.json",
+            "params_file": "./params_ref/GPe_T1_1_nor.json",
             "model_class": "GPeT1"
         },
         {
@@ -166,7 +166,8 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 1.176, "unit": "1"}
+                "beta": {"value": 1.176, "unit": "1"},
+                "N_beta": {"value": 1.176, "unit": "1"}                
                 }
             }
         },
@@ -183,7 +184,8 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 1.176, "unit": "1"}
+                "beta": {"value": 1.176, "unit": "1"},
+                "N_beta": {"value": 1.176, "unit": "1"}                
                 }
             }
         },
@@ -240,8 +242,7 @@
                 "tau_syn": {"value": 11, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 0.82, "unit": "1"}
-                }
+                "N_beta": {"value": 0.82, "unit": "1"}                }
             }
         },
 
@@ -257,7 +258,8 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 1.176, "unit": "1"}
+                "beta": {"value": 1.176, "unit": "1"},
+                "N_beta": {"value": 1.176, "unit": "1"}                
                 }
             }
         },
@@ -274,7 +276,8 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "beta": {"value": 1.176, "unit": "1"},
-                "delay": {"value": 1.7, "unit": "ms"}
+                "delay": {"value": 1.7, "unit": "ms"},
+                "N_beta": {"value": 1.176, "unit": "1"}                
                 }
             }
         },
@@ -397,7 +400,7 @@
                 "tau_syn": {"value": 5, "unit": "ms"},
                 "E_rev": {"value": -65, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 0.8, "unit": "1"}
+                "beta": {"value": 0.834, "unit": "1"}
                 }
             }
         },
@@ -492,7 +495,10 @@
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
-
+    "display_names": {
+        "GPeT1": "Prototypic",
+        "GPeTA": "Arkypallidal"
+    },
     "start_time": 2000,
     "end_time": 10000
 }

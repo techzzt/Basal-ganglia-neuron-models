@@ -76,7 +76,7 @@
                 "tau_syn": {"value": 6, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 2.02, "unit": "1"}
+                "beta": {"value": 2.016, "unit": "1"}
                 }
             }
         },
@@ -93,7 +93,7 @@
                 "tau_syn": {"value": 17, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 7, "unit": "ms"},
-                "beta": {"value": 1.42, "unit": "1"}
+                "beta": {"value": 1.424, "unit": "1"}
                 }
             }
         },
@@ -110,7 +110,7 @@
                 "tau_syn": {"value": 66, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 7.0, "unit": "ms"},
-                "beta": {"value": 1.42, "unit": "1"}
+                "beta": {"value": 1.424, "unit": "1"}
                 }
             }
         },
@@ -166,7 +166,8 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 0.295, "unit": "1"}
+                "beta": {"value": 0.295, "unit": "1"},
+                "N_beta": {"value": 0.295, "unit": "1"}    
                 }
             }
         }, 
@@ -183,7 +184,8 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 0.295, "unit": "1"}
+                "beta": {"value": 0.295, "unit": "1"},
+                "N_beta": {"value": 0.295, "unit": "1"}                
                 }
             }
         },
@@ -192,7 +194,7 @@
             "pre": "GPeTA",
             "post": "MSND1",
             "receptor_type": "GABA",
-            "p": 0.03,
+            "p": 0.0304,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -216,7 +218,7 @@
                     "g0": {"value": 0.5, "unit": "nS"},
                     "tau_syn": {"value": 12, "unit": "ms"},
                     "E_rev": {"value": 0, "unit": "mV"},
-                    "beta": {"value": 0.208, "unit": "1"},
+                    "beta": {"value": 1.208, "unit": "1"},
                     "delay": {"value": 2.5, "unit": "ms"}
                 },
                 "NMDA": {
@@ -240,7 +242,7 @@
                 "tau_syn": {"value": 11, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 1.72, "unit": "1"}
+                "N_beta": {"value": 1.72, "unit": "1"}                
                 }
             }
         },
@@ -257,7 +259,8 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "beta": {"value": 0.295, "unit": "1"}
+                "beta": {"value": 0.295, "unit": "1"},
+                "N_beta": {"value": 0.295, "unit": "1"}    
                 }
             }
         },
@@ -274,7 +277,8 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "beta": {"value": 0.295, "unit": "1"},
-                "delay": {"value": 1.7, "unit": "ms"}
+                "delay": {"value": 1.7, "unit": "ms"},
+                "N_beta": {"value": 0.295, "unit": "1"}    
                 }
             }
         },
@@ -318,7 +322,6 @@
             }
         },
 
-
         "GPeT1_to_STN": {
             "pre": "GPeT1",
             "post": "STN",
@@ -331,7 +334,7 @@
                 "tau_syn": {"value": 8, "unit": "ms"},
                 "E_rev": {"value": -84, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 0.81, "unit": "1"}
+                "beta": {"value": 0.808, "unit": "1"}
                 }
             }
         },
@@ -381,7 +384,7 @@
                 "tau_syn": {"value": 12, "unit": "ms"},
                 "E_rev": {"value": 0, "unit": "mV"},
                 "delay": {"value": 2, "unit": "ms"},
-                "beta": {"value": 1.36, "unit": "1"}
+                "beta": {"value": 1.09, "unit": "1"}
                 }
             }
         },
@@ -398,7 +401,7 @@
                 "tau_syn": {"value": 5, "unit": "ms"},
                 "E_rev": {"value": -65, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 1.164, "unit": "1"}
+                "beta": {"value": 1.664, "unit": "1"}
                 }
             }
         },
@@ -415,7 +418,7 @@
                 "tau_syn": {"value": 5, "unit": "ms"},
                 "E_rev": {"value": -65, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 1.164, "unit": "1"}
+                "beta": {"value": 1.664, "unit": "1"}
                 }
             }
         },
@@ -448,7 +451,7 @@
                 "tau_syn": {"value": 5, "unit": "ms"},
                 "E_rev": {"value": -65, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 1.164, "unit": "1"}
+                "beta": {"value": 1.664, "unit": "1"}
                 }
             }
         },
@@ -465,7 +468,7 @@
                 "tau_syn": {"value": 5, "unit": "ms"},
                 "E_rev": {"value": -65, "unit": "mV"},
                 "delay": {"value": 1, "unit": "ms"},
-                "beta": {"value": 1.164, "unit": "1"}
+                "beta": {"value": 1.664, "unit": "1"}
                 }
             }
         },
@@ -481,7 +484,7 @@
                 "g0": {"value": 0.11, "unit": "nS"},
                 "tau_syn": {"value": 4, "unit": "ms"},
                 "E_rev": {"value": 0, "unit": "mV"},
-                "beta": {"value": 1.36, "unit": "1"},
+                "beta": {"value": 1.09, "unit": "1"},
                 "delay": {"value": 5, "unit": "ms"}
                 } 
             }
@@ -493,6 +496,10 @@
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
+    "display_names": {
+        "GPeT1": "Prototypic",
+        "GPeTA": "Arkypallidal"
+    },
 
     "start_time": 2000,
     "end_time": 10000
