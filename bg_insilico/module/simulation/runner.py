@@ -95,7 +95,7 @@ def run_simulation_with_inh_ext_input(
     end_time=1000*ms,
     ext_inputs=None,
     amplitude_oscillations=None
-    ):
+):
     
     spike_monitors = {}
     neuron_groups = None
@@ -107,14 +107,12 @@ def run_simulation_with_inh_ext_input(
     duration = None
     
     try:
-        try:
-            device.reinit()
-            device.activate()
-        except:
-            pass
+        device.reinit()
+        device.activate()
         start_scope()
-        
-        seed(2025)
+        for name in list(globals().keys()):
+            if name.startswith('_'):
+                del globals()[name]
         
         net = Network()
         neuron_groups = create_neurons(neuron_configs, simulation_params, connections)
@@ -140,7 +138,7 @@ def run_simulation_with_inh_ext_input(
         net.add(*spike_monitors.values())
         
         duration = simulation_params.get('duration', 1000) * ms
-        dt = simulation_params.get('dt', 1) * ms 
+        dt = simulation_params.get('dt', 0.1) * ms 
         defaultclock.dt = dt
         
         report_interval = duration * 0.5
@@ -150,9 +148,8 @@ def run_simulation_with_inh_ext_input(
             return results
         
         firing_rates = compute_firing_rates_all_neurons(spike_monitors, start_time=start_time, end_time=end_time, plot_order=plot_order)
-        
-        params = load_params('config/test_dop_noin.json')
-        display_names = params.get('display_names', None)
+        display_names = simulation_params.get('display_names', None)
+
         plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time, display_names=display_names)
         
         results = {
