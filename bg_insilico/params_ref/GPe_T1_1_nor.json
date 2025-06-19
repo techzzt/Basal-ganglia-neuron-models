@@ -2,12 +2,12 @@
     "model": "AdEx",
     "params": {
         "a": {"value": 2.5, "unit": "nS"},
-        "d": {"value": 105, "unit": "pA"},
-        "C": {"value": 60, "unit": "pF"},
-        "Delta_T": {"value": 2.55, "unit": "mV"},
-        "E_L": {"value": -63.08, "unit": "mV"},
+        "d": {"value": 70, "unit": "pA"},
+        "C": {"value": 40, "unit": "pF"},
+        "Delta_T": {"value": 1.7, "unit": "mV"},
+        "E_L": {"value": -53.105, "unit": "mV"},
         "g_L": {"value": 1, "unit": "nS"},
-        "I_ext": {"value": 1, "unit": "pA"},
+        "I_ext": {"value": 12, "unit": "pA"},
         "tau_w": {"value": 20, "unit": "ms"},
         "th": {"value": 15, "unit": "mV"},
         "vt": {"value": -54.7, "unit": "mV"},
@@ -19,3 +19,4 @@
         "title": "Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model"
     }
 }
+
