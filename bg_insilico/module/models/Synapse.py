@@ -29,35 +29,47 @@ class SynapseBase:
         var_map = {'AMPA': 'g_a', 'NMDA': 'g_n', 'GABA': 'g_g'}
         var = var_map.get(receptor_type)
 
-        if not var:
+        """if not var:
             return ''
 
+        return f"\n{var} += {g_increase}\n"
+
+        """
         is_ext_input = conn_name and conn_name.lower().startswith('ext')
         if is_ext_input:
             return f"\n{var} += {g_increase}\n"
-
-        max_g_limits = {'AMPA': 3.2, 'NMDA': 1.6, 'GABA': 5}
+    
+        max_g_limits = {'AMPA': 4, 'NMDA': 2, 'GABA': 5.7}
         hard_limit = max_g_limits.get(receptor_type, float('inf'))
 
+        if tau_value is not None and tau_value > 0:
+            calculated_limit = tau_value * g0_value
+            
+                    
+            min_saturation_limits = {
+                'AMPA': 1.0,   
+                'NMDA': 0.5,     
+                'GABA': 1.5   
+            }
 
-        if tau_value is not None:
-            calculated_limit = tau_value * g0_value * weight
+            min_limit = min_saturation_limits.get(receptor_type, 0.5)
+            calculated_limit = max(calculated_limit, min_limit)
         else:
             calculated_limit = float('inf')
+        
 
         max_g_value = min(calculated_limit, hard_limit)
 
         if max_g_value == float('inf'):
             return f"\n{var} += {g_increase}\n"
 
-        return f"""
+        return f'''
         {var} = clip({var} + {g_increase}, 0 * nS, {max_g_value} * nS)
-        """
+        '''
 
 class Synapse(SynapseBase):
     def __init__(self, neurons, connections):
         super().__init__(neurons, connections)
-
 
 def get_synapse_class(class_name):
     try:
@@ -67,7 +79,6 @@ def get_synapse_class(class_name):
         raise ImportError(f"Module 'module.models.Synapse' not found. Check if the path is correct.")
     except AttributeError:
         raise ImportError(f"Class '{class_name}' not found in 'module.models.Synapse'.")
-
 
 def create_synapses(neuron_groups, connections, synapse_class_name):
     try:
@@ -123,7 +134,7 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
                     p = conn_config.get('p', 1.0)
                     N_pre = pre_group.N
                     fan_in = p * N_pre
-                    N_beta = conn_config.get('N_beta', 1.0)
+                    N_beta = current_params.get('N_beta', {}).get('value', 1.0)
                     effective_p = (fan_in * N_beta) / N_pre
                     effective_p = min(effective_p, 1.0)
                     syn.connect(p=effective_p)
@@ -152,7 +163,6 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
         print(f"Error creating synapses: {str(e)}")
         raise
 
-
 def generate_neuron_specific_synapse_inputs(neuron_name, connections, already_defined=None):
     used_receptors = set()
     for conn_name, conn_config in connections.items():
@@ -162,7 +172,6 @@ def generate_neuron_specific_synapse_inputs(neuron_name, connections, already_de
             used_receptors.update(receptor_types)
 
     return generate_synapse_inputs(list(used_receptors), already_defined=already_defined)
-
 
 def generate_synapse_inputs(receptors=None, already_defined=None):
     if receptors is None:
