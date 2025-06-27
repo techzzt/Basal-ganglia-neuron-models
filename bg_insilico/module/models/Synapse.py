@@ -39,26 +39,26 @@ class SynapseBase:
         if is_ext_input:
             return f"\n{var} += {g_increase}\n"
     
-        max_g_limits = {'AMPA': 4, 'NMDA': 2, 'GABA': 5.7}
+        max_g_limits = {'AMPA': 4.6, 'NMDA': 2.3, 'GABA': 5.5}
         hard_limit = max_g_limits.get(receptor_type, float('inf'))
 
         if tau_value is not None and tau_value > 0:
             calculated_limit = tau_value * g0_value
             
-                    
             min_saturation_limits = {
                 'AMPA': 1.0,   
                 'NMDA': 0.5,     
-                'GABA': 1.5   
+                'GABA': 1   
             }
 
             min_limit = min_saturation_limits.get(receptor_type, 0.5)
             calculated_limit = max(calculated_limit, min_limit)
+            
+            safety_multiplier = 1.5
+            max_g_value = min(calculated_limit, hard_limit * safety_multiplier)
         else:
             calculated_limit = float('inf')
-        
-
-        max_g_value = min(calculated_limit, hard_limit)
+            max_g_value = hard_limit
 
         if max_g_value == float('inf'):
             return f"\n{var} += {g_increase}\n"
