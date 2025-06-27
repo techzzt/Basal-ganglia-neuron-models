@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np 
 from brian2 import *
-from datetime import datetime
 
 def get_monitor_spikes(monitor):
     try:
@@ -52,7 +51,7 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms
             display_i = spike_indices[combined_mask]
 
             display_name = display_names.get(name, name) if display_names else name
-            axes[i].scatter(display_t / ms, display_i, s=0.2)
+            axes[i].scatter(display_t / ms, display_i, s=0.1)
             axes[i].set_title(f'{display_name} Raster Plot (subset of {len(chosen_neurons)} neurons)')
             axes[i].set_ylabel('Neuron index')
 
