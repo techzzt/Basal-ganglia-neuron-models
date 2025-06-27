@@ -52,8 +52,8 @@
             "pre": "Cortex_FSN",
             "post": "FSN",
             "receptor_type": "AMPA",
-            "p": 0.85,
-            "weight": 2.7,
+            "p": 0.7,
+            "weight": 1.2,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -119,8 +119,8 @@
             "pre": "Cortex_MSND1",
             "post": "MSND1",
             "receptor_type": ["AMPA", "NMDA"],
-            "p": 1,
-            "weight": 3.0,
+            "p": 0.8,
+            "weight": 1,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -211,8 +211,8 @@
             "pre": "Cortex_MSND2",
             "post": "MSND2",
             "receptor_type": ["AMPA", "NMDA"],
-            "p": 1,
-            "weight": 3.0,
+            "p": 0.85,
+            "weight": 1.3,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -343,7 +343,7 @@
             "post": "GPeT1",
             "receptor_type": "AMPA",
             "p": 0.001,
-            "weight": 0.01,
+            "weight": 0.006,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -427,7 +427,7 @@
             "post": "GPeTA",
             "receptor_type": "AMPA",
             "p": 0.001,
-            "weight": 0.001,
+            "weight": 0.01,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -476,7 +476,7 @@
             "pre": "STN",
             "post": "GPeTA",
             "receptor_type": "AMPA",
-            "p": 0.091,
+            "p": 0.1,
             "weight": 1,
             "receptor_params": {
                 "AMPA": {
@@ -491,7 +491,7 @@
     },
 
     "simulation": {
-        "duration": 10000
+        "duration": 30000
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
@@ -500,5 +500,5 @@
         "GPeTA": "Arkypallidal"
     },
     "start_time": 2000,
-    "end_time": 10000
+    "end_time": 30000
 }
