@@ -12,7 +12,7 @@
         "th": {"value": 15, "unit": "mV"},
         "vt": {"value": -54.7, "unit": "mV"},
         "vr": {"value": -60, "unit": "mV"},
-        "v": {"value": -57, "unit": "mV"},
+        "v": {"value": -58, "unit": "mV"},
         "z": {"value": 0, "unit": "pA"}
         },
     "reference": {
