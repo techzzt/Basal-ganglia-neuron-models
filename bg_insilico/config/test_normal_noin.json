@@ -4,8 +4,8 @@
         {"name": "Cortex_MSND1", "N": 37971, "neuron_type": "poisson", "target_rates": {"MSND1": {"equation": "448*Hz"}}},  
         {"name": "Cortex_MSND2", "N": 37971, "neuron_type": "poisson", "target_rates": {"MSND2": {"equation": "592*Hz"}}},
         {"name": "Cortex_STN", "N": 388, "neuron_type": "poisson", "target_rates": {"STN": {"equation": "170*Hz"}}},
-        {"name": "Ext_GPeT1", "N": 988, "neuron_type": "poisson", "target_rates": {"GPeT1": {"equation": "720*Hz"}}},
-        {"name": "Ext_GPeTA", "N": 329, "neuron_type": "poisson", "target_rates": {"GPeTA": {"equation": "100*Hz"}}},
+        {"name": "Ext_GPeT1", "N": 988, "neuron_type": "poisson", "target_rates": {"GPeT1": {"equation": "100*Hz"}}},
+        {"name": "Ext_GPeTA", "N": 329, "neuron_type": "poisson", "target_rates": {"GPeTA": {"equation": "720*Hz"}}},
        
         {
             "name": "FSN",
@@ -242,7 +242,8 @@
                 "tau_syn": {"value": 11, "unit": "ms"},
                 "E_rev": {"value": -74, "unit": "mV"},
                 "delay": {"value": 1.7, "unit": "ms"},
-                "N_beta": {"value": 0.82, "unit": "1"}                }
+                "N_beta": {"value": 0.82, "unit": "1"}                
+            }
             }
         },
 
@@ -491,7 +492,21 @@
     },
 
     "simulation": {
-        "duration": 30000
+        "duration": 30000,
+        "stimulus": {
+            "enabled": true,
+            "start_time": 10000,
+            "duration": 1000,
+            "dt_array": 1,
+            "rates": {
+                "FSN": 787,
+                "MSND1": 546,
+                "MSND2": 722,
+                "STN": 250,
+                "GPeT1": 1530,
+                "GPeTA": 200
+            }
+        }
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],

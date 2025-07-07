@@ -492,7 +492,21 @@
     },
 
     "simulation": {
-        "duration": 30000
+        "duration": 30000,
+        "stimulus": {
+            "enabled": true,
+            "start_time": 10000,
+            "duration": 5000,
+            "dt_array": 1,
+            "rates": {
+                "FSN": 787,
+                "MSND1": 546,
+                "MSND2": 722,
+                "STN": 250,
+                "GPeT1": 1530,
+                "GPeTA": 200
+            }
+        }
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
