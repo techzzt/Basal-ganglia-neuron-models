@@ -15,10 +15,9 @@ from module.utils.visualization import (
     plot_raster_all_neurons_stim_window
     )
 
-from module.utils.sta import compute_firing_rates_all_neurons
+from module.utils.sta import compute_firing_rates_all_neurons, analyze_stimulus_effect
 from module.models.stimulus import create_poisson_inputs
 from brian2.devices.device import reset_device
-from module.utils.param_loader import load_params
 
 # Matplotlib backend setup
 # plt.ion() 
@@ -116,26 +115,42 @@ def run_simulation_with_inh_ext_input(
         
         net = Network()
         neuron_groups = create_neurons(neuron_configs, simulation_params, connections)
-
-        synapse_connections = create_synapses(neuron_groups, connections, synapse_class)
         
         scaled_neuron_counts = {name: group.N for name, group in neuron_groups.items()}
-        poisson_groups, _ = create_poisson_inputs(
+        
+        # Get stimulus config
+        stimulus_config = simulation_params.get('stimulus', {})
+        
+        poisson_groups, timed_arrays = create_poisson_inputs(
             neuron_groups, 
             ext_inputs, 
             scaled_neuron_counts,
-            amplitude_oscillations
+            neuron_configs,
+            amplitude_oscillations,
+            stimulus_config,
+            simulation_params
         ) if ext_inputs else ({}, [])
+
+        # Combine neuron_groups and poisson_groups for synapse creation
+        all_groups = {**neuron_groups, **poisson_groups}
+        synapse_connections = create_synapses(all_groups, connections, synapse_class)
         
         for name, group in neuron_groups.items():
             if not name.startswith(('Cortex_', 'Ext_')):  
                 sp_mon = SpikeMonitor(group)
                 spike_monitors[name] = sp_mon
         
+        # Add SpikeMonitors for PoissonGroups to debug stimulus
+        poisson_monitors = {}
+        for name, group in poisson_groups.items():
+            poisson_monitors[name] = SpikeMonitor(group)
+            print(f"Added SpikeMonitor for {name} PoissonGroup")
+        
         net.add(*neuron_groups.values())
         net.add(*synapse_connections)
         net.add(*poisson_groups.values())
         net.add(*spike_monitors.values())
+        net.add(*poisson_monitors.values())
         
         duration = simulation_params.get('duration', 1000) * ms
         dt = simulation_params.get('dt', 0.1) * ms 
@@ -149,6 +164,24 @@ def run_simulation_with_inh_ext_input(
         
         firing_rates = compute_firing_rates_all_neurons(spike_monitors, start_time=start_time, end_time=end_time, plot_order=plot_order)
         display_names = simulation_params.get('display_names', None)
+        
+        # Analyze stimulus effect if enabled
+        if stimulus_config.get('enabled', False):
+            analyze_stimulus_effect(
+                spike_monitors, 
+                stimulus_start=stimulus_config.get('start_time', 10000),
+                stimulus_duration=stimulus_config.get('duration', 1000)
+            )
+            
+            # Debug: Print PoissonGroup spike counts
+            print("\n=== PoissonGroup Spike Analysis ===")
+            for name, monitor in poisson_monitors.items():
+                spike_count = len(monitor.t)
+                print(f"{name}: {spike_count} spikes total")
+                if spike_count > 0:
+                    print(f"  - Time range: {min(monitor.t)/ms:.1f} - {max(monitor.t)/ms:.1f} ms")
+                    print(f"  - Average rate: {spike_count / (duration/ms/1000):.2f} Hz")
+            print("===================================")
 
         plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time, display_names=display_names)
         
