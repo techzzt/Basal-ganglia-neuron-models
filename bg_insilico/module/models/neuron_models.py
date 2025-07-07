@@ -68,6 +68,9 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
 
     duration = simulation_params.get('duration', 1.0) 
     dt = float(simulation_params.get('dt', 1))  
+    
+    # Check if stimulus is enabled
+    stimulus_enabled = simulation_params.get('stimulus', {}).get('enabled', False)
 
     try:
         neuron_groups = {}
@@ -77,6 +80,11 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
             N = config['N']
 
             if config.get('neuron_type', None) == 'poisson':
+                if stimulus_enabled:
+                    # Skip creating PoissonGroup here - will be created in stimulus.py
+                    print(f"Skipping PoissonGroup creation for {name} - stimulus enabled")
+                    continue
+                
                 if 'target_rates' in config and len(config['target_rates']) > 0:
                     target, rate_info = list(config['target_rates'].items())[0]
                     rate_expr = rate_info['equation']

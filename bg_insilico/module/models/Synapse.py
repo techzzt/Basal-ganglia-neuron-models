@@ -29,12 +29,6 @@ class SynapseBase:
         var_map = {'AMPA': 'g_a', 'NMDA': 'g_n', 'GABA': 'g_g'}
         var = var_map.get(receptor_type)
 
-        """if not var:
-            return ''
-
-        return f"\n{var} += {g_increase}\n"
-
-        """
         is_ext_input = conn_name and conn_name.lower().startswith('ext')
         if is_ext_input:
             return f"\n{var} += {g_increase}\n"
