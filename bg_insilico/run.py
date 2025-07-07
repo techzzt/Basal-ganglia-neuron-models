@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import json
+import numpy as np
 from module.simulation.runner import run_simulation_with_inh_ext_input
 from module.utils.param_loader import load_params
+from module.utils.sta import compute_isi_all_neurons
 from brian2 import ms 
 
 def main():
-    params_file = 'config/test_normal_noin.json'
+    params_file = 'config/test_dop_noin.json'
     
     params = load_params(params_file)
     neuron_configs = params['neurons']
@@ -13,8 +15,11 @@ def main():
     synapse_class = params['synapse_class']
     simulation_params = params['simulation']
     plot_order = params['plot_order']
-    start_time = params.get('start_time', 0) * ms
-    end_time = params.get('end_time', 10000) * ms
+    analysis_start_time = params.get('start_time', 0) * ms
+    analysis_end_time = params.get('end_time', 10000) * ms
+
+    if 'display_names' in params:
+        simulation_params['display_names'] = params['display_names']
 
     ext_inputs = {}
     for neuron_config in neuron_configs:
@@ -38,13 +43,77 @@ def main():
         synapse_class=synapse_class,
         simulation_params=simulation_params,    
         plot_order=plot_order, 
-        start_time=start_time,
-        end_time=end_time,
+        start_time=analysis_start_time,
+        end_time=analysis_end_time,
         ext_inputs=ext_inputs,
         amplitude_oscillations=amplitude_oscillations  
         )
     
     print("Simulation completed successfully")
+    
+    # Print actual stimulus timing if enabled
+    stimulus_enabled = simulation_params.get('stimulus', {}).get('enabled', False)
+    if stimulus_enabled:
+        stimulus_config = simulation_params['stimulus']
+        stim_start_time = stimulus_config.get('start_time', 0)
+        stim_duration = stimulus_config.get('duration', 0)
+        stim_end_time = stim_start_time + stim_duration
+        print(f"Stimulus: {stim_start_time}-{stim_end_time}ms")
+    else:
+        print("Stimulus: disabled")
+       
+    try:
+        print("\n--- 전체 구간 분석 ---")
+        isi_results = compute_isi_all_neurons(
+            results['spike_monitors'], 
+            start_time=analysis_start_time, 
+            end_time=analysis_end_time, 
+            plot_order=plot_order,
+            plot_histograms=True,
+            display_names=params.get('display_names', None)
+        )
+        
+        if stimulus_enabled:
+            stim_start = stimulus_config.get('start_time', 10000) * ms
+            stim_duration = stimulus_config.get('duration', 1000) * ms
+            stim_end = stim_start + stim_duration
+            window = 1000 * ms 
+            
+            pre_start = stim_start - window
+            pre_end = stim_start
+            print(f"\n--- Stimulus 전 구간 ({pre_start/ms:.0f}-{pre_end/ms:.0f}ms) ---")
+            compute_isi_all_neurons(
+                results['spike_monitors'], 
+                start_time=pre_start, 
+                end_time=pre_end, 
+                plot_order=plot_order,
+                display_names=params.get('display_names', None)
+            )
+            
+            print(f"\n--- Stimulus 중 구간 ({stim_start/ms:.0f}-{stim_end/ms:.0f}ms) ---")
+            compute_isi_all_neurons(
+                results['spike_monitors'], 
+                start_time=stim_start, 
+                end_time=stim_end, 
+                plot_order=plot_order,
+                display_names=params.get('display_names', None)
+            )
+            
+            post_start = stim_end
+            post_end = stim_end + window
+            print(f"\n--- Stimulus 후 구간 ({post_start/ms:.0f}-{post_end/ms:.0f}ms) ---")
+            compute_isi_all_neurons(
+                results['spike_monitors'], 
+                start_time=post_start, 
+                end_time=post_end, 
+                plot_order=plot_order,
+                display_names=params.get('display_names', None)
+            )
+    
+    except Exception as e:
+        print(f"Spike 간격 분석 중 오류 발생: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()
