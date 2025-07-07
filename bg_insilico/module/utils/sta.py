@@ -1,6 +1,8 @@
 from brian2 import *
-import numpy as np 
+import numpy as np
 import time
+import matplotlib.pyplot as plt
+from brian2 import ms
 
 def get_monitor_spikes(monitor):
     try:
@@ -12,6 +14,386 @@ def get_monitor_spikes(monitor):
             return np.array([]) * ms, np.array([])
     except:
         return np.array([]) * ms, np.array([])
+
+def calculate_isi_from_monitor(spike_monitor, neuron_name):
+
+    spike_times, spike_indices = get_monitor_spikes(spike_monitor)
+    
+    if len(spike_times) == 0:
+        return {
+            'neuron_name': neuron_name,
+            'total_spikes': 0,
+            'mean_isi': 0,
+            'std_isi': 0,
+            'cv_isi': 0,
+            'min_isi': 0,
+            'max_isi': 0,
+            'isi_list': [],
+            'isi_by_neuron': {}
+        }
+    
+    isi_by_neuron = {}
+    all_isi = []
+    
+    for neuron_idx in np.unique(spike_indices):
+        neuron_spikes = spike_times[spike_indices == neuron_idx]
+        if len(neuron_spikes) > 1:
+            isi = np.diff(neuron_spikes)
+            isi_ms = isi / ms 
+            isi_by_neuron[neuron_idx] = isi_ms
+            all_isi.extend(isi_ms)
+    
+    if not all_isi:
+        return {
+            'neuron_name': neuron_name,
+            'total_spikes': len(spike_times),
+            'mean_isi': 0,
+            'std_isi': 0,
+            'cv_isi': 0,
+            'min_isi': 0,
+            'max_isi': 0,
+            'isi_list': [],
+            'isi_by_neuron': isi_by_neuron
+        }
+    
+    mean_isi = np.mean(all_isi)
+    std_isi = np.std(all_isi)
+    cv_isi = std_isi / mean_isi if mean_isi > 0 else 0
+    
+    return {
+        'neuron_name': neuron_name,
+        'total_spikes': len(spike_times),
+        'mean_isi': mean_isi,
+        'std_isi': std_isi,
+        'cv_isi': cv_isi,
+        'min_isi': np.min(all_isi),
+        'max_isi': np.max(all_isi),
+        'isi_list': all_isi,
+        'isi_by_neuron': isi_by_neuron
+    }
+
+def plot_isi_histogram(isi_list, neuron_name, bins=30, save_plot=True, display_name=None):
+
+    if not isi_list:
+        return
+    
+    # display_name 적용
+    if display_name is None:
+        display_name = neuron_name
+    
+    plt.figure(figsize=(10, 6))
+    
+    counts, bin_edges, _ = plt.hist(isi_list, bins=bins, alpha=0.7, color='skyblue', edgecolor='black')
+    
+    mean_isi = np.mean(isi_list)
+    std_isi = np.std(isi_list)
+    cv_isi = std_isi / mean_isi if mean_isi > 0 else 0
+    
+    plt.axvline(mean_isi, color='red', linestyle='--', linewidth=2, label=f'Mean: {mean_isi:.1f} ms')
+    plt.axvline(mean_isi + std_isi, color='orange', linestyle=':', linewidth=1, label=f'+1 SD: {mean_isi + std_isi:.1f} ms')
+    plt.axvline(mean_isi - std_isi, color='orange', linestyle=':', linewidth=1, label=f'-1 SD: {mean_isi - std_isi:.1f} ms')
+    
+    plt.xlabel('ISI Interval (ms)')
+    plt.ylabel('Counts/bin')
+    plt.title(f'ISI Distribution - {display_name}')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    
+    if save_plot:
+        filename = f'isi_histogram_{neuron_name}.png'
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+        print(f"ISI 히스토그램이 '{filename}'에 저장되었습니다.")
+    
+    plt.show()
+
+def plot_all_isi_histograms(isi_results, bins=30, save_plot=True, display_names=None, y_axis_limits=None):
+
+    if not isi_results:
+        return
+    
+    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+    axes = axes.flatten()
+    
+    neuron_names = list(isi_results.keys())
+    
+    # Y축 범위를 미리 계산 (모든 서브플롯에서 동일하게 사용)
+    if y_axis_limits is None:
+        all_counts = []
+        for result in isi_results.values():
+            isi_list = result.get('isi_list', [])
+            if isi_list:
+                counts, _, _ = plt.hist(isi_list, bins=bins, alpha=0)
+                all_counts.extend(counts)
+                plt.close()  # 히스토그램을 그리지 않고 counts만 얻기
+        
+        if all_counts:
+            max_count = max(all_counts)
+            y_axis_limits = (0, max_count * 1.1)  # 10% 여백 추가
+        else:
+            y_axis_limits = (0, 100)  # 기본값
+    
+    for i, (neuron_name, result) in enumerate(isi_results.items()):
+        if i >= 6:
+            break
+            
+        ax = axes[i]
+        isi_list = result.get('isi_list', [])
+        
+        # display_name 적용
+        display_name = display_names.get(neuron_name, neuron_name) if display_names else neuron_name
+        
+        if not isi_list:
+            ax.text(0.5, 0.5, f'{display_name}\nNo ISI data', 
+                   ha='center', va='center', transform=ax.transAxes)
+            ax.set_title(f'{display_name}')
+            continue
+        
+        counts, bin_edges, _ = ax.hist(isi_list, bins=bins, alpha=0.7, color='skyblue', edgecolor='black')
+        
+        mean_isi = np.mean(isi_list)
+        std_isi = np.std(isi_list)
+        cv_isi = std_isi / mean_isi if mean_isi > 0 else 0
+        
+        ax.axvline(mean_isi, color='red', linestyle='--', linewidth=2, label=f'Mean: {mean_isi:.1f} ms')
+        ax.axvline(mean_isi + std_isi, color='orange', linestyle=':', linewidth=1, label=f'+1 SD: {mean_isi + std_isi:.1f} ms')
+        ax.axvline(mean_isi - std_isi, color='orange', linestyle=':', linewidth=1, label=f'-1 SD: {mean_isi - std_isi:.1f} ms')
+        
+        ax.set_xlabel('ISI Interval (ms)')
+        ax.set_ylabel('Counts/bin')
+        ax.set_title(f'{display_name}')
+        ax.legend(fontsize=8)
+        ax.grid(True, alpha=0.3)
+        
+        # Y축 범위 통일
+        ax.set_ylim(y_axis_limits)
+        
+        stats_text = f'Mean: {mean_isi:.1f} ms\nStd: {std_isi:.1f} ms\nCV: {cv_isi:.3f}\nN: {len(isi_list)}'
+        ax.text(0.95, 0.95, stats_text, transform=ax.transAxes, 
+               verticalalignment='top', horizontalalignment='right',
+               fontsize=8, color='black')
+    
+    for i in range(len(neuron_names), 6):
+        axes[i].set_visible(False)
+    
+    plt.tight_layout()
+    
+    if save_plot:
+        filename = 'isi_histograms_all_neurons.png'
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+        print(f"모든 뉴런의 ISI 히스토그램이 '{filename}'에 저장되었습니다.")
+    
+    plt.show()
+
+def compute_isi_all_neurons(spike_monitors, start_time=0*ms, end_time=10000*ms, plot_order=None, return_dict=True, plot_histograms=False, display_names=None):
+
+    isi_results = {}
+    
+    for name, monitor in spike_monitors.items():
+        if plot_order and name not in plot_order:
+            continue
+            
+        spike_times, spike_indices = get_monitor_spikes(monitor)
+        total_neurons = monitor.source.N
+        
+        print(f"\n[{name}]")
+        
+        if len(spike_indices) == 0:
+            isi_results[name] = {
+                'mean_isi': 0.0,
+                'std_isi': 0.0,
+                'cv_isi': 0.0,
+                'total_spikes': 0,
+                'active_neurons': 0
+            }
+            print(f"No spikes")
+            continue
+
+        time_mask = (spike_times >= start_time) & (spike_times <= end_time)
+        spike_times_filtered = spike_times[time_mask]
+        neuron_ids_filtered = spike_indices[time_mask]
+
+        total_spikes_in_window = len(spike_times_filtered)
+        unique_active_neurons = len(np.unique(neuron_ids_filtered)) if len(neuron_ids_filtered) > 0 else 0
+        
+        if total_spikes_in_window < 2:
+            isi_results[name] = {
+                'mean_isi': 0.0,
+                'std_isi': 0.0,
+                'cv_isi': 0.0,
+                'total_spikes': total_spikes_in_window,
+                'active_neurons': unique_active_neurons
+            }
+            print(f"Not enough spikes for ISI calculation ({total_spikes_in_window} spikes)")
+            continue
+        
+        all_isi = []
+        for neuron_idx in np.unique(neuron_ids_filtered):
+            neuron_spikes = spike_times_filtered[neuron_ids_filtered == neuron_idx]
+            if len(neuron_spikes) > 1:
+                isi = np.diff(neuron_spikes)
+                isi_ms = isi / ms  
+                all_isi.extend(isi_ms)
+        
+        if not all_isi:
+            isi_results[name] = {
+                'mean_isi': 0.0,
+                'std_isi': 0.0,
+                'cv_isi': 0.0,
+                'total_spikes': total_spikes_in_window,
+                'active_neurons': unique_active_neurons
+            }
+            print(f"No valid ISI intervals")
+            continue
+        
+        mean_isi = np.mean(all_isi)
+        std_isi = np.std(all_isi)
+        cv_isi = std_isi / mean_isi if mean_isi > 0 else 0
+        min_isi = np.min(all_isi)
+        max_isi = np.max(all_isi)
+        
+        isi_results[name] = {
+            'mean_isi': mean_isi,
+            'std_isi': std_isi,
+            'cv_isi': cv_isi,
+            'min_isi': min_isi,
+            'max_isi': max_isi,
+            'total_spikes': total_spikes_in_window,
+            'active_neurons': unique_active_neurons,
+            'isi_count': len(all_isi)
+        }
+        
+        print(f" ISI Analysis: {len(all_isi)} intervals from {unique_active_neurons} neurons")
+        print(f"Mean ISI: {mean_isi:.2f} ± {std_isi:.2f} ms")
+        print(f"ISI Range: {min_isi:.1f} - {max_isi:.1f} ms")
+        print(f"ISI CV: {cv_isi:.3f}")
+        
+        if cv_isi < 0.5:
+            pattern_type = "Regular"
+        elif cv_isi < 1.2:
+            pattern_type = "Poisson-like"
+        else:
+            pattern_type = "Burst-like"
+        print(f"Pattern Type: {pattern_type}")
+        
+        isi_results[name]['isi_list'] = all_isi
+
+    if plot_histograms and isi_results:
+        plot_all_isi_histograms(isi_results, bins=30, save_plot=True, display_names=display_names)
+
+    if return_dict:
+        return isi_results
+    else:
+        return list(isi_results.values())
+
+def analyze_spike_patterns(spike_monitors, neuron_names=None):
+
+    if neuron_names is None:
+        neuron_names = list(spike_monitors.keys())
+    
+    pattern_results = {}
+    
+    for neuron_name in neuron_names:
+        if neuron_name in spike_monitors:
+            monitor = spike_monitors[neuron_name]
+            isi_result = calculate_isi_from_monitor(monitor, neuron_name)
+            pattern_results[neuron_name] = isi_result
+    
+    return pattern_results
+
+def compare_spike_patterns(pattern_results1, pattern_results2, label1="Condition 1", label2="Condition 2"):
+
+    comparison_results = {}
+    
+    common_neurons = set(pattern_results1.keys()) & set(pattern_results2.keys())
+    
+    for neuron_name in common_neurons:
+        result1 = pattern_results1[neuron_name]
+        result2 = pattern_results2[neuron_name]
+        
+        comparison_results[neuron_name] = {
+            label1: result1,
+            label2: result2
+        }
+        
+        if result1['mean_isi'] > 0 and result2['mean_isi'] > 0:
+            isi_change = ((result2['mean_isi'] - result1['mean_isi']) / result1['mean_isi']) * 100
+            cv_change = result2['cv_isi'] - result1['cv_isi']
+            
+            if result1['total_spikes'] > 0:
+                spike_change = ((result2['total_spikes'] - result1['total_spikes']) / result1['total_spikes']) * 100
+            else:
+                spike_change = 0
+            
+            comparison_results[neuron_name]['changes'] = {
+                'isi_change_percent': isi_change,
+                'cv_change': cv_change,
+                'spike_change_percent': spike_change
+            }
+    
+    return comparison_results
+
+def print_spike_pattern_comparison(comparison_results, label1="Condition 1", label2="Condition 2"):
+
+    print(f"\n=== Spike 패턴 비교: {label1} vs {label2} ===")
+    
+    for neuron_name, result in comparison_results.items():
+        print(f"\n--- {neuron_name} ---")
+        
+        result1 = result[label1]
+        result2 = result[label2]
+        
+        print(f"{label1}:")
+        print(f"  평균 ISI: {result1['mean_isi']:.2f} ms")
+        print(f"  ISI 표준편차: {result1['std_isi']:.2f} ms")
+        print(f"  ISI 변동계수: {result1['cv_isi']:.3f}")
+        print(f"  총 spike 수: {result1['total_spikes']}")
+        
+        print(f"{label2}:")
+        print(f"  평균 ISI: {result2['mean_isi']:.2f} ms")
+        print(f"  ISI 표준편차: {result2['std_isi']:.2f} ms")
+        print(f"  ISI 변동계수: {result2['cv_isi']:.3f}")
+        print(f"  총 spike 수: {result2['total_spikes']}")
+        
+        if 'changes' in result:
+            changes = result['changes']
+            print(f"변화량:")
+            print(f"  평균 ISI 변화: {changes['isi_change_percent']:+.1f}%")
+            print(f"  ISI 변동계수 변화: {changes['cv_change']:+.3f}")
+            print(f"  총 spike 수 변화: {changes['spike_change_percent']:+.1f}%")
+
+def analyze_isi_distribution(isi_list, bins=30):
+
+    if not isi_list:
+        return None
+    
+    isi_array = np.array(isi_list)
+
+    mean_isi = np.mean(isi_array)
+    median_isi = np.median(isi_array)
+    std_isi = np.std(isi_array)
+    
+    hist, bin_edges = np.histogram(isi_array, bins=bins)
+    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+    
+    mode_idx = np.argmax(hist)
+    mode_isi = bin_centers[mode_idx]
+    
+    skewness = np.mean(((isi_array - mean_isi) / std_isi) ** 3) if std_isi > 0 else 0
+    
+    return {
+        'mean_isi': mean_isi,
+        'median_isi': median_isi,
+        'mode_isi': mode_isi,
+        'std_isi': std_isi,
+        'skewness': skewness,
+        'histogram': {
+            'counts': hist,
+            'bin_centers': bin_centers,
+            'bin_edges': bin_edges
+        }
+    }
 
 def compute_sta(pre_monitors, post_monitors, neuron_groups, synapses, connections, window=100*ms, bin_size=10*ms, start_from_end=5000*ms, min_spikes=10):
     
@@ -127,3 +509,53 @@ def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=1
         return firing_rates
     else:
         return list(firing_rates.values())
+
+def analyze_stimulus_effect(spike_monitors, stimulus_start=10000, stimulus_duration=1000, window=1000):
+    """
+    Analyze firing rate changes during stimulus period
+    
+    Parameters:
+    - stimulus_start: stimulus start time (ms)
+    - stimulus_duration: stimulus duration (ms) 
+    - window: time window for rate calculation (ms)
+    """
+    print("\n=== Stimulus Effect Analysis ===")
+    
+    # Time windows
+    pre_start = stimulus_start - window
+    pre_end = stimulus_start
+    stim_start = stimulus_start
+    stim_end = stimulus_start + stimulus_duration
+    post_start = stim_end
+    post_end = stim_end + window
+    
+    for name, monitor in spike_monitors.items():
+        if len(monitor.t) == 0:
+            print(f"{name}: No spikes recorded")
+            continue
+            
+        # Convert times to ms
+        spike_times_ms = monitor.t / ms
+        total_neurons = monitor.source.N
+        
+        # Count spikes in each period
+        pre_spikes = np.sum((spike_times_ms >= pre_start) & (spike_times_ms < pre_end))
+        stim_spikes = np.sum((spike_times_ms >= stim_start) & (spike_times_ms < stim_end))
+        post_spikes = np.sum((spike_times_ms >= post_start) & (spike_times_ms < post_end))
+        
+        # Calculate rates (Hz)
+        pre_rate = pre_spikes / (window/1000) / total_neurons
+        stim_rate = stim_spikes / (stimulus_duration/1000) / total_neurons
+        post_rate = post_spikes / (window/1000) / total_neurons
+        
+        # Calculate changes
+        stim_change = ((stim_rate - pre_rate) / pre_rate * 100) if pre_rate > 0 else 0
+        
+        print(f"{name}:")
+        print(f"  Pre-stimulus  ({pre_start}-{pre_end}ms): {pre_rate:.3f} Hz")
+        print(f"  During stimulus ({stim_start}-{stim_end}ms): {stim_rate:.3f} Hz")
+        print(f"  Post-stimulus ({post_start}-{post_end}ms): {post_rate:.3f} Hz")
+        print(f"  Stimulus change: {stim_change:+.1f}%")
+        print()
+    
+    return True
