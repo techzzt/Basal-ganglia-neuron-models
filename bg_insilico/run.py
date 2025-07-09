@@ -3,11 +3,11 @@ import json
 import numpy as np
 from module.simulation.runner import run_simulation_with_inh_ext_input
 from module.utils.param_loader import load_params
-from module.utils.sta import compute_isi_all_neurons
+from module.utils.sta import compute_isi_all_neurons, debug_isi_data
 from brian2 import ms 
 
 def main():
-    params_file = 'config/test_dop_noin.json'
+    params_file = 'config/test_normal_noin.json'
     
     params = load_params(params_file)
     neuron_configs = params['neurons']
@@ -63,7 +63,11 @@ def main():
         print("Stimulus: disabled")
        
     try:
-        print("\n--- 전체 구간 분석 ---")
+        print("\n--- Full Period Analysis ---")
+        
+        # Debug: Check ISI data status
+        debug_isi_data(results['spike_monitors'], analysis_start_time, analysis_end_time)
+        
         isi_results = compute_isi_all_neurons(
             results['spike_monitors'], 
             start_time=analysis_start_time, 
@@ -81,7 +85,7 @@ def main():
             
             pre_start = stim_start - window
             pre_end = stim_start
-            print(f"\n--- Stimulus 전 구간 ({pre_start/ms:.0f}-{pre_end/ms:.0f}ms) ---")
+            print(f"\n--- Pre-stimulus Period ({pre_start/ms:.0f}-{pre_end/ms:.0f}ms) ---")
             compute_isi_all_neurons(
                 results['spike_monitors'], 
                 start_time=pre_start, 
@@ -90,7 +94,7 @@ def main():
                 display_names=params.get('display_names', None)
             )
             
-            print(f"\n--- Stimulus 중 구간 ({stim_start/ms:.0f}-{stim_end/ms:.0f}ms) ---")
+            print(f"\n--- During Stimulus Period ({stim_start/ms:.0f}-{stim_end/ms:.0f}ms) ---")
             compute_isi_all_neurons(
                 results['spike_monitors'], 
                 start_time=stim_start, 
@@ -101,7 +105,7 @@ def main():
             
             post_start = stim_end
             post_end = stim_end + window
-            print(f"\n--- Stimulus 후 구간 ({post_start/ms:.0f}-{post_end/ms:.0f}ms) ---")
+            print(f"\n--- Post-stimulus Period ({post_start/ms:.0f}-{post_end/ms:.0f}ms) ---")
             compute_isi_all_neurons(
                 results['spike_monitors'], 
                 start_time=post_start, 
@@ -111,7 +115,7 @@ def main():
             )
     
     except Exception as e:
-        print(f"Spike 간격 분석 중 오류 발생: {str(e)}")
+        print(f"Error during spike interval analysis: {str(e)}")
         import traceback
         traceback.print_exc()
 
