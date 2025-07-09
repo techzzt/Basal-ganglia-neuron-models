@@ -6,7 +6,8 @@
         {"name": "Cortex_STN", "N": 388, "neuron_type": "poisson", "target_rates": {"STN": {"equation": "170*Hz"}}},
         {"name": "Ext_GPeT1", "N": 988, "neuron_type": "poisson", "target_rates": {"GPeT1": {"equation": "720*Hz"}}},
         {"name": "Ext_GPeTA", "N": 329, "neuron_type": "poisson", "target_rates": {"GPeTA": {"equation": "100*Hz"}}},
-       
+        {"name": "Ext_SNr", "N": 754, "neuron_type": "poisson", "target_rates": {"SNr": {"equation": "1800*Hz"}}},
+   
         {
             "name": "FSN",
             "N": 1599,
@@ -42,6 +43,12 @@
             "N": 329,
             "params_file": "./params_ref/GPe_TA_1_dop.json",
             "model_class": "GPeTA"
+        },
+        {
+            "name": "SNr",
+            "N": 754,
+            "params_file": "./params_ref/SNr_1_dop.json",
+            "model_class": "SNr"
         }
     ],
     
@@ -488,15 +495,80 @@
                 "delay": {"value": 5, "unit": "ms"}
                 } 
             }
+        },
+
+        "Ext_to_SNr": {
+            "pre": "Ext_SNr",
+            "post": "SNr",
+            "receptor_type": "AMPA",
+            "p": 0.1,
+            "weight": 1,
+            "receptor_params": {
+                "AMPA": {
+                "g0": {"value": 0.5, "unit": "nS"},
+                "tau_syn": {"value": 5, "unit": "ms"},
+                "E_rev": {"value": 0, "unit": "mV"},
+                "delay": {"value": 5, "unit": "ms"}
+                } 
+            }
+        },
+
+        "MSND1_to_SNr": {
+            "pre": "MSND1",
+            "post": "SNr",
+            "receptor_type": "GABA",
+            "p": 0.0132,
+            "weight": 1,
+            "receptor_params": {
+                "GABA": {
+                "g0": {"value": 2, "unit": "nS"},
+                "tau_syn": {"value": 5.2, "unit": "ms"},
+                "E_rev": {"value": -80, "unit": "mV"},
+                "beta": {"value": 1.448, "unit": "1"},
+                "delay": {"value": 7, "unit": "ms"}
+                } 
+            }
+        },
+
+        "GPeT1_to_SNr": {
+            "pre": "GPeT1",
+            "post": "SNr",
+            "receptor_type": "GABA",
+            "p": 0.032,
+            "weight": 1,
+            "receptor_params": {
+                "GABA": {
+                "g0": {"value": 76, "unit": "nS"},
+                "tau_syn": {"value": 2.1, "unit": "ms"},
+                "E_rev": {"value": -72, "unit": "mV"},
+                "delay": {"value": 3, "unit": "ms"}
+                } 
+            }
+        },
+
+        "STN_to_SNr": {
+            "pre": "STN",
+            "post": "SNr",
+            "receptor_type": "AMPA",
+            "p": 0.077,
+            "weight": 1,
+            "receptor_params": {
+                "AMPA": {
+                "g0": {"value": 0.91, "unit": "nS"},
+                "tau_syn": {"value": 12, "unit": "ms"},
+                "E_rev": {"value": 0, "unit": "mV"},
+                "delay": {"value": 4.5, "unit": "ms"}
+                } 
+            }
         }
     },
 
     "simulation": {
-        "duration": 30000,
+        "duration": 10000,
         "stimulus": {
             "enabled": true,
-            "start_time": 10000,
-            "duration": 5000,
+            "start_time": 1000,
+            "duration": 1000,
             "dt_array": 1,
             "rates": {
                 "FSN": 787,
@@ -504,17 +576,18 @@
                 "MSND2": 722,
                 "STN": 250,
                 "GPeT1": 1530,
-                "GPeTA": 200
+                "GPeTA": 200,
+                "SNr": 1800
             }
         }
     },
 
-    "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA"],
+    "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA", "SNr"],
     "display_names": {
         "GPeT1": "Prototypic",
         "GPeTA": "Arkypallidal"
     },
 
     "start_time": 2000,
-    "end_time": 30000
+    "end_time": 10000
 }
