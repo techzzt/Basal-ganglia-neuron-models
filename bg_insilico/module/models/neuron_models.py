@@ -100,13 +100,21 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
                 continue
 
             if 'model_class' in config and 'params_file' in config:
-                params = load_params_from_file(config['params_file'])
-                module_name = f"Neuronmodels.{config['model_class']}"
-                model_module = importlib.import_module(module_name)
-                model_class = getattr(model_module, config['model_class'])
-                model_instance = model_class(N, params, connections)
-                neuron_group = model_instance.create_neurons()
-                neuron_groups[name] = neuron_group
+                try:
+                    print(f"Creating {name} with model_class: {config['model_class']}")
+                    params = load_params_from_file(config['params_file'])
+                    module_name = f"Neuronmodels.{config['model_class']}"
+                    model_module = importlib.import_module(module_name)
+                    model_class = getattr(model_module, config['model_class'])
+                    model_instance = model_class(N, params, connections)
+                    neuron_group = model_instance.create_neurons()
+                    neuron_groups[name] = neuron_group
+                    print(f"Successfully created {name}")
+                except Exception as e:
+                    print(f"Error creating {name}: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    raise
 
         return neuron_groups
 
