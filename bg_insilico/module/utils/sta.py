@@ -1,8 +1,19 @@
 from brian2 import *
 import numpy as np
 import time
+import matplotlib
 import matplotlib.pyplot as plt
 from brian2 import ms
+
+try:
+    matplotlib.use('TkAgg')
+except:
+    try:
+        matplotlib.use('Qt5Agg')
+    except:
+        matplotlib.use('Agg') 
+
+plt.ion()  
 
 def get_monitor_spikes(monitor):
     try:
@@ -75,9 +86,10 @@ def calculate_isi_from_monitor(spike_monitor, neuron_name):
 def plot_isi_histogram(isi_list, neuron_name, bins=30, save_plot=True, display_name=None):
 
     if not isi_list:
+        print(f"[{neuron_name}] No ISI data available.")
         return
     
-    # display_name 적용
+    # Apply display_name
     if display_name is None:
         display_name = neuron_name
     
@@ -104,89 +116,132 @@ def plot_isi_histogram(isi_list, neuron_name, bins=30, save_plot=True, display_n
     if save_plot:
         filename = f'isi_histogram_{neuron_name}.png'
         plt.savefig(filename, dpi=300, bbox_inches='tight')
-        print(f"ISI 히스토그램이 '{filename}'에 저장되었습니다.")
+        print(f"ISI histogram saved to '{filename}'")
     
-    plt.show()
+    try:
+        plt.show(block=False) 
+        plt.pause(0.1)  
+    except Exception as e:
+        print(f"Error displaying graph: {e}")
+        plt.close()  
 
-def plot_all_isi_histograms(isi_results, bins=30, save_plot=True, display_names=None, y_axis_limits=None):
+def plot_all_isi_histograms(isi_results, bins=30, save_plot=True, display_names=None):
 
     if not isi_results:
+        print("No ISI results to plot")
         return
     
-    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
-    axes = axes.flatten()
-    
-    neuron_names = list(isi_results.keys())
-    
-    # Y축 범위를 미리 계산 (모든 서브플롯에서 동일하게 사용)
-    if y_axis_limits is None:
-        all_counts = []
-        for result in isi_results.values():
+    try:
+        fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+        axes = axes.flatten()
+        
+        neuron_names = list(isi_results.keys())
+        
+        for i, (neuron_name, result) in enumerate(isi_results.items()):
+            if i >= 6:
+                break
+                
+            ax = axes[i]
             isi_list = result.get('isi_list', [])
-            if isi_list:
-                counts, _, _ = plt.hist(isi_list, bins=bins, alpha=0)
-                all_counts.extend(counts)
-                plt.close()  # 히스토그램을 그리지 않고 counts만 얻기
-        
-        if all_counts:
-            max_count = max(all_counts)
-            y_axis_limits = (0, max_count * 1.1)  # 10% 여백 추가
-        else:
-            y_axis_limits = (0, 100)  # 기본값
-    
-    for i, (neuron_name, result) in enumerate(isi_results.items()):
-        if i >= 6:
-            break
             
-        ax = axes[i]
-        isi_list = result.get('isi_list', [])
+            # display_name 적용
+            display_name = display_names.get(neuron_name, neuron_name) if display_names else neuron_name
+            
+            if not isi_list or len(isi_list) == 0:
+                ax.text(0.5, 0.5, f'{display_name}\nNo ISI data', 
+                       ha='center', va='center', transform=ax.transAxes)
+                ax.set_title(f'{display_name}')
+                continue
+            
+            try:
+                counts, bin_edges, _ = ax.hist(isi_list, bins=bins, alpha=0.7, color='skyblue', edgecolor='black')
+                
+                mean_isi = np.mean(isi_list)
+                std_isi = np.std(isi_list)
+                cv_isi = std_isi / mean_isi if mean_isi > 0 else 0
+                
+                ax.axvline(mean_isi, color='red', linestyle='--', linewidth=2, label=f'Mean: {mean_isi:.1f} ms')
+                
+                ax.set_xlabel('ISI Interval (ms)')
+                ax.set_ylabel('Counts/bin')
+                ax.set_title(f'{display_name}')
+                ax.grid(True, alpha=0.3)
+                
+                stats_text = f'Mean: {mean_isi:.1f} ms\nStd: {std_isi:.1f} ms\nCV: {cv_isi:.3f}\nN: {len(isi_list)}'
+                ax.text(0.05, 0.95, stats_text, transform=ax.transAxes, 
+                       verticalalignment='top', horizontalalignment='left',
+                       fontsize=9, color='black', 
+                       bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
+                       
+            except Exception as e:
+                print(f"Error plotting histogram for {neuron_name}: {e}")
+                ax.text(0.5, 0.5, f'{display_name}\nError plotting', 
+                       ha='center', va='center', transform=ax.transAxes)
+                ax.set_title(f'{display_name}')
         
-        # display_name 적용
-        display_name = display_names.get(neuron_name, neuron_name) if display_names else neuron_name
+        for i in range(len(neuron_names), 6):
+            axes[i].set_visible(False)
         
-        if not isi_list:
-            ax.text(0.5, 0.5, f'{display_name}\nNo ISI data', 
-                   ha='center', va='center', transform=ax.transAxes)
-            ax.set_title(f'{display_name}')
-            continue
+        plt.tight_layout()
         
-        counts, bin_edges, _ = ax.hist(isi_list, bins=bins, alpha=0.7, color='skyblue', edgecolor='black')
+        if save_plot:
+            filename = 'isi_histograms_all_neurons.png'
+            plt.savefig(filename, dpi=300, bbox_inches='tight')
+            print(f"모든 뉴런의 ISI 히스토그램이 '{filename}'에 저장되었습니다.")
         
-        mean_isi = np.mean(isi_list)
-        std_isi = np.std(isi_list)
-        cv_isi = std_isi / mean_isi if mean_isi > 0 else 0
-        
-        ax.axvline(mean_isi, color='red', linestyle='--', linewidth=2, label=f'Mean: {mean_isi:.1f} ms')
-        ax.axvline(mean_isi + std_isi, color='orange', linestyle=':', linewidth=1, label=f'+1 SD: {mean_isi + std_isi:.1f} ms')
-        ax.axvline(mean_isi - std_isi, color='orange', linestyle=':', linewidth=1, label=f'-1 SD: {mean_isi - std_isi:.1f} ms')
-        
-        ax.set_xlabel('ISI Interval (ms)')
-        ax.set_ylabel('Counts/bin')
-        ax.set_title(f'{display_name}')
-        ax.legend(fontsize=8)
-        ax.grid(True, alpha=0.3)
-        
-        # Y축 범위 통일
-        ax.set_ylim(y_axis_limits)
-        
-        stats_text = f'Mean: {mean_isi:.1f} ms\nStd: {std_isi:.1f} ms\nCV: {cv_isi:.3f}\nN: {len(isi_list)}'
-        ax.text(0.95, 0.95, stats_text, transform=ax.transAxes, 
-               verticalalignment='top', horizontalalignment='right',
-               fontsize=8, color='black')
-    
-    for i in range(len(neuron_names), 6):
-        axes[i].set_visible(False)
-    
-    plt.tight_layout()
-    
-    if save_plot:
-        filename = 'isi_histograms_all_neurons.png'
-        plt.savefig(filename, dpi=300, bbox_inches='tight')
-        print(f"모든 뉴런의 ISI 히스토그램이 '{filename}'에 저장되었습니다.")
-    
-    plt.show()
+        try:
+            plt.show(block=False)
+            plt.pause(0.1)
+        except Exception as e:
+            print(f"Error displaying ISI histogram: {e}")
+            plt.close()
+            
+    except Exception as e:
+        print(f"Error in plot_all_isi_histograms: {e}")
+        import traceback
+        traceback.print_exc()
 
-def compute_isi_all_neurons(spike_monitors, start_time=0*ms, end_time=10000*ms, plot_order=None, return_dict=True, plot_histograms=False, display_names=None):
+def calculate_isi_in_chunks(spike_times, spike_indices, chunk_size=10000, max_total_samples=100000):
+
+    all_isi = []
+    neuron_counts = {}
+    
+    unique_neurons = np.unique(spike_indices)
+    total_neurons = len(unique_neurons)
+    
+    # Process neurons in chunks
+    for chunk_start in range(0, total_neurons, chunk_size):
+        chunk_end = min(chunk_start + chunk_size, total_neurons)
+        chunk_neurons = unique_neurons[chunk_start:chunk_end]
+        
+        for neuron_idx in chunk_neurons:
+            neuron_spikes = spike_times[spike_indices == neuron_idx]
+            if len(neuron_spikes) > 1:
+                isi = np.diff(neuron_spikes)
+                isi_ms = isi / ms
+                
+                # Check if adding these ISI would exceed our limit
+                if len(all_isi) + len(isi_ms) > max_total_samples:
+                    remaining_slots = max_total_samples - len(all_isi)
+                    if remaining_slots > 0:
+                        # Randomly sample ISI values
+                        if len(isi_ms) > remaining_slots:
+                            sampled_indices = np.random.choice(len(isi_ms), remaining_slots, replace=False)
+                            all_isi.extend(isi_ms[sampled_indices])
+                        else:
+                            all_isi.extend(isi_ms)
+                    break  
+                else:
+                    all_isi.extend(isi_ms)
+                
+                neuron_counts[neuron_idx] = len(isi_ms)
+        
+        if len(all_isi) >= max_total_samples:
+            break
+    
+    return all_isi, neuron_counts
+
+def compute_isi_all_neurons(spike_monitors, start_time=0*ms, end_time=10000*ms, plot_order=None, return_dict=True, plot_histograms=False, display_names=None, x_axis_limits=None, y_axis_limits=None):
 
     isi_results = {}
     
@@ -269,18 +324,25 @@ def compute_isi_all_neurons(spike_monitors, start_time=0*ms, end_time=10000*ms, 
         print(f"ISI Range: {min_isi:.1f} - {max_isi:.1f} ms")
         print(f"ISI CV: {cv_isi:.3f}")
         
-        if cv_isi < 0.5:
-            pattern_type = "Regular"
-        elif cv_isi < 1.2:
-            pattern_type = "Poisson-like"
-        else:
-            pattern_type = "Burst-like"
-        print(f"Pattern Type: {pattern_type}")
-        
         isi_results[name]['isi_list'] = all_isi
 
     if plot_histograms and isi_results:
-        plot_all_isi_histograms(isi_results, bins=30, save_plot=True, display_names=display_names)
+        print("\nCreating combined ISI histogram for all neurons...")
+        
+        plot_results = {}
+        for name, result in isi_results.items():
+            if 'isi_list' in result and result['isi_list']:
+                plot_results[name] = result
+            else:
+                plot_results[name] = {
+                    **result,
+                    'isi_list': []
+                }
+        
+        if plot_results:
+            plot_all_isi_histograms(plot_results, bins=30, save_plot=True, display_names=display_names)
+        else:
+            print("No ISI data available for histogram plotting")
 
     if return_dict:
         return isi_results
@@ -511,14 +573,7 @@ def compute_firing_rates_all_neurons(spike_monitors, start_time=0*ms, end_time=1
         return list(firing_rates.values())
 
 def analyze_stimulus_effect(spike_monitors, stimulus_start=10000, stimulus_duration=1000, window=1000):
-    """
-    Analyze firing rate changes during stimulus period
-    
-    Parameters:
-    - stimulus_start: stimulus start time (ms)
-    - stimulus_duration: stimulus duration (ms) 
-    - window: time window for rate calculation (ms)
-    """
+
     print("\n=== Stimulus Effect Analysis ===")
     
     # Time windows
@@ -534,21 +589,17 @@ def analyze_stimulus_effect(spike_monitors, stimulus_start=10000, stimulus_durat
             print(f"{name}: No spikes recorded")
             continue
             
-        # Convert times to ms
         spike_times_ms = monitor.t / ms
         total_neurons = monitor.source.N
         
-        # Count spikes in each period
         pre_spikes = np.sum((spike_times_ms >= pre_start) & (spike_times_ms < pre_end))
         stim_spikes = np.sum((spike_times_ms >= stim_start) & (spike_times_ms < stim_end))
         post_spikes = np.sum((spike_times_ms >= post_start) & (spike_times_ms < post_end))
         
-        # Calculate rates (Hz)
         pre_rate = pre_spikes / (window/1000) / total_neurons
         stim_rate = stim_spikes / (stimulus_duration/1000) / total_neurons
         post_rate = post_spikes / (window/1000) / total_neurons
         
-        # Calculate changes
         stim_change = ((stim_rate - pre_rate) / pre_rate * 100) if pre_rate > 0 else 0
         
         print(f"{name}:")
@@ -559,3 +610,143 @@ def analyze_stimulus_effect(spike_monitors, stimulus_start=10000, stimulus_durat
         print()
     
     return True
+
+def debug_isi_data(spike_monitors, start_time=0*ms, end_time=10000*ms):
+
+    print("\n=== ISI Data Debugging ===")
+    
+    for name, monitor in spike_monitors.items():
+        print(f"\n[{name}]")
+        
+        print(f"  Monitor type: {type(monitor)}")
+        print(f"  Total neurons: {monitor.source.N}")
+        
+        spike_times, spike_indices = get_monitor_spikes(monitor)
+        print(f"  Total spikes: {len(spike_times)}")
+        
+        if len(spike_times) == 0:
+            print(f"  Warning: No spikes!")
+            continue
+        
+        time_mask = (spike_times >= start_time) & (spike_times <= end_time)
+        spike_times_filtered = spike_times[time_mask]
+        neuron_ids_filtered = spike_indices[time_mask]
+        
+        print(f"  Spikes in analysis window: {len(spike_times_filtered)}")
+        print(f"  Active neurons: {len(np.unique(neuron_ids_filtered))}")
+        
+        all_isi = []
+        for neuron_idx in np.unique(neuron_ids_filtered):
+            neuron_spikes = spike_times_filtered[neuron_ids_filtered == neuron_idx]
+            if len(neuron_spikes) > 1:
+                isi = np.diff(neuron_spikes)
+                isi_ms = isi / ms
+                all_isi.extend(isi_ms)
+        
+        print(f"  Calculated ISI count: {len(all_isi)}")
+        if all_isi:
+            print(f"  ISI range: {np.min(all_isi):.1f} - {np.max(all_isi):.1f} ms")
+            print(f"  Mean ISI: {np.mean(all_isi):.1f} ms")
+        else:
+            print(f"  Warning: No valid ISI intervals!")
+
+def plot_all_isi_histograms_efficient(isi_results, bins=30, save_plot=True, display_names=None):
+
+    if not isi_results:
+        return
+    
+    global_x_min = float('inf')
+    global_x_max = float('-inf')
+    global_y_max = 0
+    
+    print("Calculating global ranges...")
+    
+    for neuron_name, result in isi_results.items():
+        isi_list = result.get('isi_list', [])
+        if not isi_list:
+            continue
+            
+        counts, bin_edges, _ = plt.hist(isi_list, bins=bins, alpha=0)
+        plt.close() 
+        
+        x_min = bin_edges[0]
+        x_max = bin_edges[-1]
+        y_max = np.max(counts)
+        
+        global_x_min = min(global_x_min, x_min)
+        global_x_max = max(global_x_max, x_max)
+        global_y_max = max(global_y_max, y_max)
+    
+    if global_x_min == float('inf'):
+        global_x_min = 0
+        global_x_max = 100
+        global_y_max = 100
+    
+    x_margin = (global_x_max - global_x_min) * 0.1
+    global_x_min = max(0, global_x_min - x_margin)
+    global_x_max = global_x_max + x_margin
+    global_y_max = global_y_max * 1.1
+    
+    print(f"Global ranges: X=[{global_x_min:.1f}, {global_x_max:.1f}], Y=[0, {global_y_max:.0f}]")
+    
+    fig, axes = plt.subplots(2, 3, figsize=(20, 14))
+    axes = axes.flatten()
+    
+    neuron_names = list(isi_results.keys())
+    
+    for i, (neuron_name, result) in enumerate(isi_results.items()):
+        if i >= 6:
+            break
+            
+        ax = axes[i]
+        isi_list = result.get('isi_list', [])
+        
+        display_name = display_names.get(neuron_name, neuron_name) if display_names else neuron_name
+        
+        if not isi_list or len(isi_list) == 0:
+            ax.text(0.5, 0.5, f'{display_name}\nNo ISI data', 
+                   ha='center', va='center', transform=ax.transAxes)
+            ax.set_title(f'{display_name}')
+            continue
+        
+        counts, bin_edges, _ = ax.hist(isi_list, bins=bins, alpha=0.7, color='skyblue', edgecolor='black')
+        
+        mean_isi = np.mean(isi_list)
+        std_isi = np.std(isi_list)
+        cv_isi = std_isi / mean_isi if mean_isi > 0 else 0
+        
+        ax.axvline(mean_isi, color='red', linestyle='--', linewidth=2, label=f'Mean: {mean_isi:.1f} ms')
+        ax.axvline(mean_isi + std_isi, color='orange', linestyle=':', linewidth=1, label=f'+1 SD: {mean_isi + std_isi:.1f} ms')
+        ax.axvline(mean_isi - std_isi, color='orange', linestyle=':', linewidth=1, label=f'-1 SD: {mean_isi - std_isi:.1f} ms')
+        
+        ax.set_xlabel('ISI Interval (ms)')
+        ax.set_ylabel('Counts/bin')
+        ax.set_title(f'{display_name}')
+        ax.legend(fontsize=8, loc='upper right')
+        ax.grid(True, alpha=0.3)
+        
+        ax.set_xlim(global_x_min, global_x_max)
+        ax.set_ylim(0, global_y_max)
+        
+        # Place statistics tex in top-left to avoid overlap
+        stats_text = f'Mean: {mean_isi:.1f} ms\nStd: {std_isi:.1f} ms\nCV: {cv_isi:.3f}\nN: {len(isi_list)}'
+        ax.text(0.05, 0.95, stats_text, transform=ax.transAxes, 
+               verticalalignment='top', horizontalalignment='left',
+               fontsize=10, color='black', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+    
+    for i in range(len(neuron_names), 6):
+        axes[i].set_visible(False)
+    
+    plt.tight_layout()
+    
+    if save_plot:
+        filename = 'isi_histograms_all_neurons_shared_axes.png'
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+        print(f"All neuron ISI histograms with shared axes saved to '{filename}'")
+    
+    try:
+        plt.show(block=False)  
+        plt.pause(0.1)  
+    except Exception as e:
+        print(f"Error displaying graph: {e}")
+        plt.close()  
