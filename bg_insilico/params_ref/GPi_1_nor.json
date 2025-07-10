@@ -1,0 +1,17 @@
+{
+    "model": "Izh",
+    "params": {
+        "a": {"value": 0.002, "unit": "second**-1"},
+        "b": {"value": 0.25, "unit": "1"},
+        "c": {"value": -65.0, "unit": "mV"},
+        "d": {"value": 0.05, "unit": "pA"},
+        "vt": {"value": 30.0, "unit": "mV"},
+        "v": {"value": -65.0, "unit": "mV"},
+        "w": {"value": 0.0, "unit": "pA"},
+        "I_ext": {"value": 20.0, "unit": "pA"}
+    },
+    "reference": {
+        "title": "GPi Izhikevich model for normal state",
+        "description": "GPi Izhikevich model parameters based on Thibeault & Srinivasa (2013) - similar to GPe but with higher basal activity level"
+    }
+} 
