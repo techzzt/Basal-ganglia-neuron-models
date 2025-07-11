@@ -54,16 +54,16 @@ def create_poisson_inputs(neuron_groups, external_inputs, scaled_neuron_counts, 
                 # Create rate array - START WITH BASELINE
                 rates = np.full(len(time_points), baseline_rate_per_neuron / Hz)
                 
-                # Increase rate during stimulus period (baseline + stimulus)
+                # Replace with stimulus rate during stimulus period (not add to baseline)
                 stim_start_idx = int(stim_start / dt_array)
                 stim_end_idx = int((stim_start + stim_duration) / dt_array)
                 
                 if stim_start_idx < len(rates):
                     end_idx = min(stim_end_idx, len(rates))
-                    rates[stim_start_idx:end_idx] = (baseline_rate_per_neuron + stim_rate_per_neuron) / Hz
+                    rates[stim_start_idx:end_idx] = stim_rate_per_neuron / Hz
                 
-                combined_rate = (baseline_rate_per_neuron + stim_rate_per_neuron) / Hz
-                print(f"{target}: Combined rate = {combined_rate:.3f} Hz")
+                print(f"{target}: Baseline rate = {baseline_rate_per_neuron / Hz:.6f} Hz/neuron")
+                print(f"{target}: Stimulus rate = {stim_rate_per_neuron / Hz:.6f} Hz/neuron")
                 
                 timed_rates = TimedArray(rates * Hz, dt=dt_array*ms)
                 
