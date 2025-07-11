@@ -27,8 +27,8 @@ neuron models should be put under ```./bg_insilico```
 | Arkypallidal | GPe | AdEx Model |  | GPe-TA, Arky | GABA | Implemented | 
 | PV+ | STN | AdEx Model | high frequency bursting | paravalbumin PV+ | Glutamate | Implemented | 
 | PV- | STN | AdEx Model |  | paravalbumin PV+ | Glutamate | Implemented | 
-| PV+ | GPi | AdEx Model | High-frequency tonic firing |  | GABA |  | 
-| SST+ | GPi | AdEx Model | Lower baseline firing |  | GABA |  |
+| PV+ | GPi | Izhikevich Model | High-frequency tonic firing |  | GABA |  | 
+| SST+ | GPi | Izhikevich Model | Lower baseline firing |  | GABA |  |
 | PV+ | SNr | AdEx Model | High-frequency firing | SNr-PV+ | GABA |  | 
 | SST+ | SNr | AdEx Model | Heterogeneous firing, motor control |  | GABA |  | 
 | GABAergic | SNc | LIF Model | local inhibition |  | GABA |  | 
