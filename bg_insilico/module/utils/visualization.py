@@ -1,7 +1,20 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import os
 import numpy as np 
 from brian2 import *
+
+# Improved backend setup for graph display on macOS
+try:
+    matplotlib.use('TkAgg')
+except:
+    try:
+        matplotlib.use('Qt5Agg')
+    except:
+        matplotlib.use('Agg')  # Use non-interactive mode if backend not available
+
+# Graph display settings
+# plt.ion()  # Disable interactive mode to prevent graphs from disappearing 
 
 def get_monitor_spikes(monitor):
     try:
@@ -14,7 +27,7 @@ def get_monitor_spikes(monitor):
     except:
         return np.array([]) * ms, np.array([])
 
-def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms, end_time=1000*ms, display_names=None):
+def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms, end_time=1000*ms, display_names=None, save_plot=True):
     np.random.seed(2025)
     try:
         if plot_order:
@@ -62,7 +75,22 @@ def plot_raster(spike_monitors, sample_size=30, plot_order=None, start_time=0*ms
 
         plt.xlabel('Time (ms)')
         plt.tight_layout()
-        plt.show()
+        
+        # Save the plot to file for permanent viewing
+        if save_plot:
+            filename = 'raster_plot.png'
+            plt.savefig(filename, dpi=300, bbox_inches='tight')
+            print(f"Raster plot saved to '{filename}'")
+        
+        try:
+            plt.show(block=False)
+            plt.pause(3.0)  # Show for 3 seconds
+            print("Raster plot displayed. Plot saved to file for permanent viewing.")
+        except Exception as e:
+            print(f"Error displaying raster plot: {e}")
+        finally:
+            # Don't close immediately, let it stay open
+            pass  
 
         return firing_rates
 
@@ -96,7 +124,13 @@ def plot_membrane_potential(voltage_monitors, plot_order=None):
     
     axes[-1].set_xlabel('Time (ms)')
     plt.tight_layout()
-    plt.show()
+    
+    try:
+        plt.show(block=False)  
+        plt.pause(0.1)  
+    except Exception as e:
+        print(f"Error displaying membrane potential plot: {e}")
+        plt.close()  
 
 # track individual neuron
 def plot_single_neuron_raster(spike_monitors, neuron_index, plot_order=None):
@@ -137,7 +171,13 @@ def plot_single_neuron_raster(spike_monitors, neuron_index, plot_order=None):
 
         plt.xlabel('Time (ms)')
         plt.tight_layout()
-        plt.show()
+        
+        try:
+            plt.show(block=False)  
+            plt.pause(0.1) 
+        except Exception as e:
+            print(f"Error displaying single neuron raster plot: {e}")
+            plt.close() 
 
     except Exception as e:
         print(f"Single neuron raster plot Error: {str(e)}")
@@ -176,7 +216,13 @@ def plot_raster_all_neurons_stim_window(spike_monitors, stim_start=200*ms, end_t
 
         plt.xlabel('Time (ms)')
         plt.tight_layout()
-        plt.show()
+        
+        try:
+            plt.show(block=False)  
+            plt.pause(0.1) 
+        except Exception as e:
+            print(f"Error displaying raster all neuron stim window: {e}")
+            plt.close()
 
     except Exception as e:
         print(f"Raster all neuron stim window error: {str(e)}")
@@ -198,5 +244,11 @@ def plot_isyn(voltage_monitors, plot_order=None):
     plt.ylabel('Isyn (pA)')
     plt.legend()
     plt.tight_layout()
-    plt.show()
+    
+    try:
+        plt.show(block=False)
+        plt.pause(0.1)  
+    except Exception as e:
+        print(f"Error displaying Isyn plot: {e}")
+        plt.close()  
 

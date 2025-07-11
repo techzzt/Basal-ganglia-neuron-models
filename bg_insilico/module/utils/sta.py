@@ -4,6 +4,8 @@ import time
 import matplotlib
 import matplotlib.pyplot as plt
 from brian2 import ms
+import json
+import os
 
 try:
     matplotlib.use('TkAgg')
@@ -13,7 +15,7 @@ except:
     except:
         matplotlib.use('Agg') 
 
-plt.ion()  
+# plt.ion()  # Disable interactive mode to prevent graphs from disappearing  
 
 def get_monitor_spikes(monitor):
     try:
@@ -109,7 +111,7 @@ def plot_isi_histogram(isi_list, neuron_name, bins=30, save_plot=True, display_n
     plt.ylabel('Counts/bin')
     plt.title(f'ISI Distribution - {display_name}')
     plt.legend()
-    plt.grid(True, alpha=0.3)
+    # plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
     
@@ -119,17 +121,79 @@ def plot_isi_histogram(isi_list, neuron_name, bins=30, save_plot=True, display_n
         print(f"ISI histogram saved to '{filename}'")
     
     try:
-        plt.show(block=False) 
-        plt.pause(0.1)  
+        plt.show(block=False)
+        plt.pause(3.0)  # Show for 3 seconds
+        print(f"Individual ISI histogram displayed for {display_name}.")
     except Exception as e:
         print(f"Error displaying graph: {e}")
-        plt.close()  
+    finally:
+        # Don't close immediately, let it stay open
+        pass  
 
-def plot_all_isi_histograms(isi_results, bins=30, save_plot=True, display_names=None):
+def save_isi_axis_ranges(isi_results, filename='isi_axis_ranges.json'):
+    axis_ranges = {}
+    
+    for neuron_name, result in isi_results.items():
+        isi_list = result.get('isi_list', [])
+        
+        if not isi_list or len(isi_list) == 0:
+            continue
+            
+        x_min = np.min(isi_list)
+        x_max = np.max(isi_list)
+        x_margin = (x_max - x_min) * 0.1  
+        x_min = max(0, x_min - x_margin)
+        x_max = x_max + x_margin
+        
+        counts, _ = np.histogram(isi_list, bins=30)
+        y_max = np.max(counts)
+        y_margin = y_max * 0.1  
+        y_max = y_max + y_margin
+        
+        axis_ranges[neuron_name] = {
+            'x_min': float(x_min),
+            'x_max': float(x_max),
+            'y_min': 0.0,
+            'y_max': float(y_max)
+        }
+    
+    with open(filename, 'w') as f:
+        json.dump(axis_ranges, f, indent=2)
+    
+    print(f"Save ISI value in '{filename}'")
+    return axis_ranges
 
+def load_isi_axis_ranges(filename='isi_axis_ranges.json'):
+    
+    if not os.path.exists(filename):
+        print(f"No file exist '{filename}'.")
+        return None
+    
+    try:
+        with open(filename, 'r') as f:
+            axis_ranges = json.load(f)
+        return axis_ranges
+    except Exception as e:
+        print(f"Load Error: {e}")
+        return None
+
+def plot_all_isi_histograms(isi_results, bins=30, save_plot=True, display_names=None, use_saved_ranges=False, save_ranges=False, ranges_filename='isi_axis_ranges.json'):
+    """ 
+    Parameters:
+    - use_saved_ranges: 저장된 축 범위를 사용할지 여부
+    - save_ranges: 현재 결과의 축 범위를 파일에 저장할지 여부
+    - ranges_filename: 축 범위 파일명
+    """
     if not isi_results:
         print("No ISI results to plot")
         return
+    
+    axis_ranges = None
+    if use_saved_ranges:
+        axis_ranges = load_isi_axis_ranges(ranges_filename)
+    
+    if save_ranges:
+        save_isi_axis_ranges(isi_results, ranges_filename)
     
     try:
         fig, axes = plt.subplots(2, 3, figsize=(18, 12))
@@ -144,7 +208,6 @@ def plot_all_isi_histograms(isi_results, bins=30, save_plot=True, display_names=
             ax = axes[i]
             isi_list = result.get('isi_list', [])
             
-            # display_name 적용
             display_name = display_names.get(neuron_name, neuron_name) if display_names else neuron_name
             
             if not isi_list or len(isi_list) == 0:
@@ -167,6 +230,11 @@ def plot_all_isi_histograms(isi_results, bins=30, save_plot=True, display_names=
                 ax.set_title(f'{display_name}')
                 ax.grid(True, alpha=0.3)
                 
+                if axis_ranges and neuron_name in axis_ranges:
+                    ranges = axis_ranges[neuron_name]
+                    ax.set_xlim(ranges['x_min'], ranges['x_max'])
+                    ax.set_ylim(ranges['y_min'], ranges['y_max'])
+                
                 stats_text = f'Mean: {mean_isi:.1f} ms\nStd: {std_isi:.1f} ms\nCV: {cv_isi:.3f}\nN: {len(isi_list)}'
                 ax.text(0.05, 0.95, stats_text, transform=ax.transAxes, 
                        verticalalignment='top', horizontalalignment='left',
@@ -187,14 +255,16 @@ def plot_all_isi_histograms(isi_results, bins=30, save_plot=True, display_names=
         if save_plot:
             filename = 'isi_histograms_all_neurons.png'
             plt.savefig(filename, dpi=300, bbox_inches='tight')
-            print(f"모든 뉴런의 ISI 히스토그램이 '{filename}'에 저장되었습니다.")
         
         try:
             plt.show(block=False)
-            plt.pause(0.1)
+            plt.pause(3.0)  # Show for 3 seconds
+            print(f"ISI histogram displayed. Plot saved to file for permanent viewing.")
         except Exception as e:
             print(f"Error displaying ISI histogram: {e}")
-            plt.close()
+        finally:
+            # Don't close immediately, let it stay open
+            pass
             
     except Exception as e:
         print(f"Error in plot_all_isi_histograms: {e}")
@@ -224,7 +294,6 @@ def calculate_isi_in_chunks(spike_times, spike_indices, chunk_size=10000, max_to
                 if len(all_isi) + len(isi_ms) > max_total_samples:
                     remaining_slots = max_total_samples - len(all_isi)
                     if remaining_slots > 0:
-                        # Randomly sample ISI values
                         if len(isi_ms) > remaining_slots:
                             sampled_indices = np.random.choice(len(isi_ms), remaining_slots, replace=False)
                             all_isi.extend(isi_ms[sampled_indices])
@@ -241,7 +310,7 @@ def calculate_isi_in_chunks(spike_times, spike_indices, chunk_size=10000, max_to
     
     return all_isi, neuron_counts
 
-def compute_isi_all_neurons(spike_monitors, start_time=0*ms, end_time=10000*ms, plot_order=None, return_dict=True, plot_histograms=False, display_names=None, x_axis_limits=None, y_axis_limits=None):
+def compute_isi_all_neurons(spike_monitors, start_time=0*ms, end_time=10000*ms, plot_order=None, return_dict=True, plot_histograms=False, display_names=None, x_axis_limits=None, y_axis_limits=None, use_saved_ranges=False, save_ranges=False, ranges_filename='isi_axis_ranges.json'):
 
     isi_results = {}
     
@@ -340,7 +409,9 @@ def compute_isi_all_neurons(spike_monitors, start_time=0*ms, end_time=10000*ms, 
                 }
         
         if plot_results:
-            plot_all_isi_histograms(plot_results, bins=30, save_plot=True, display_names=display_names)
+            plot_all_isi_histograms(plot_results, bins=30, save_plot=True, display_names=display_names, 
+                                   use_saved_ranges=use_saved_ranges, save_ranges=save_ranges, 
+                                   ranges_filename=ranges_filename)
         else:
             print("No ISI data available for histogram plotting")
 
@@ -409,13 +480,11 @@ def print_spike_pattern_comparison(comparison_results, label1="Condition 1", lab
         print(f"{label1}:")
         print(f"  평균 ISI: {result1['mean_isi']:.2f} ms")
         print(f"  ISI 표준편차: {result1['std_isi']:.2f} ms")
-        print(f"  ISI 변동계수: {result1['cv_isi']:.3f}")
         print(f"  총 spike 수: {result1['total_spikes']}")
         
         print(f"{label2}:")
         print(f"  평균 ISI: {result2['mean_isi']:.2f} ms")
         print(f"  ISI 표준편차: {result2['std_isi']:.2f} ms")
-        print(f"  ISI 변동계수: {result2['cv_isi']:.3f}")
         print(f"  총 spike 수: {result2['total_spikes']}")
         
         if 'changes' in result:
