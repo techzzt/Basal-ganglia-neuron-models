@@ -11,7 +11,6 @@
         "I_ext": {"value": 18.0, "unit": "pA"}
     },
     "reference": {
-        "title": "GPi Izhikevich model for dopamine depleted state",
-        "description": "GPi Izhikevich model parameters based on Thibeault & Srinivasa (2013) - similar to GPe with altered basal activity due to dopamine depletion"
+        "title": "Using a hybrid neuron in physiologically inspired models of the basal ganglia"
     }
 } 
