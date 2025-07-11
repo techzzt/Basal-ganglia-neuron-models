@@ -9,6 +9,15 @@ from brian2 import ms
 def main():
     params_file = 'config/test_normal_noin.json'
     
+    # 1. 첫 번째 실험 (normal 조건): save_isi_ranges=True, use_saved_ranges=False
+    #    -> 현재 실험의 축 범위를 파일에 저장
+    # 2. 두 번째 실험 (PD 조건): save_isi_ranges=False, use_saved_ranges=True  
+    #    -> 저장된 축 범위를 불러와서 동일한 축 범위로 그래프 생성
+    
+    save_isi_ranges = True    
+    use_saved_ranges = False 
+    ranges_filename = 'isi_axis_ranges.json'  
+    
     params = load_params(params_file)
     neuron_configs = params['neurons']
     connections = params['connections']   
@@ -74,7 +83,10 @@ def main():
             end_time=analysis_end_time, 
             plot_order=plot_order,
             plot_histograms=True,
-            display_names=params.get('display_names', None)
+            display_names=params.get('display_names', None),
+            use_saved_ranges=use_saved_ranges,
+            save_ranges=save_isi_ranges,
+            ranges_filename=ranges_filename
         )
         
         if stimulus_enabled:
