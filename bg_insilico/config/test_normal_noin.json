@@ -564,10 +564,10 @@
     },
 
     "simulation": {
-        "duration": 10000,
+        "duration": 30000,
         "stimulus": {
             "enabled": true,
-            "start_time": 5000,
+            "start_time": 10000,
             "duration": 1000,
             "dt_array": 1,
             "rates": {
@@ -588,5 +588,5 @@
         "GPeTA": "Arkypallidal"
     },
     "start_time": 2000,
-    "end_time": 10000
+    "end_time": 30000
 }
