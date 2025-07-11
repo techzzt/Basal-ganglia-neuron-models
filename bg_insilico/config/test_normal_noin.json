@@ -502,7 +502,7 @@
             "post": "SNr",
             "receptor_type": "AMPA",
             "p": 0.1,
-            "weight": 1,
+            "weight": 0.5,
             "receptor_params": {
                 "AMPA": {
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -568,7 +568,7 @@
         "stimulus": {
             "enabled": true,
             "start_time": 10000,
-            "duration": 1000,
+            "duration": 0,
             "dt_array": 1,
             "rates": {
                 "FSN": 787,
@@ -579,7 +579,7 @@
                 "GPeTA": 200,
                 "SNr": 1800
             }
-        }
+        }   
     },
 
     "plot_order": ["FSN", "MSND1", "MSND2", "STN", "GPeT1", "GPeTA", "SNr"],
