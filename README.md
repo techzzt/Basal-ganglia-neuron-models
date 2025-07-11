@@ -36,22 +36,22 @@ neuron models should be put under ```./bg_insilico```
 
 #### Population Value 
 Neuron type | [References 1](https://www.eneuro.org/content/3/6/ENEURO.0156-16.2016.short) | References 2 | [Reference 3](https://www.eneuro.org/content/9/2/ENEURO.0376-21.2022.abstract) | [Reference 4](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1010645) | [Reference 5](https://www.biorxiv.org/content/10.1101/2023.03.07.531640v1) | [Reference 6](https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0189109&type=printable) | [Reference 7](https://www.biorxiv.org/content/10.1101/2023.09.05.556301v3.full.pdf)
---- | --- | --- | --- | --- | --- | --- | ---
-Network | 80,000 |  | 6,539 | - | - | - 
-MSN D1 | 37,971 | 2,000 | 2,000 | 6,000 | - | 2,762,100 | 75
-MSN D2 | 37,971 | 2,000 | 2,000 | 6,000 | 13,300,000 | 2,762,100 | 75
-FSN | 1,599 | 80 | 80 | 420 | 11,500,000 | 279,000 | 75
-ChiN | - | - | - | - | - | - 
-prototypic (GPe) | 988 | - | 988 | 780 | 322,000 | 46,000 | 190
-Arkypallidal (GPe) | 329 | - | 329 | 264 | 115,000 | 46,000 | 560
-PV+ (STN) | **388** | - | **388** | **408** | **13,560** | 13,600 | 750
-PV- (STN) | - | - | - | - | - | - | - 
-PV+ (GPi) | - | - | - | - | - | - | 75
-SST+ (GPi) | - | - | - | - | - | - | -
-PV+ (SNr) | **754** | - | **754** | - | - | 26,300 | -
-SST+ (SNr) | - | - | - | - | - | 26,300 | -
-GABAergic (SNc) | - | - | - | - | - | - | -
-Dopaminergic (SNc) | - | - | - | - | - | - | -
+--- | ---  | --- | --- | --- | --- | ---
+Network | 80,000 | 6,539 | - | - | - 
+MSN D1 | 37,971 | 2,000 | 6,000 | - | 2,762,100 | 75
+MSN D2 | 37,971 | 2,000 | 6,000 | 13,300,000 | 2,762,100 | 75
+FSN | 1,599 | 80 | 420 | 11,500,000 | 279,000 | 75
+ChiN | - | - | - | - | - 
+prototypic (GPe) | 988 | 988 | 780 | 322,000 | 46,000 | 190
+Arkypallidal (GPe) | 329 | 329 | 264 | 115,000 | 46,000 | 560
+PV+ (STN) | **388** | **388** | **408** | **13,560** | 13,600 | 750
+PV- (STN) | - | - | - | - | - | - 
+PV+ (GPi) | - | - | - | - | - | 75
+SST+ (GPi) | - | - | - | - | - | -
+PV+ (SNr) | **754** | **754** | - | - | 26,300 | -
+SST+ (SNr) | - | - | - | - | 26,300 | -
+GABAergic (SNc) | - | - | - | - | - | -
+Dopaminergic (SNc) | - | - | - | - | - | -
 
 #### References (parameters)
 [1] Lindahl, Mikael, and Jeanette Hellgren Kotaleski. "Untangling basal ganglia network dynamics and function: Role of dopamine depletion and inhibition investigated in a spiking network model." eneuro 3.6 (2016).
@@ -60,18 +60,7 @@ Dopaminergic (SNc) | - | - | - | - | - | - | -
 
 [3] Ortone, Andrea, et al. "Dopamine depletion leads to pathological synchronization of distinct basal ganglia loops in the beta band." PLoS computational biology 19.4 (2023): e1010645.
 
-#### References (others)
-[1] Giordano, Nadia, et al. "Fast-spiking interneurons of the premotor cortex contribute to initiation and execution of spontaneous actions." Journal of Neuroscience 43.23 (2023): 4234-4250.
-
-[2] Chakravarty, Kingshuk, et al. "Transient response of basal ganglia network in healthy and low-dopamine state." eneuro 9.2 (2022).
-
-[3] Hjorth, JJ Johannes, et al. "The microcircuits of striatum in silico." Proceedings of the National Academy of Sciences 117.17 (2020): 9554-9565.
-
-[4] Fieblinger, Tim. "Striatal control of movement: a role for new neuronal (Sub-) populations?." Frontiers in human neuroscience 15 (2021): 697284.
-
-[5] Dong, Jie, et al. "Connectivity and functionality of the globus pallidus externa under normal conditions and Parkinson's disease." Frontiers in neural circuits 15 (2021): 645287.
-
-[6] The role of neurotransmitter systems in mediating deep brain stimulation effects in Parkinson’s disease
+[4] Thibeault, Corey M., and Narayan Srinivasa. "Using a hybrid neuron in physiologically inspired models of the basal ganglia." Frontiers in computational neuroscience 7 (2013): 88.
 
 --- 
 
@@ -79,3 +68,14 @@ McGregor, Matthew M., and Alexandra B. Nelson. "Circuit mechanisms of Parkinson�
 
 Foster, Nicholas N., et al. "The mouse cortico–basal ganglia–thalamic network." Nature 598.7879 (2021): 188-194.
 
+Giordano, Nadia, et al. "Fast-spiking interneurons of the premotor cortex contribute to initiation and execution of spontaneous actions." Journal of Neuroscience 43.23 (2023): 4234-4250.
+
+Chakravarty, Kingshuk, et al. "Transient response of basal ganglia network in healthy and low-dopamine state." eneuro 9.2 (2022).
+
+Hjorth, JJ Johannes, et al. "The microcircuits of striatum in silico." Proceedings of the National Academy of Sciences 117.17 (2020): 9554-9565.
+
+Fieblinger, Tim. "Striatal control of movement: a role for new neuronal (Sub-) populations?." Frontiers in human neuroscience 15 (2021): 697284.
+
+Dong, Jie, et al. "Connectivity and functionality of the globus pallidus externa under normal conditions and Parkinson's disease." Frontiers in neural circuits 15 (2021): 645287.
+
+The role of neurotransmitter systems in mediating deep brain stimulation effects in Parkinson’s disease
