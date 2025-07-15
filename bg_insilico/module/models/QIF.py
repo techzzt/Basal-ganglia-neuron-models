@@ -1,7 +1,7 @@
 from brian2 import *
 
 eqs = '''
-dv/dt = (k*1*pF/ms/mV*(v-vr)*(v-vt) - u + Isyn) / C : volt 
+dv/dt = (k*1*pF/ms/mV*(v-vr)*(v-vt) - u + Isyn + I_ext) / C : volt 
 du/dt = (1/a) * (b * pA * (v - vr) / mV - u) : amp
 
 a : second
@@ -13,4 +13,5 @@ th     : volt
 c      : volt
 C      : farad
 d      : amp
+I_ext  : amp
 '''
