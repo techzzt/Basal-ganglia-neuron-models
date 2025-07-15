@@ -106,12 +106,17 @@ def run_simulation_with_inh_ext_input(
     duration = None
     
     try:
+        # Brian2 standard initialization for continuous simulation
+        try:
+            reset_device()
+        except:
+            pass
+        
         device.reinit()
         device.activate()
-        start_scope()
-        for name in list(globals().keys()):
-            if name.startswith('_'):
-                del globals()[name]
+        
+        # 메모리 정리
+        gc.collect()
         
         net = Network()
         neuron_groups = create_neurons(neuron_configs, simulation_params, connections)
@@ -135,10 +140,16 @@ def run_simulation_with_inh_ext_input(
         all_groups = {**neuron_groups, **poisson_groups}
         synapse_connections = create_synapses(all_groups, connections, synapse_class)
         
+        # Create monitors for spike activity and membrane potential
+        voltage_monitors = {}
         for name, group in neuron_groups.items():
             if not name.startswith(('Cortex_', 'Ext_')):  
                 sp_mon = SpikeMonitor(group)
                 spike_monitors[name] = sp_mon
+                
+                # Add voltage monitor for the first neuron to check continuity
+                v_mon = StateMonitor(group, 'v', record=[0])  # Monitor first neuron only
+                voltage_monitors[name] = v_mon
         
         # Add SpikeMonitors for PoissonGroups to debug stimulus
         poisson_monitors = {}
@@ -150,6 +161,7 @@ def run_simulation_with_inh_ext_input(
         net.add(*synapse_connections)
         net.add(*poisson_groups.values())
         net.add(*spike_monitors.values())
+        net.add(*voltage_monitors.values())
         net.add(*poisson_monitors.values())
         
         duration = simulation_params.get('duration', 1000) * ms
@@ -162,31 +174,22 @@ def run_simulation_with_inh_ext_input(
         if not spike_monitors:
             return results
         
-        firing_rates = compute_firing_rates_all_neurons(spike_monitors, start_time=start_time, end_time=end_time, plot_order=plot_order)
+        # 기본 발화율 출력들은 주석처리 (깔끔한 출력을 위해)
+        # firing_rates = compute_firing_rates_all_neurons(spike_monitors, start_time=start_time, end_time=end_time, plot_order=plot_order)
+        firing_rates = {}  # 빈 딕셔너리로 초기화
         display_names = simulation_params.get('display_names', None)
         
-        # Analyze stimulus effect if enabled
-        if stimulus_config.get('enabled', False):
-            analyze_stimulus_effect(
-                spike_monitors, 
-                stimulus_start=stimulus_config.get('start_time', 10000),
-                stimulus_duration=stimulus_config.get('duration', 1000)
-            )
-            
-            # Debug: Print PoissonGroup spike counts
-            print("\n=== PoissonGroup Spike Analysis ===")
-            for name, monitor in poisson_monitors.items():
-                spike_count = len(monitor.t)
-                print(f"{name}: {spike_count} spikes total")
-                if spike_count > 0:
-                    print(f"  - Time range: {min(monitor.t)/ms:.1f} - {max(monitor.t)/ms:.1f} ms")
-                    print(f"  - Average rate: {spike_count / (duration/ms/1000):.2f} Hz")
-            print("===================================")
+        # 기존 스티뮬러스 효과 분석 및 PoissonGroup 분석 출력들 주석처리
+        # if stimulus_config.get('enabled', False):
+        #     analyze_stimulus_effect(...)
+        #     print("=== PoissonGroup Spike Analysis ===")
+        #     ...
 
         plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time, display_names=display_names)
         
         results = {
             'spike_monitors': spike_monitors,
+            'voltage_monitors': voltage_monitors,
             'firing_rates': firing_rates
         }
         
