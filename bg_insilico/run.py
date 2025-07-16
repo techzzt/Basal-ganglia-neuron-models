@@ -5,9 +5,12 @@ from module.simulation.runner import run_simulation_with_inh_ext_input
 from module.utils.param_loader import load_params
 from module.utils.sta import compute_isi_all_neurons, debug_isi_data
 from module.utils.visualization import (analyze_firing_rates_by_stimulus_periods, plot_continuous_firing_rate, 
-                                       plot_membrane_potential, plot_beta_oscillation_analysis, plot_lfp_like_analysis,
-                                       plot_separated_network_connectivity_analysis, plot_separated_spike_propagation_analysis,
-                                       plot_grouped_raster_by_target, plot_stimulus_zoom_raster, plot_improved_overall_raster)
+                                       plot_membrane_potential, plot_beta_oscillation_analysis,
+                                       plot_grouped_raster_by_target, plot_stimulus_zoom_raster, plot_improved_overall_raster,
+                                       plot_circuit_flow_heatmap, plot_spike_burst_cascade, 
+                                       plot_single_neuron_detailed_analysis,
+                                       plot_neuron_stimulus_pattern, plot_multi_neuron_stimulus_overview,
+                                       plot_phase_space_only_overview)
 from brian2 import ms 
 
 def main():
@@ -95,117 +98,153 @@ def main():
             show_confidence=True  # 신뢰구간 표시
         )
         
-        # Beta oscillation specialized analysis
-        print("\n=== BETA OSCILLATION ANALYSIS START ===")
-        plot_beta_oscillation_analysis(
-            results['spike_monitors'],
-            start_time=analysis_start_time,
-            end_time=analysis_end_time,
-            plot_order=plot_order,
-            display_names=params.get('display_names', None),
-            stimulus_config=stimulus_config,
-            save_plot=True
-        )
+        # Beta oscillation specialized analysis (비활성화)
+        # print("\n=== BETA OSCILLATION ANALYSIS START ===")
+        # plot_beta_oscillation_analysis(
+        #     results['spike_monitors'],
+        #     start_time=analysis_start_time,
+        #     end_time=analysis_end_time,
+        #     plot_order=plot_order,
+        #     display_names=params.get('display_names', None),
+        #     stimulus_config=stimulus_config,
+        #     save_plot=True
+        # )
         
-        # Beta-focused LFP analysis
-        print("\n=== BETA-FOCUSED LFP ANALYSIS START ===")
-        plot_lfp_like_analysis(
-            results['spike_monitors'],
-            start_time=analysis_start_time,
-            end_time=analysis_end_time,
-            plot_order=plot_order,
-            display_names=params.get('display_names', None),
-            stimulus_config=stimulus_config,
-            save_plot=True
-        )
+        # Beta-focused LFP analysis (비활성화)
+        # print("\n=== BETA-FOCUSED LFP ANALYSIS START ===")
+        # plot_lfp_like_analysis(
+        #     results['spike_monitors'],
+        #     start_time=analysis_start_time,
+        #     end_time=analysis_end_time,
+        #     plot_order=plot_order,
+        #     display_names=params.get('display_names', None),
+        #     stimulus_config=stimulus_config,
+        #     save_plot=True
+        # )
         
-        # Network connectivity analysis (FSN-centered)
-        print("\n=== FSN NETWORK CONNECTIVITY ANALYSIS START ===")
-        plot_network_connectivity_analysis(
-            results['spike_monitors'],
-            connections,  # Pass connection configuration
-            plot_order=plot_order,
-            display_names=params.get('display_names', None),
-            target_neuron='FSN',
-            time_window=50*ms,
-            save_plot=True
-        )
-        
-        # Spike propagation analysis (FSN-centered, stimulus period)
-        print("\n=== FSN SPIKE PROPAGATION ANALYSIS START ===")
-        plot_spike_propagation_analysis(
+        # === NEW: Circuit Flow Heat Map Analysis ===
+        print("\n=== CIRCUIT FLOW HEAT MAP ANALYSIS START ===")
+        plot_circuit_flow_heatmap(
             results['spike_monitors'],
             connections,
-            target_neuron='FSN',
-            analysis_window=(stim_start_time*ms, stim_end_time*ms),
-            propagation_delay=20*ms,
+            start_time=analysis_start_time,
+            end_time=min(analysis_end_time, analysis_start_time + 3000*ms),  # 3초간 분석
+            bin_size=10*ms,  # 10ms 해상도로 더 세밀하게
+            plot_order=plot_order,
+            display_names=params.get('display_names', None),
+            save_plot=True
+        )
+        
+        # === NEW: Spike Burst Cascade Analysis ===
+        print("\n=== SPIKE BURST CASCADE ANALYSIS START ===")
+        plot_spike_burst_cascade(
+            results['spike_monitors'],
+            connections,  # 연결 관계 정보 추가
+            start_time=analysis_start_time,
+            end_time=analysis_end_time,  # 전체 구간 분석
+            burst_threshold=0.75,  # 75th percentile 이상을 burst로 감지
+            cascade_window=50*ms,  # 50ms 내에서 cascade 감지
+            plot_order=plot_order,
+            display_names=params.get('display_names', None),
             save_plot=True
         )
         
     else:
         print("Stimulus: disabled")
         
-        # Run beta oscillation analysis even without stimulus
-        print("\n=== BETA OSCILLATION ANALYSIS START (No Stimulus) ===")
-        plot_beta_oscillation_analysis(
-            results['spike_monitors'],
-            start_time=analysis_start_time,
-            end_time=analysis_end_time,
-            plot_order=plot_order,
-            display_names=params.get('display_names', None),
-            stimulus_config=None,
-            save_plot=True
-        )
+        # Run beta oscillation analysis even without stimulus (비활성화)
+        # print("\n=== BETA OSCILLATION ANALYSIS START (No Stimulus) ===")
+        # plot_beta_oscillation_analysis(
+        #     results['spike_monitors'],
+        #     start_time=analysis_start_time,
+        #     end_time=analysis_end_time,
+        #     plot_order=plot_order,
+        #     display_names=params.get('display_names', None),
+        #     stimulus_config=None,
+        #     save_plot=True
+        # )
         
-        print("\n=== BETA-FOCUSED LFP ANALYSIS START (No Stimulus) ===")
-        plot_lfp_like_analysis(
-            results['spike_monitors'],
-            start_time=analysis_start_time,
-            end_time=analysis_end_time,
-            plot_order=plot_order,
-            display_names=params.get('display_names', None),
-            stimulus_config=None,
-            save_plot=True
-        )
+        # Beta-focused LFP analysis (No Stimulus) - 비활성화
+        # print("\n=== BETA-FOCUSED LFP ANALYSIS START (No Stimulus) ===")
+        # plot_lfp_like_analysis(
+        #     results['spike_monitors'],
+        #     start_time=analysis_start_time,
+        #     end_time=analysis_end_time,
+        #     plot_order=plot_order,
+        #     display_names=params.get('display_names', None),
+        #     stimulus_config=None,
+        #     save_plot=True
+        # )
         
-        # Separated Network connectivity analysis (post neuron별로 분리)
-        print("\n=== SEPARATED NETWORK CONNECTIVITY ANALYSIS START ===")
-        plot_separated_network_connectivity_analysis(
-            results['spike_monitors'],
-            connections,
-            plot_order=plot_order,
-            display_names=params.get('display_names', None),
-            time_window=50*ms,
-            save_plot=True
-        )
-        
-        # Separated Spike propagation analysis (post neuron별로 분리)
-        print("\n=== SEPARATED SPIKE PROPAGATION ANALYSIS START ===")
-        plot_separated_spike_propagation_analysis(
+        # === NEW: Circuit Flow Heat Map Analysis (No Stimulus) ===
+        print("\n=== CIRCUIT FLOW HEAT MAP ANALYSIS START (No Stimulus) ===")
+        plot_circuit_flow_heatmap(
             results['spike_monitors'],
             connections,
-            analysis_window=(analysis_start_time, analysis_start_time + 2000*ms),  # Analyze first 2 seconds
-            propagation_delay=20*ms,
+            start_time=analysis_start_time,
+            end_time=min(analysis_end_time, analysis_start_time + 3000*ms),  # 3초간 분석
+            bin_size=10*ms,  # 10ms 해상도로 더 세밀하게
+            plot_order=plot_order,
+            display_names=params.get('display_names', None),
             save_plot=True
         )
         
-    # Enhanced Raster Plot Visualizations
-    print("\n=== ENHANCED RASTER PLOT ANALYSIS START ===")
+        # === NEW: Spike Burst Cascade Analysis (No Stimulus) ===
+        print("\n=== SPIKE BURST CASCADE ANALYSIS START (No Stimulus) ===")
+        plot_spike_burst_cascade(
+            results['spike_monitors'],
+            connections,  # 연결 관계 정보 추가
+            start_time=analysis_start_time,
+            end_time=analysis_end_time,  # 전체 구간 분석
+            burst_threshold=0.75,  # 75th percentile 이상을 burst로 감지
+            cascade_window=50*ms,  # 50ms 내에서 cascade 감지
+            plot_order=plot_order,
+            display_names=params.get('display_names', None),
+            save_plot=True
+        )
     
-    # 1. Individual group raster plots (to reduce overlapping)
-    print("\n--- Individual Group Raster Plots ---")
-    plot_grouped_raster_by_target(
-        results['spike_monitors'],
-        sample_size=8,  # Very small sample to prevent overlap
-        plot_order=plot_order,
-        start_time=analysis_start_time,
-        end_time=analysis_end_time,
-        display_names=params.get('display_names', None),
-        save_plot=True
-    )
+    # === NEW: Neuron Stimulus Pattern Analysis ===
+    print("\n=== NEURON-STIMULUS PATTERN ANALYSIS START ===")
     
-    # 2. Improved overall raster plot with better spacing
-    print("\n--- Improved Overall Raster Plot ---")
+    # Check if voltage monitors are available
+    if 'voltage_monitors' in results and results['voltage_monitors']:
+        # Multi-neuron stimulus overview - all groups in one image
+        print("\n--- Multi-Neuron Stimulus Overview ---")
+        plot_multi_neuron_stimulus_overview(
+            results['voltage_monitors'],
+            results['spike_monitors'],
+            simulation_params.get('stimulus', {}),
+            target_groups=['FSN', 'MSND1', 'MSND2', 'GPeT1', 'GPeTA', 'STN', 'GPi', 'SNr'],
+            neurons_per_group=2,  # Show 2 neurons per group
+            analysis_window=(analysis_start_time, analysis_end_time),  # Full 10000ms range
+                         display_names=params.get('display_names', None),
+             save_plot=True
+         )
+    else:
+        print("전압 모니터 데이터를 사용할 수 없습니다. Voltage monitoring이 활성화되지 않았습니다.")
+
+    # === NEW: Single Neuron Detailed Analysis ===
+    print("\n=== SINGLE NEURON DETAILED ANALYSIS START ===")
+    
+    # Check if voltage monitors are available
+    if 'voltage_monitors' in results and results['voltage_monitors']:
+        # Clean phase space only analysis for all neuron groups
+        print("\n=== PHASE SPACE CLEAN OVERVIEW ===")
+        plot_phase_space_only_overview(
+            results['voltage_monitors'],
+            results['spike_monitors'],
+            target_groups=['FSN', 'MSND1', 'MSND2', 'GPeT1', 'GPeTA', 'STN', 'GPi', 'SNr'],
+            analysis_window=(analysis_start_time, min(analysis_end_time, analysis_start_time + 2000*ms)),
+            display_names=params.get('display_names', None),
+            save_plot=True
+        )
+    else:
+        print("Voltage monitors not available - skipping single neuron analysis")
+        
+        # Enhanced Raster Plot Visualization - Overall View Only
+    print("\n=== RASTER PLOT ANALYSIS ===")
+    print("\n--- Overall Raster Plot ---")
+    
     stimulus_periods = []
     if 'external_inputs' in simulation_params and 'poisson_trains' in simulation_params['external_inputs']:
         for train_config in simulation_params['external_inputs']['poisson_trains']:
@@ -214,10 +253,10 @@ def main():
                     start_time = period['start'] * ms
                     end_time = period['end'] * ms
                     stimulus_periods.append((start_time, end_time))
-    
+
     plot_improved_overall_raster(
         results['spike_monitors'],
-        sample_size=12,  # Reduced sample size for clarity
+        sample_size=10,  # Unified sample size
         plot_order=plot_order,
         start_time=analysis_start_time,
         end_time=analysis_end_time,
@@ -225,19 +264,6 @@ def main():
         stimulus_periods=stimulus_periods,
         save_plot=True
     )
-    
-    # 3. Stimulus period zoom raster plots (if stimulus periods exist)
-    if stimulus_periods:
-        print("\n--- Stimulus Period Zoom Raster Plots ---")
-        plot_stimulus_zoom_raster(
-            results['spike_monitors'],
-            stimulus_periods,
-            sample_size=6,  # Very small sample for detailed zoom view
-            zoom_margin=50*ms,  # 50ms margin around stimulus
-            plot_order=plot_order,
-            display_names=params.get('display_names', None),
-            save_plot=True
-        )
        
     try:
         # ISI 분석 관련 코드들은 주석처리 (평균 발화율 분석만 출력)
