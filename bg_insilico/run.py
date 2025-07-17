@@ -10,7 +10,9 @@ from module.utils.visualization import (analyze_firing_rates_by_stimulus_periods
                                        plot_circuit_flow_heatmap, plot_spike_burst_cascade, 
                                        plot_single_neuron_detailed_analysis,
                                        plot_neuron_stimulus_pattern, plot_multi_neuron_stimulus_overview,
-                                       plot_phase_space_only_overview)
+                                       plot_phase_space_only_overview, plot_mean_firing_rate_heatmap,
+                                       plot_improved_membrane_potential, plot_enhanced_multi_neuron_stimulus_overview,
+                                       plot_multi_sample_firing_rate_analysis)
 from brian2 import ms 
 
 def main():
@@ -265,6 +267,66 @@ def main():
         save_plot=True
     )
        
+    # === NEW: Mean Firing Rate Heatmap Analysis ===
+    print("\n=== MEAN FIRING RATE HEATMAP ANALYSIS START ===")
+    plot_mean_firing_rate_heatmap(
+        results['spike_monitors'],
+        connections,
+        start_time=analysis_start_time,
+        end_time=min(analysis_end_time, analysis_start_time + 3000*ms),  # 3초간 분석
+        spatial_bins=40,
+        time_bins=60,
+        plot_order=plot_order,
+        display_names=params.get('display_names', None),
+        save_plot=True
+    )
+    
+    # === NEW: Multi-Sample Firing Rate Analysis ===
+    print("\n=== MULTI-SAMPLE FIRING RATE ANALYSIS START ===")
+    plot_multi_sample_firing_rate_analysis(
+        results['spike_monitors'],
+        start_time=analysis_start_time,
+        end_time=min(analysis_end_time, analysis_start_time + 5000*ms),  # 5초간 분석
+        bin_size=50*ms,
+        n_samples=10,
+        neurons_per_sample=30,
+        plot_order=plot_order,
+        display_names=params.get('display_names', None),
+        stimulus_config=simulation_params.get('stimulus', {}),
+        save_plot=True
+    )
+    
+    # === NEW: Improved Membrane Potential Analysis ===
+    if 'voltage_monitors' in results and results['voltage_monitors']:
+        print("\n=== IMPROVED MEMBRANE POTENTIAL ANALYSIS START ===")
+        plot_improved_membrane_potential(
+            results['voltage_monitors'],
+            results['spike_monitors'],
+            plot_order=plot_order,
+            analysis_window=(analysis_start_time, min(analysis_end_time, analysis_start_time + 2000*ms)),
+            unified_y_scale=True,
+            threshold_clipping=True,
+            display_names=params.get('display_names', None),
+            save_plot=True
+        )
+        
+        # Enhanced Multi-Neuron Stimulus Overview with unified y-scale
+        print("\n=== ENHANCED MULTI-NEURON STIMULUS OVERVIEW START ===")
+        plot_enhanced_multi_neuron_stimulus_overview(
+            results['voltage_monitors'],
+            results['spike_monitors'],
+            simulation_params.get('stimulus', {}),
+            target_groups=['FSN', 'MSND1', 'MSND2', 'GPeT1', 'GPeTA', 'STN', 'GPi', 'SNr'],
+            neurons_per_group=2,
+            analysis_window=(analysis_start_time, min(analysis_end_time, analysis_start_time + 5000*ms)),
+            unified_y_scale=True,
+            threshold_clipping=True,
+            display_names=params.get('display_names', None),
+            save_plot=True
+        )
+    else:
+        print("Voltage monitors not available - skipping improved membrane potential analysis")
+
     try:
         # ISI 분석 관련 코드들은 주석처리 (평균 발화율 분석만 출력)
         # print("\n--- Full Period Analysis ---")
