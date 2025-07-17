@@ -4280,3 +4280,836 @@ def plot_phase_space_only_overview(voltage_monitors, spike_monitors,
         print(f"Error in phase space clean overview: {e}")
         import traceback
         traceback.print_exc()
+
+def plot_mean_firing_rate_heatmap(spike_monitors, connections_config, 
+                                 start_time=0*ms, end_time=2000*ms, 
+                                 spatial_bins=50, time_bins=50,
+                                 plot_order=None, display_names=None, save_plot=True):
+    """
+    Mean firing rate 기준으로 place cell 스타일의 heatmap 시각화
+    각 뉴런 그룹의 firing rate를 2D 공간에서 시각화하여 패턴 분석
+    
+    Parameters:
+    - spike_monitors: 스파이크 모니터 딕셔너리
+    - connections_config: 연결 설정 정보  
+    - start_time, end_time: 분석 시간 범위
+    - spatial_bins: 공간 축 해상도
+    - time_bins: 시간 축 해상도
+    - plot_order: 뉴런 그룹 순서
+    - display_names: 표시 이름 매핑
+    - save_plot: 플롯 저장 여부
+    """
+    
+    def calculate_mean_firing_rate_matrix(spike_times_ms, total_neurons, 
+                                        start_ms, end_ms, spatial_bins, time_bins):
+        """2D 매트릭스로 mean firing rate 계산"""
+        
+        # 시간 축 생성
+        time_edges = np.linspace(start_ms, end_ms, time_bins + 1)
+        time_centers = (time_edges[:-1] + time_edges[1:]) / 2
+        
+        # 공간 축 생성 (뉴런 인덱스를 공간으로 가정)
+        spatial_edges = np.linspace(0, total_neurons, spatial_bins + 1)
+        spatial_centers = (spatial_edges[:-1] + spatial_edges[1:]) / 2
+        
+        # Firing rate 매트릭스 초기화
+        firing_rate_matrix = np.zeros((spatial_bins, time_bins))
+        
+        if len(spike_times_ms) == 0:
+            return firing_rate_matrix, spatial_centers, time_centers
+        
+        # 각 시간 구간에서 firing rate 계산
+        for t_idx, (t_start, t_end) in enumerate(zip(time_edges[:-1], time_edges[1:])):
+            # 해당 시간 구간의 스파이크
+            time_mask = (spike_times_ms >= t_start) & (spike_times_ms < t_end)
+            spikes_in_bin = np.sum(time_mask)
+            
+            # 시간 구간에서의 전체 firing rate
+            time_duration = (t_end - t_start) / 1000.0  # ms to seconds
+            overall_rate = spikes_in_bin / (total_neurons * time_duration)
+            
+            # 공간 축을 따라 분포 (여기서는 균등하게 분포)
+            firing_rate_matrix[:, t_idx] = overall_rate
+        
+        return firing_rate_matrix, spatial_centers, time_centers
+    
+    try:
+        if plot_order:
+            spike_monitors = {name: spike_monitors[name] for name in plot_order if name in spike_monitors}
+        else:
+            plot_order = list(spike_monitors.keys())
+        
+        if not spike_monitors:
+            print("No valid neuron groups for mean firing rate analysis.")
+            return
+        
+        neuron_names = list(spike_monitors.keys())
+        n_groups = len(neuron_names)
+        
+        # 그리드 레이아웃 계산
+        cols = min(3, n_groups)
+        rows = (n_groups + cols - 1) // cols
+        
+        fig, axes = plt.subplots(rows, cols, figsize=(6*cols, 5*rows))
+        if n_groups == 1:
+            axes = [axes]
+        elif rows == 1:
+            axes = axes.reshape(1, -1)
+        
+        # 전체 그래프 제목
+        fig.suptitle('Mean Firing Rate Heatmap Analysis (Place Field Style)', 
+                    fontsize=16, fontweight='bold', y=0.98)
+        
+        # 각 뉴런 그룹별로 분석
+        for idx, name in enumerate(neuron_names):
+            row = idx // cols
+            col = idx % cols
+            ax = axes[row, col] if rows > 1 else axes[col]
+            
+            # 스파이크 데이터 추출
+            spike_times, spike_indices = get_monitor_spikes(spike_monitors[name])
+            
+            if len(spike_times) == 0:
+                ax.text(0.5, 0.5, f'{name}\nNo spikes', 
+                       transform=ax.transAxes, ha='center', va='center', fontsize=12)
+                ax.set_title(f'{name}', fontweight='bold')
+                continue
+            
+            spike_times_ms = spike_times / ms
+            total_neurons = spike_monitors[name].source.N
+            
+            # 분석 구간 내의 스파이크만 사용
+            time_mask = (spike_times_ms >= start_time/ms) & (spike_times_ms <= end_time/ms)
+            spike_times_window = spike_times_ms[time_mask]
+            
+            # Mean firing rate 매트릭스 계산
+            rate_matrix, spatial_centers, time_centers = calculate_mean_firing_rate_matrix(
+                spike_times_window, total_neurons, start_time/ms, end_time/ms, 
+                spatial_bins, time_bins)
+            
+            # Heatmap 시각화
+            if np.max(rate_matrix) > 0:
+                im = ax.imshow(rate_matrix, cmap='plasma', aspect='auto', 
+                              origin='lower', interpolation='bilinear',
+                              extent=[time_centers[0], time_centers[-1], 
+                                     spatial_centers[0], spatial_centers[-1]])
+                
+                # 컬러바 추가
+                cbar = plt.colorbar(im, ax=ax, shrink=0.8)
+                cbar.set_label('Firing Rate (Hz)', rotation=270, labelpad=15)
+                
+                # 통계 정보 추가
+                max_rate = np.max(rate_matrix)
+                mean_rate = np.mean(rate_matrix)
+                
+                ax.text(0.02, 0.98, f'Max: {max_rate:.1f} Hz\nMean: {mean_rate:.1f} Hz', 
+                       transform=ax.transAxes, verticalalignment='top', fontsize=9,
+                       bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+            else:
+                ax.text(0.5, 0.5, f'{name}\nNo activity', 
+                       transform=ax.transAxes, ha='center', va='center', fontsize=12)
+            
+            # 라벨링
+            display_name = display_names.get(name, name) if display_names else name
+            ax.set_xlabel('Time (ms)', fontsize=11, fontweight='bold')
+            ax.set_ylabel('Spatial Axis', fontsize=11, fontweight='bold')
+            ax.set_title(f'{display_name}', fontsize=13, fontweight='bold')
+            ax.grid(True, alpha=0.3)
+        
+        # 빈 subplot 숨기기
+        for idx in range(n_groups, rows * cols):
+            if rows > 1:
+                row = idx // cols
+                col = idx % cols
+                axes[row, col].set_visible(False)
+            elif cols > 1:
+                axes[idx].set_visible(False)
+        
+        plt.tight_layout()
+        
+        # 결과 출력
+        print(f"\n=== Mean Firing Rate Heatmap Analysis Results ===")
+        print(f"Analysis period: {start_time/ms:.0f} - {end_time/ms:.0f} ms")
+        print(f"Spatial resolution: {spatial_bins} bins")
+        print(f"Time resolution: {time_bins} bins")
+        
+        for name in neuron_names:
+            spike_times, _ = get_monitor_spikes(spike_monitors[name])
+            spike_count = len(spike_times)
+            total_neurons = spike_monitors[name].source.N
+            duration_s = (end_time - start_time) / (1000 * ms)
+            avg_rate = spike_count / (total_neurons * duration_s) if duration_s > 0 else 0
+            
+            display_name = display_names.get(name, name) if display_names else name
+            print(f"{display_name}: {spike_count} spikes, avg rate: {avg_rate:.2f} Hz")
+        
+        # 파일 저장
+        if save_plot:
+            filename = 'mean_firing_rate_heatmap.png'
+            plt.savefig(filename, dpi=300, bbox_inches='tight', facecolor='white')
+            print(f"\nMean firing rate heatmap saved to '{filename}'")
+        
+        try:
+            print("\nMean firing rate heatmap displayed. Close the plot window to continue...")
+            plt.show(block=True)
+        except Exception as e:
+            print(f"Error displaying mean firing rate heatmap: {e}")
+            
+    except Exception as e:
+        print(f"Mean firing rate heatmap error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+
+def plot_improved_membrane_potential(voltage_monitors, spike_monitors, plot_order=None, 
+                                   analysis_window=(0*ms, 2000*ms), 
+                                   unified_y_scale=True, threshold_clipping=True,
+                                   display_names=None, save_plot=True):
+    """
+    개선된 멤브레인 전압 시각화 - 통일된 y축 스케일과 action potential 클리핑
+    
+    Parameters:
+    - voltage_monitors: 전압 모니터 딕셔너리
+    - spike_monitors: 스파이크 모니터 딕셔너리
+    - plot_order: 뉴런 그룹 순서
+    - analysis_window: 분석 시간 구간
+    - unified_y_scale: 모든 셀의 y축을 동일하게 설정할지 여부
+    - threshold_clipping: 스파이크 시 threshold 값으로 클리핑할지 여부
+    - display_names: 표시 이름 매핑
+    - save_plot: 플롯 저장 여부
+    """
+    
+    try:
+        if plot_order:
+            filtered_monitors = {name: voltage_monitors[name] for name in plot_order if name in voltage_monitors}
+        else:
+            filtered_monitors = voltage_monitors
+
+        n_plots = len(filtered_monitors)
+        if n_plots == 0:
+            print("No voltage monitors to plot.")
+            return
+
+        start_time, end_time = analysis_window
+        
+        # 모든 뉴런의 전압 범위 수집 (통일된 y축을 위해)
+        all_voltages = []
+        neuron_data = {}
+        
+        for name, monitor in filtered_monitors.items():
+            if len(monitor.v) == 0:
+                print(f"Warning: No voltage data recorded for {name}")
+                continue
+                
+            # 시간 마스크 적용
+            time_mask = (monitor.t >= start_time) & (monitor.t <= end_time)
+            time_ms = monitor.t[time_mask] / ms
+            voltage = monitor.v[0][time_mask] / mV  # 첫 번째 뉴런 사용
+            
+            if len(time_ms) == 0:
+                continue
+            
+            # 스파이크 데이터 가져오기
+            spike_times = []
+            threshold_voltage = -20  # 기본 threshold (mV)
+            
+            if name in spike_monitors:
+                spike_data, spike_indices = get_monitor_spikes(spike_monitors[name])
+                neuron_0_spikes = spike_data[spike_indices == 0]  # 첫 번째 뉴런의 스파이크
+                spike_time_mask = (neuron_0_spikes >= start_time) & (neuron_0_spikes <= end_time)
+                spike_times = neuron_0_spikes[spike_time_mask] / ms
+                
+                # Threshold 추정 (스파이크 전 최대 전압)
+                if len(spike_times) > 0:
+                    spike_voltages = []
+                    for spike_time in spike_times[:5]:  # 처음 5개 스파이크만 사용
+                        spike_idx = np.argmin(np.abs(time_ms - spike_time))
+                        if spike_idx > 0:
+                            spike_voltages.append(voltage[spike_idx-1])  # 스파이크 직전 전압
+                    if spike_voltages:
+                        threshold_voltage = np.mean(spike_voltages)
+            
+            # Threshold clipping 적용
+            if threshold_clipping and len(spike_times) > 0:
+                clipped_voltage = voltage.copy()
+                for spike_time in spike_times:
+                    spike_idx = np.argmin(np.abs(time_ms - spike_time))
+                    # 스파이크 근처 구간을 threshold 값으로 클리핑
+                    clip_range = range(max(0, spike_idx-2), min(len(clipped_voltage), spike_idx+3))
+                    clipped_voltage[clip_range] = threshold_voltage
+                voltage = clipped_voltage
+            
+            neuron_data[name] = {
+                'time_ms': time_ms,
+                'voltage': voltage,
+                'spike_times': spike_times,
+                'threshold': threshold_voltage
+            }
+            
+            all_voltages.extend(voltage)
+        
+        if not neuron_data:
+            print("No valid voltage data to plot.")
+            return
+        
+        # 통일된 y축 범위 계산
+        if unified_y_scale and all_voltages:
+            y_min = np.percentile(all_voltages, 1)  # 1% percentile
+            y_max = np.percentile(all_voltages, 99)  # 99% percentile
+            y_margin = (y_max - y_min) * 0.1
+            y_range = (y_min - y_margin, y_max + y_margin)
+        else:
+            y_range = None
+        
+        # 그래프 생성
+        fig, axes = plt.subplots(n_plots, 1, figsize=(14, 3 * n_plots), sharex=True)
+        if n_plots == 1:
+            axes = [axes]
+
+        fig.suptitle('Improved Membrane Potential Analysis', fontsize=16, fontweight='bold')
+        
+        for i, (name, data) in enumerate(neuron_data.items()):
+            ax = axes[i]
+            
+            time_ms = data['time_ms']
+            voltage = data['voltage']
+            spike_times = data['spike_times']
+            threshold = data['threshold']
+            
+            # 멤브레인 전압 플롯
+            ax.plot(time_ms, voltage, 'b-', linewidth=1.5, alpha=0.8, label='Membrane Potential')
+            
+            # 스파이크 마킹
+            if len(spike_times) > 0:
+                spike_voltages = []
+                for spike_time in spike_times:
+                    spike_idx = np.argmin(np.abs(time_ms - spike_time))
+                    if spike_idx < len(voltage):
+                        spike_voltages.append(voltage[spike_idx])
+                
+                ax.scatter(spike_times, spike_voltages, color='red', s=40, 
+                          marker='v', alpha=0.8, label=f'Spikes ({len(spike_times)})', zorder=5)
+                
+                # Threshold 라인
+                if threshold_clipping:
+                    ax.axhline(threshold, color='orange', linestyle='--', alpha=0.7, 
+                              label=f'Threshold ({threshold:.1f} mV)')
+            
+            # 축 설정
+            display_name = display_names.get(name, name) if display_names else name
+            ax.set_ylabel(f'{display_name}\nV (mV)', fontsize=11, fontweight='bold')
+            ax.set_title(f'{display_name} - Neuron 0 Membrane Potential', fontsize=12, fontweight='bold')
+            
+            if unified_y_scale and y_range:
+                ax.set_ylim(y_range)
+            
+            ax.grid(True, alpha=0.3)
+            ax.legend(loc='upper right', fontsize=9)
+            
+            # 통계 정보 추가
+            v_mean = np.mean(voltage)
+            v_std = np.std(voltage)
+            ax.text(0.02, 0.98, f'Mean: {v_mean:.1f} mV\nStd: {v_std:.1f} mV', 
+                   transform=ax.transAxes, verticalalignment='top', fontsize=9,
+                   bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+        
+        axes[-1].set_xlabel('Time (ms)', fontsize=12, fontweight='bold')
+        axes[-1].set_xlim(start_time/ms, end_time/ms)
+        
+        plt.tight_layout()
+        
+        # 결과 출력
+        print(f"\n=== Improved Membrane Potential Analysis Results ===")
+        print(f"Analysis period: {start_time/ms:.0f} - {end_time/ms:.0f} ms")
+        print(f"Unified Y-scale: {unified_y_scale}")
+        print(f"Threshold clipping: {threshold_clipping}")
+        
+        if unified_y_scale and y_range:
+            print(f"Y-axis range: {y_range[0]:.1f} to {y_range[1]:.1f} mV")
+        
+        for name, data in neuron_data.items():
+            display_name = display_names.get(name, name) if display_names else name
+            spike_count = len(data['spike_times'])
+            threshold = data['threshold']
+            print(f"{display_name}: {spike_count} spikes, threshold: {threshold:.1f} mV")
+        
+        # 파일 저장
+        if save_plot:
+            filename = 'improved_membrane_potential.png'
+            plt.savefig(filename, dpi=300, bbox_inches='tight', facecolor='white')
+            print(f"\nImproved membrane potential plot saved to '{filename}'")
+        
+        try:
+            print("\nImproved membrane potential displayed. Close the plot window to continue...")
+            plt.show(block=True)
+        except Exception as e:
+            print(f"Error displaying improved membrane potential: {e}")
+            
+    except Exception as e:
+        print(f"Improved membrane potential error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+
+def plot_enhanced_multi_neuron_stimulus_overview(voltage_monitors, spike_monitors, stimulus_config,
+                                               target_groups=['FSN', 'MSND1', 'MSND2', 'GPeT1', 'GPeTA', 'STN', 'GPi', 'SNr'],
+                                               neurons_per_group=3, analysis_window=(0*ms, 10000*ms),
+                                               unified_y_scale=True, threshold_clipping=True,
+                                               display_names=None, save_plot=True):
+    """
+    개선된 다중 뉴런 멤브레인 전압 오버뷰 - 통일된 y축과 action potential 클리핑
+    
+    Parameters:
+    - voltage_monitors: 전압 모니터 딕셔너리
+    - spike_monitors: 스파이크 모니터 딕셔너리
+    - stimulus_config: 스티뮬러스 설정
+    - target_groups: 분석할 뉴런 그룹들
+    - neurons_per_group: 그룹당 표시할 뉴런 수
+    - analysis_window: 분석 시간 구간
+    - unified_y_scale: 모든 셀의 y축을 동일하게 설정할지 여부
+    - threshold_clipping: 스파이크 시 threshold 값으로 클리핑할지 여부
+    - display_names: 표시 이름 매핑
+    - save_plot: 플롯 저장 여부
+    """
+    
+    try:
+        # Filter available groups
+        available_groups = []
+        total_neurons = 0
+        
+        for group_name in target_groups:
+            if (group_name in voltage_monitors and 
+                group_name in spike_monitors and
+                len(voltage_monitors[group_name].t) > 0):
+                available_groups.append(group_name)
+                v_monitor = voltage_monitors[group_name]
+                available_neurons = len(v_monitor.v)
+                neurons_to_use = min(neurons_per_group, available_neurons)
+                total_neurons += neurons_to_use
+        
+        if not available_groups:
+            print("No available neuron groups with voltage data")
+            return
+        
+        # Extract time range
+        start_time, end_time = analysis_window
+        
+        # Get time vector from first available monitor
+        first_group = available_groups[0]
+        v_monitor = voltage_monitors[first_group]
+        time_mask = (v_monitor.t >= start_time) & (v_monitor.t <= end_time)
+        time_ms = v_monitor.t[time_mask] / ms
+        
+        # Collect all voltage data for unified y-scale
+        all_voltages = []
+        neuron_plot_data = []
+        
+        for group_name in available_groups:
+            v_monitor = voltage_monitors[group_name]
+            s_monitor = spike_monitors[group_name]
+            
+            available_neurons = len(v_monitor.v)
+            neurons_to_use = min(neurons_per_group, available_neurons)
+            
+            if neurons_to_use == 1:
+                selected_indices = [0]
+            else:
+                selected_indices = np.linspace(0, available_neurons-1, neurons_to_use, dtype=int)
+            
+            for neuron_idx in selected_indices:
+                voltage = v_monitor.v[neuron_idx][time_mask] / mV
+                
+                # Get spikes for this neuron
+                spike_times, spike_indices = get_monitor_spikes(s_monitor)
+                neuron_spike_mask = spike_indices == neuron_idx
+                neuron_spike_times = spike_times[neuron_spike_mask]
+                spike_time_mask = (neuron_spike_times >= start_time) & (neuron_spike_times <= end_time)
+                neuron_spike_times_window = neuron_spike_times[spike_time_mask] / ms
+                
+                # Estimate threshold
+                threshold_voltage = -20
+                if len(neuron_spike_times_window) > 0:
+                    spike_voltages = []
+                    for spike_time in neuron_spike_times_window[:5]:
+                        spike_idx = np.argmin(np.abs(time_ms - spike_time))
+                        if spike_idx > 0:
+                            spike_voltages.append(voltage[spike_idx-1])
+                    if spike_voltages:
+                        threshold_voltage = np.mean(spike_voltages)
+                
+                # Apply threshold clipping
+                if threshold_clipping and len(neuron_spike_times_window) > 0:
+                    clipped_voltage = voltage.copy()
+                    for spike_time in neuron_spike_times_window:
+                        spike_idx = np.argmin(np.abs(time_ms - spike_time))
+                        clip_range = range(max(0, spike_idx-2), min(len(clipped_voltage), spike_idx+3))
+                        clipped_voltage[clip_range] = threshold_voltage
+                    voltage = clipped_voltage
+                
+                neuron_plot_data.append({
+                    'group_name': group_name,
+                    'neuron_idx': neuron_idx,
+                    'voltage': voltage,
+                    'spike_times': neuron_spike_times_window,
+                    'threshold': threshold_voltage
+                })
+                
+                all_voltages.extend(voltage)
+        
+        # Calculate unified y-range
+        if unified_y_scale and all_voltages:
+            y_min = np.percentile(all_voltages, 1)
+            y_max = np.percentile(all_voltages, 99)
+            y_margin = (y_max - y_min) * 0.1
+            y_range = (y_min - y_margin, y_max + y_margin)
+        else:
+            y_range = None
+        
+        # Create figure
+        fig_height = 3 + len(neuron_plot_data) * 1.5
+        fig, axes = plt.subplots(len(neuron_plot_data) + 1, 1, figsize=(16, fig_height), 
+                                sharex=True, gridspec_kw={'height_ratios': [1] + [1]*len(neuron_plot_data)})
+        
+        # Top panel: Stimulus pattern
+        stimulus_pA = np.zeros_like(time_ms)
+        
+        if stimulus_config and stimulus_config.get('enabled', False):
+            stim_start = stimulus_config.get('start_time', 0)
+            stim_duration = stimulus_config.get('duration', 0)
+            stim_end = stim_start + stim_duration
+            
+            stimulus_amplitude = 25
+            stim_mask = (time_ms >= stim_start) & (time_ms <= stim_end)
+            stimulus_pA[stim_mask] = stimulus_amplitude
+        
+        # Plot stimulus
+        axes[0].plot(time_ms, stimulus_pA, 'k-', linewidth=2)
+        axes[0].set_ylabel('Stimulus (pA)', fontsize=12, fontweight='bold')
+        axes[0].set_title('Enhanced Multi-Neuron Membrane Potential with Unified Y-Scale', 
+                         fontsize=16, fontweight='bold', pad=20)
+        axes[0].set_ylim(-5, max(stimulus_pA) + 10 if max(stimulus_pA) > 0 else 30)
+        
+        if stimulus_config and stimulus_config.get('enabled', False):
+            axes[0].axvspan(stim_start, stim_end, alpha=0.15, color='orange', label='Stimulus Period')
+            axes[0].legend(loc='upper right', fontsize=9)
+        
+        # Plot neurons
+        for ax_idx, data in enumerate(neuron_plot_data):
+            ax = axes[ax_idx + 1]
+            
+            group_name = data['group_name']
+            neuron_idx = data['neuron_idx']
+            voltage = data['voltage']
+            spike_times = data['spike_times']
+            threshold = data['threshold']
+            
+            # Plot membrane potential
+            ax.plot(time_ms, voltage, 'b-', linewidth=1.2, alpha=0.8)
+            
+            # Mark spikes
+            if len(spike_times) > 0:
+                spike_voltages = []
+                for spike_time in spike_times:
+                    spike_idx = np.argmin(np.abs(time_ms - spike_time))
+                    if spike_idx < len(voltage):
+                        spike_voltages.append(voltage[spike_idx])
+                
+                ax.scatter(spike_times, spike_voltages, color='red', s=25, 
+                          marker='|', linewidth=2, alpha=0.8, zorder=5)
+                
+                # Threshold line
+                if threshold_clipping:
+                    ax.axhline(threshold, color='orange', linestyle='--', alpha=0.5, linewidth=1)
+            
+            # Set unified y-scale
+            if unified_y_scale and y_range:
+                ax.set_ylim(y_range)
+            
+            # Labels
+            display_name = display_names.get(group_name, group_name) if display_names else group_name
+            ax.set_ylabel(f'{display_name}\n#{neuron_idx}\n(mV)', fontsize=10, fontweight='bold')
+            ax.grid(True, alpha=0.2)
+            
+            # Add spike count info
+            spike_count = len(spike_times)
+            if spike_count > 0:
+                ax.text(0.98, 0.95, f'{spike_count} spikes', transform=ax.transAxes, 
+                       ha='right', va='top', fontsize=9, 
+                       bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+        
+        axes[-1].set_xlabel('Time (ms)', fontsize=12, fontweight='bold')
+        axes[-1].set_xlim(start_time/ms, end_time/ms)
+        
+        plt.tight_layout()
+        
+        # Results
+        print(f"\n=== Enhanced Multi-Neuron Analysis Results ===")
+        print(f"Analysis period: {start_time/ms:.0f} - {end_time/ms:.0f} ms")
+        print(f"Total neurons displayed: {len(neuron_plot_data)}")
+        print(f"Unified Y-scale: {unified_y_scale}")
+        print(f"Threshold clipping: {threshold_clipping}")
+        
+        if unified_y_scale and y_range:
+            print(f"Y-axis range: {y_range[0]:.1f} to {y_range[1]:.1f} mV")
+        
+        for data in neuron_plot_data:
+            group_name = data['group_name']
+            neuron_idx = data['neuron_idx']
+            spike_count = len(data['spike_times'])
+            threshold = data['threshold']
+            display_name = display_names.get(group_name, group_name) if display_names else group_name
+            print(f"{display_name} #{neuron_idx}: {spike_count} spikes, threshold: {threshold:.1f} mV")
+        
+        # Save plot
+        if save_plot:
+            filename = 'enhanced_multi_neuron_stimulus_overview.png'
+            plt.savefig(filename, dpi=300, bbox_inches='tight', facecolor='white')
+            print(f"\nEnhanced multi-neuron plot saved to '{filename}'")
+        
+        try:
+            print("\nEnhanced multi-neuron overview displayed. Close the plot window to continue...")
+            plt.show(block=True)
+        except Exception as e:
+            print(f"Error displaying enhanced multi-neuron overview: {e}")
+            
+    except Exception as e:
+        print(f"Enhanced multi-neuron overview error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+
+def plot_multi_sample_firing_rate_analysis(spike_monitors, start_time=0*ms, end_time=10000*ms, 
+                                          bin_size=50*ms, n_samples=10, neurons_per_sample=30,
+                                          plot_order=None, display_names=None, 
+                                          stimulus_config=None, save_plot=True):
+    """
+    각 뉴런 그룹에서 연속된 뉴런들을 다중 샘플링하여 firing rate variability 분석
+    왼쪽: 개별 샘플들의 firing rate (회색)
+    오른쪽: 평균 firing rate (컬러)
+    
+    Parameters:
+    - spike_monitors: 스파이크 모니터 딕셔너리
+    - start_time, end_time: 분석 시간 범위
+    - bin_size: 시간 bin 크기
+    - n_samples: 샘플링 횟수 (기본값: 10)
+    - neurons_per_sample: 샘플당 뉴런 수 (기본값: 30)
+    - plot_order: 뉴런 그룹 순서
+    - display_names: 표시 이름 매핑
+    - stimulus_config: 스티뮬러스 설정
+    - save_plot: 플롯 저장 여부
+    """
+    
+    def calculate_firing_rate_for_neuron_subset(spike_times, spike_indices, 
+                                              selected_neurons, total_neurons,
+                                              time_bins):
+        """선택된 뉴런들의 firing rate 계산"""
+        firing_rates = []
+        
+        for i in range(len(time_bins) - 1):
+            bin_start = time_bins[i]
+            bin_end = time_bins[i + 1]
+            
+            # 시간 구간 마스크
+            time_mask = (spike_times >= bin_start) & (spike_times < bin_end)
+            
+            # 선택된 뉴런들 마스크
+            neuron_mask = np.isin(spike_indices, selected_neurons)
+            
+            # 조합 마스크
+            combined_mask = time_mask & neuron_mask
+            
+            # 해당 구간의 스파이크 수
+            spike_count = np.sum(combined_mask)
+            
+            # Firing rate 계산 (Hz)
+            bin_duration = (bin_end - bin_start) / 1000.0  # ms to seconds
+            rate = spike_count / (len(selected_neurons) * bin_duration)
+            firing_rates.append(rate)
+        
+        return np.array(firing_rates)
+    
+    try:
+        if plot_order:
+            spike_monitors = {name: spike_monitors[name] for name in plot_order if name in spike_monitors}
+        else:
+            plot_order = list(spike_monitors.keys())
+        
+        if not spike_monitors:
+            print("No valid neuron groups for multi-sample firing rate analysis.")
+            return
+        
+        # 시간 축 설정
+        time_bins = np.arange(start_time/ms, end_time/ms + bin_size/ms, bin_size/ms)
+        time_centers = (time_bins[:-1] + time_bins[1:]) / 2
+        
+        neuron_names = list(spike_monitors.keys())
+        n_groups = len(neuron_names)
+        
+        # 그래프 레이아웃: 각 그룹당 2개 subplot (개별 + 평균)
+        fig, axes = plt.subplots(n_groups, 2, figsize=(16, 4 * n_groups))
+        if n_groups == 1:
+            axes = axes.reshape(1, -1)
+        
+        fig.suptitle('Multi-Sample Firing Rate Analysis (10 Random Samplings)', 
+                    fontsize=16, fontweight='bold', y=0.98)
+        
+        colors = plt.cm.Set3(np.linspace(0, 1, n_groups))
+        
+        np.random.seed(2025)  # 재현가능한 결과를 위해
+        
+        for group_idx, name in enumerate(neuron_names):
+            spike_times, spike_indices = get_monitor_spikes(spike_monitors[name])
+            
+            if len(spike_times) == 0:
+                # 데이터가 없는 경우 처리
+                axes[group_idx, 0].text(0.5, 0.5, f'{name}\nNo spikes', 
+                                       transform=axes[group_idx, 0].transAxes, 
+                                       ha='center', va='center', fontsize=12)
+                axes[group_idx, 1].text(0.5, 0.5, f'{name}\nNo spikes', 
+                                       transform=axes[group_idx, 1].transAxes, 
+                                       ha='center', va='center', fontsize=12)
+                continue
+            
+            spike_times_ms = spike_times / ms
+            total_neurons = spike_monitors[name].source.N
+            display_name = display_names.get(name, name) if display_names else name
+            color = colors[group_idx]
+            
+            # 분석 구간 내의 스파이크만 사용
+            time_mask = (spike_times_ms >= start_time/ms) & (spike_times_ms <= end_time/ms)
+            spike_times_window = spike_times_ms[time_mask]
+            spike_indices_window = spike_indices[time_mask]
+            
+            if len(spike_times_window) == 0:
+                axes[group_idx, 0].text(0.5, 0.5, f'{display_name}\nNo spikes in window', 
+                                       transform=axes[group_idx, 0].transAxes, 
+                                       ha='center', va='center', fontsize=12)
+                axes[group_idx, 1].text(0.5, 0.5, f'{display_name}\nNo spikes in window', 
+                                       transform=axes[group_idx, 1].transAxes, 
+                                       ha='center', va='center', fontsize=12)
+                continue
+            
+            # 연속된 뉴런 샘플링을 위한 준비
+            max_start_neuron = max(0, total_neurons - neurons_per_sample)
+            sample_firing_rates = []
+            
+            # n_samples번 랜덤 샘플링
+            for sample_idx in range(n_samples):
+                if max_start_neuron <= 0:
+                    # 사용 가능한 뉴런이 충분하지 않은 경우
+                    selected_neurons = np.arange(min(neurons_per_sample, total_neurons))
+                else:
+                    # 연속된 뉴런들을 랜덤 시작점부터 선택
+                    start_neuron = np.random.randint(0, max_start_neuron + 1)
+                    selected_neurons = np.arange(start_neuron, 
+                                                min(start_neuron + neurons_per_sample, total_neurons))
+                
+                # 선택된 뉴런들의 firing rate 계산
+                firing_rate = calculate_firing_rate_for_neuron_subset(
+                    spike_times_window, spike_indices_window, selected_neurons, 
+                    total_neurons, time_bins)
+                
+                sample_firing_rates.append(firing_rate)
+                
+                # 개별 샘플 플롯 (왼쪽, 회색)
+                axes[group_idx, 0].plot(time_centers, firing_rate, 'gray', 
+                                       linewidth=1, alpha=0.6, zorder=1)
+            
+            # 평균 firing rate 계산
+            sample_firing_rates = np.array(sample_firing_rates)
+            mean_firing_rate = np.mean(sample_firing_rates, axis=0)
+            std_firing_rate = np.std(sample_firing_rates, axis=0)
+            
+            # 신뢰구간 계산 (±1 std)
+            upper_bound = mean_firing_rate + std_firing_rate
+            lower_bound = mean_firing_rate - std_firing_rate
+            
+            # 왼쪽 그래프: 개별 샘플들
+            axes[group_idx, 0].plot(time_centers, mean_firing_rate, color=color, 
+                                   linewidth=3, alpha=0.9, zorder=5, 
+                                   label=f'Mean ({n_samples} samples)')
+            
+            axes[group_idx, 0].set_title(f'{display_name} - Individual Samples', 
+                                        fontsize=13, fontweight='bold')
+            axes[group_idx, 0].set_ylabel('Firing Rate (Hz)', fontsize=11, fontweight='bold')
+            axes[group_idx, 0].grid(True, alpha=0.3)
+            axes[group_idx, 0].legend(loc='upper right', fontsize=9)
+            
+            # 오른쪽 그래프: 평균과 신뢰구간
+            axes[group_idx, 1].plot(time_centers, mean_firing_rate, color=color, 
+                                   linewidth=3, alpha=0.9, label=f'Mean ± Std')
+            axes[group_idx, 1].fill_between(time_centers, lower_bound, upper_bound, 
+                                           color=color, alpha=0.3)
+            
+            axes[group_idx, 1].set_title(f'{display_name} - Average Pattern', 
+                                        fontsize=13, fontweight='bold')
+            axes[group_idx, 1].set_ylabel('Firing Rate (Hz)', fontsize=11, fontweight='bold')
+            axes[group_idx, 1].grid(True, alpha=0.3)
+            axes[group_idx, 1].legend(loc='upper right', fontsize=9)
+            
+            # 스티뮬러스 구간 표시
+            if stimulus_config and stimulus_config.get('enabled', False):
+                stim_start = stimulus_config.get('start_time', 0)
+                stim_duration = stimulus_config.get('duration', 0)
+                stim_end = stim_start + stim_duration
+                
+                # 양쪽 그래프에 스티뮬러스 구간 표시
+                for ax in [axes[group_idx, 0], axes[group_idx, 1]]:
+                    ax.axvspan(stim_start, stim_end, alpha=0.2, color='red')
+                    
+                    # 상단에 작은 바로 표시
+                    y_max = ax.get_ylim()[1]
+                    ax.hlines(y_max * 0.95, stim_start, stim_end, 
+                             colors='red', linewidth=3, alpha=0.8)
+            
+            # 통계 정보 추가
+            max_mean_rate = np.max(mean_firing_rate)
+            min_mean_rate = np.min(mean_firing_rate)
+            avg_std = np.mean(std_firing_rate)
+            
+            stats_text = (f'Max: {max_mean_rate:.1f} Hz\n'
+                         f'Min: {min_mean_rate:.1f} Hz\n'
+                         f'Avg Std: {avg_std:.1f} Hz\n'
+                         f'Samples: {n_samples}×{len(selected_neurons)} neurons')
+            
+            axes[group_idx, 1].text(0.02, 0.98, stats_text, 
+                                   transform=axes[group_idx, 1].transAxes, 
+                                   verticalalignment='top', fontsize=9,
+                                   bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+        
+        # X축 라벨 (마지막 행에만)
+        for col in range(2):
+            axes[-1, col].set_xlabel('Time (ms)', fontsize=12, fontweight='bold')
+            axes[-1, col].set_xlim(start_time/ms, end_time/ms)
+        
+        plt.tight_layout()
+        
+        # 결과 출력
+        print(f"\n=== Multi-Sample Firing Rate Analysis Results ===")
+        print(f"Analysis period: {start_time/ms:.0f} - {end_time/ms:.0f} ms")
+        print(f"Bin size: {bin_size/ms:.0f} ms")
+        print(f"Number of samples per group: {n_samples}")
+        print(f"Neurons per sample: {neurons_per_sample}")
+        
+        for name in neuron_names:
+            total_neurons = spike_monitors[name].source.N
+            display_name = display_names.get(name, name) if display_names else name
+            print(f"{display_name}: {total_neurons} total neurons, "
+                  f"sampling {min(neurons_per_sample, total_neurons)} neurons × {n_samples} times")
+        
+        # 파일 저장
+        if save_plot:
+            filename = 'multi_sample_firing_rate_analysis.png'
+            plt.savefig(filename, dpi=300, bbox_inches='tight', facecolor='white')
+            print(f"\nMulti-sample firing rate analysis saved to '{filename}'")
+        
+        try:
+            print("\nMulti-sample firing rate analysis displayed. Close the plot window to continue...")
+            plt.show(block=True)
+        except Exception as e:
+            print(f"Error displaying multi-sample firing rate analysis: {e}")
+            
+    except Exception as e:
+        print(f"Multi-sample firing rate analysis error: {str(e)}")
+        import traceback
+        traceback.print_exc()
