@@ -567,8 +567,8 @@
         "duration": 10000,
         "stimulus": {
             "enabled": true,
-            "start_time": 1000,
-            "duration": 1000,
+            "start_time": 10000,
+            "duration": 0,
             "dt_array": 1,
             "rates": {
                 "FSN": 787,
