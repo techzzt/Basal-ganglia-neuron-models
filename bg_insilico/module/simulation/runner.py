@@ -185,7 +185,8 @@ def run_simulation_with_inh_ext_input(
         #     print("=== PoissonGroup Spike Analysis ===")
         #     ...
 
-        plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time, display_names=display_names)
+        # Raster plot은 run.py에서 호출하므로 여기서는 제거
+        # plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time, display_names=display_names)
         
         results = {
             'spike_monitors': spike_monitors,
