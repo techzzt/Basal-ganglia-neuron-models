@@ -1987,7 +1987,86 @@ def plot_multi_neuron_stimulus_overview(voltage_monitors, spike_monitors, stimul
         import traceback
         traceback.print_exc()
 
+def plot_enhanced_multi_neuron_stimulus_overview(
+    voltage_monitors,
+    spike_monitors,
+    stimulus_config,
+    target_groups,
+    neurons_per_group=2,
+    analysis_window=None,
+    unified_y_scale=True,
+    threshold_clipping=True,
+    display_names=None,
+    thresholds=None
+):
+    n_groups = len(target_groups)
+    fig, axes = plt.subplots(n_groups, 1, figsize=(12, 2.5 * n_groups), sharex=True)
+    if n_groups == 1:
+        axes = [axes]
 
+    stim_start = stimulus_config.get('start_time', None)
+    stim_duration = stimulus_config.get('duration', None)
+    if stim_start is not None and stim_duration is not None:
+        stim_end = stim_start + stim_duration
+    else:
+        stim_start, stim_end = None, None
+
+    y_min, y_max = None, None
+    if unified_y_scale:
+        all_vs = []
+        for group in target_groups:
+            vmon = voltage_monitors.get(group)
+            if vmon is not None:
+                idxs = np.arange(min(neurons_per_group, vmon.v.shape[0]))
+                for idx in idxs:
+                    if analysis_window:
+                        t_mask = (vmon.t >= analysis_window[0]) & (vmon.t <= analysis_window[1])
+                        all_vs.append(vmon.v[idx][t_mask])
+                    else:
+                        all_vs.append(vmon.v[idx])
+        if all_vs:
+            y_min = min([v.min() for v in all_vs])
+            y_max = max([v.max() for v in all_vs])
+
+    for i, group in enumerate(target_groups):
+        ax = axes[i]
+        vmon = voltage_monitors.get(group)
+        smon = spike_monitors.get(group)
+        label = display_names[group] if display_names and group in display_names else group
+
+        if vmon is not None:
+            idxs = np.arange(min(neurons_per_group, vmon.v.shape[0]))
+            for idx in idxs:
+                t = vmon.t
+                v = vmon.v[idx]
+                if analysis_window:
+                    mask = (t >= analysis_window[0]) & (t <= analysis_window[1])
+                    t = t[mask]
+                    v = v[mask]
+                if threshold_clipping and thresholds and group in thresholds:
+                    # threshold 값에 v.unit(mV 등) 곱해서 단위 맞추기
+                    v = np.clip(v, None, thresholds[group] * v.unit)
+                ax.plot(t / ms, v / mV, label=f'{label} #{idx}')  # mV로 변환
+
+        if smon is not None:
+            for idx in range(min(neurons_per_group, len(smon.i))):
+                spike_times = smon.t[smon.i == idx]
+                if analysis_window:
+                    spike_times = spike_times[(spike_times >= analysis_window[0]) & (spike_times <= analysis_window[1])]
+                ax.vlines(spike_times / ms, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], color='k', alpha=0.2, linewidth=0.5)
+
+        if stim_start is not None and stim_end is not None:
+            ax.axvspan(stim_start, stim_end, color='orange', alpha=0.2, label='Stimulus')
+
+        ax.set_ylabel(f'{label}\nVm (mV)')
+        if unified_y_scale and y_min is not None and y_max is not None:
+            ax.set_ylim(y_min / mV, y_max / mV)
+        ax.legend(loc='upper right', fontsize=8)
+
+    axes[-1].set_xlabel('Time (ms)')
+    plt.tight_layout()
+    plt.show(block=True)
+        
 def plot_continuous_firing_rate_with_samples(spike_monitors, start_time=0*ms, end_time=10000*ms, bin_size=20*ms, 
                                             plot_order=None, display_names=None, stimulus_config=None, 
                                             smooth_sigma=3, save_plot=True, n_samples=10, neurons_per_sample=30):
@@ -2140,7 +2219,7 @@ def plot_membrane_zoom(voltage_monitors, time_window=(0*ms, 100*ms), plot_order=
         plt.xlabel("Time (ms)")
         plt.ylabel("V (mV)")
         plt.tight_layout()
-        plt.show()
+        plt.show(block=True)
 
 def plot_raster_zoom(spike_monitor, time_window=(0*ms, 100*ms), neuron_indices=None):
     t = spike_monitor.t / ms
@@ -2158,4 +2237,4 @@ def plot_raster_zoom(spike_monitor, time_window=(0*ms, 100*ms), neuron_indices=N
     plt.xlabel("Time (ms)")
     plt.ylabel("Neuron")
     plt.tight_layout()
-    plt.show()
+    plt.show(block=True)
