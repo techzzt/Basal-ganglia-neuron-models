@@ -4,14 +4,15 @@ import numpy as np
 import sys
 import os
 from brian2 import ms
+import gc
+gc.collect()
 
 from module.simulation.runner import run_simulation_with_inh_ext_input
 from module.utils.param_loader import load_params
 from module.utils.visualization import (analyze_firing_rates_by_stimulus_periods, plot_continuous_firing_rate, plot_improved_overall_raster,
-                                       plot_continuous_firing_rate_with_samples, plot_enhanced_multi_neuron_stimulus_overview, 
-                                       plot_place_cell_theta_analysis)
+                                       plot_continuous_firing_rate_with_samples, plot_firing_rate_fft, plot_membrane_zoom, plot_raster_zoom)
 def main():
-    params_file = 'config/test_normal_noin.json'
+    params_file = 'config/test_dop_noin.json'
     
     save_isi_ranges = True    
     use_saved_ranges = False 
@@ -89,17 +90,7 @@ def main():
             plots_per_page=6
         )
         
-        plot_place_cell_theta_analysis(
-            results['spike_monitors'],
-            start_time=analysis_start_time,
-            end_time=min(analysis_end_time, analysis_start_time + 5000*ms), 
-            plot_order=plot_order,
-            display_names=params.get('display_names', None),
-            stimulus_config=stimulus_config,
-            save_plot=True,
-            place_field_center=0.0, 
-            spatial_range=3.0  
-        )
+
     else:
         print("Stimulus: disabled")
 
@@ -151,6 +142,29 @@ def main():
         thresholds=thresholds
     )
 
+    plot_firing_rate_fft(
+        results['spike_monitors'],          
+        neuron_indices=None,    
+        start_time=0*ms,
+        end_time=10000*ms,
+        bin_size=10*ms,
+        show_mean=True,         
+        max_freq=100,            
+        title='Firing Rate FFT Spectrum'
+    )
+
+    # 예시: 전체 뉴런 그룹에 대해 마지막 100ms, 2000~3000ms 구간 plot
+    windows = [(2000*ms, 3000*ms), (results['voltage_monitors'][list(results['voltage_monitors'].keys())[0]].t[-1]-100*ms, 
+                                    results['voltage_monitors'][list(results['voltage_monitors'].keys())[0]].t[-1])]
+
+    for group_name, vmon in results['voltage_monitors'].items():
+        for w in windows:
+            plot_membrane_zoom(vmon, time_window=w, neuron_indices=[0])  # 첫 뉴런만 예시
+
+    for group_name, smon in results['spike_monitors'].items():
+        for w in windows:
+            plot_raster_zoom(smon, time_window=w, neuron_indices=None)  # 전체 뉴런 또는 일부
+   
     try:
         pass
     
