@@ -10,9 +10,10 @@ gc.collect()
 from module.simulation.runner import run_simulation_with_inh_ext_input
 from module.utils.param_loader import load_params
 from module.utils.visualization import (analyze_firing_rates_by_stimulus_periods, plot_continuous_firing_rate, plot_improved_overall_raster,
-                                       plot_continuous_firing_rate_with_samples, plot_firing_rate_fft, plot_membrane_zoom, plot_raster_zoom)
+                                       plot_continuous_firing_rate_with_samples, plot_enhanced_multi_neuron_stimulus_overview,
+                                       plot_firing_rate_fft, plot_membrane_zoom, plot_raster_zoom)
 def main():
-    params_file = 'config/test_dop_noin.json'
+    params_file = 'config/test_normal_noin.json'
     
     save_isi_ranges = True    
     use_saved_ranges = False 
