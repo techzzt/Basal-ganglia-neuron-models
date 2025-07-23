@@ -9,16 +9,13 @@ gc.collect()
 
 from module.simulation.runner import run_simulation_with_inh_ext_input
 from module.utils.param_loader import load_params
-from module.utils.visualization import (analyze_firing_rates_by_stimulus_periods, plot_continuous_firing_rate, plot_improved_overall_raster,
-                                       plot_continuous_firing_rate_with_samples, plot_enhanced_multi_neuron_stimulus_overview,
-                                       plot_firing_rate_fft, plot_membrane_zoom, plot_raster_zoom)
+from module.utils.visualization import (analyze_firing_rates_by_stimulus_periods, plot_improved_overall_raster,
+                                       plot_continuous_firing_rate_with_samples, plot_multi_neuron_stimulus_overview,
+                                       plot_firing_rate_fft_multi_page, plot_membrane_zoom, plot_raster_zoom)
 def main():
     params_file = 'config/test_normal_noin.json'
     
-    save_isi_ranges = True    
-    use_saved_ranges = False 
-    ranges_filename = 'isi_axis_ranges.json'  
-    
+
     params = load_params(params_file)
     neuron_configs = params['neurons']
     connections = params['connections']   
@@ -76,12 +73,13 @@ def main():
             plot_order,
             params.get('display_names', None)
         )
-        
+
+        """        
         plot_continuous_firing_rate(
             results['spike_monitors'],
             start_time=analysis_start_time,
             end_time=analysis_end_time,  
-            bin_size=10*ms,  
+            bin_size=5*ms,  
             plot_order=plot_order,
             display_names=params.get('display_names', None),
             stimulus_config=stimulus_config,
@@ -89,9 +87,8 @@ def main():
             show_confidence=True,  
             layout_mode='multi', 
             plots_per_page=6
-        )
-        
-
+        )        
+        """
     else:
         print("Stimulus: disabled")
 
@@ -130,42 +127,50 @@ def main():
         'SNr': 20,
     }
     
-    plot_enhanced_multi_neuron_stimulus_overview(
+
+    plot_multi_neuron_stimulus_overview(
         results['voltage_monitors'],
         results['spike_monitors'],
         simulation_params.get('stimulus', {}),
         target_groups=['FSN', 'MSND1', 'MSND2', 'GPeT1', 'GPeTA', 'STN', 'SNr'],
-        neurons_per_group=2,
-        analysis_window=(analysis_start_time, min(analysis_end_time, analysis_start_time + 5000*ms)),
-        unified_y_scale=True,
-        threshold_clipping=True,
+        neurons_per_group=1, 
+        analysis_window=(analysis_start_time, analysis_end_time), 
+        unified_y_scale=True,  
+        threshold_clipping=True, 
         display_names=params.get('display_names', None),
         thresholds=thresholds
     )
 
-    plot_firing_rate_fft(
-        results['spike_monitors'],          
-        neuron_indices=None,    
+    plot_firing_rate_fft_multi_page(
+        results['spike_monitors'],
+        neuron_indices=None,
         start_time=0*ms,
         end_time=10000*ms,
         bin_size=10*ms,
-        show_mean=True,         
-        max_freq=100,            
-        title='Firing Rate FFT Spectrum'
+        show_mean=True,
+        max_freq=100,
+        title='Firing Rate FFT Spectra (All Groups)'
     )
 
-    # 예시: 전체 뉴런 그룹에 대해 마지막 100ms, 2000~3000ms 구간 plot
-    windows = [(2000*ms, 3000*ms), (results['voltage_monitors'][list(results['voltage_monitors'].keys())[0]].t[-1]-100*ms, 
-                                    results['voltage_monitors'][list(results['voltage_monitors'].keys())[0]].t[-1])]
+    first_window = (4700*ms, 5000*ms) 
+    last_window = (6700*ms, 7000*ms)
 
+    print("\n=== Membrane Potential Zoom (First & Last Periods) ===")
     for group_name, vmon in results['voltage_monitors'].items():
-        for w in windows:
-            plot_membrane_zoom(vmon, time_window=w, neuron_indices=[0])  # 첫 뉴런만 예시
+        print(f"\n{group_name} - First period ({first_window[0]/ms:.0f}-{first_window[1]/ms:.0f} ms):")
+        plot_membrane_zoom(vmon, time_window=first_window, neuron_indices=[0], group_name=group_name)  
+        
+        print(f"{group_name} - Last period ({last_window[0]/ms:.0f}-{last_window[1]/ms:.0f} ms):")
+        plot_membrane_zoom(vmon, time_window=last_window, neuron_indices=[0], group_name=group_name)
 
+    print("\n=== Raster Plot Zoom (First & Last Periods) ===")
     for group_name, smon in results['spike_monitors'].items():
-        for w in windows:
-            plot_raster_zoom(smon, time_window=w, neuron_indices=None)  # 전체 뉴런 또는 일부
-   
+        print(f"\n{group_name} - First period ({first_window[0]/ms:.0f}-{first_window[1]/ms:.0f} ms):")
+        plot_raster_zoom(smon, time_window=first_window, neuron_indices=None, group_name=group_name) 
+        
+        print(f"{group_name} - Last period ({last_window[0]/ms:.0f}-{last_window[1]/ms:.0f} ms):")
+        plot_raster_zoom(smon, time_window=last_window, neuron_indices=None, group_name=group_name)  
+    
     try:
         pass
     
