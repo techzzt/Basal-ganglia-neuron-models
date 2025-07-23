@@ -502,7 +502,7 @@
             "post": "SNr",
             "receptor_type": "AMPA",
             "p": 0.1,
-            "weight": 0.5,
+            "weight": 0.3,
             "receptor_params": {
                 "AMPA": {
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -567,7 +567,7 @@
         "duration": 10000,
         "stimulus": {
             "enabled": true,
-            "start_time": 10000,
+            "start_time": 3000,
             "duration": 0,
             "dt_array": 1,
             "rates": {

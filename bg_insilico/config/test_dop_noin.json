@@ -502,7 +502,7 @@
             "post": "SNr",
             "receptor_type": "AMPA",
             "p": 0.1,
-            "weight": 1,
+            "weight": 0.3,
             "receptor_params": {
                 "AMPA": {
                 "g0": {"value": 0.5, "unit": "nS"},
