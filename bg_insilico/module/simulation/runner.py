@@ -10,12 +10,6 @@ from brian2 import *
 from brian2 import mV, ms, nS, Hz
 from module.models.neuron_models import create_neurons
 from module.models.Synapse import create_synapses
-from module.utils.visualization import (
-    plot_raster, plot_membrane_potential,
-    plot_raster_all_neurons_stim_window
-    )
-
-from module.utils.sta import compute_firing_rates_all_neurons, analyze_stimulus_effect
 from module.models.stimulus import create_poisson_inputs
 from brian2.devices.device import reset_device
 
@@ -114,16 +108,12 @@ def run_simulation_with_inh_ext_input(
         
         device.reinit()
         device.activate()
-        
-        # 메모리 정리
-        gc.collect()
-        
+                
         net = Network()
         neuron_groups = create_neurons(neuron_configs, simulation_params, connections)
         
         scaled_neuron_counts = {name: group.N for name, group in neuron_groups.items()}
         
-        # Get stimulus config
         stimulus_config = simulation_params.get('stimulus', {})
         
         poisson_groups, timed_arrays = create_poisson_inputs(
@@ -148,7 +138,7 @@ def run_simulation_with_inh_ext_input(
                 spike_monitors[name] = sp_mon
                 
                 # Add voltage monitor for the first neuron to check continuity
-                v_mon = StateMonitor(group, 'v', record=[0])  # Monitor first neuron only
+                v_mon = StateMonitor(group, 'v', record=[0, 1])  # Monitor first neuron only
                 voltage_monitors[name] = v_mon
         
         # Add SpikeMonitors for PoissonGroups to debug stimulus
