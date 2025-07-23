@@ -1940,7 +1940,7 @@ def plot_raster_zoom(spike_monitor, time_window=(0*ms, 100*ms), neuron_indices=N
         i_zoom = i_zoom[neuron_mask]
     name = group_name if group_name is not None else "Neuron"
     plt.figure(figsize=(12, 6))
-    plt.scatter(t_zoom, i_zoom, s=3, alpha=0.7, color='#E74C3C')
+    plt.scatter(t_zoom, i_zoom, s=1.5, alpha=0.7, color='#E74C3C')
     plt.title(f"{name} Raster Zoom ({time_window[0]/ms:.0f}-{time_window[1]/ms:.0f} ms)", 
              fontsize=14, fontweight='bold')
     plt.xlabel("Time (ms)", fontsize=12)
