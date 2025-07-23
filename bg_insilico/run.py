@@ -13,7 +13,7 @@ from module.utils.visualization import (analyze_firing_rates_by_stimulus_periods
                                        plot_continuous_firing_rate_with_samples, plot_multi_neuron_stimulus_overview,
                                        plot_firing_rate_fft_multi_page, plot_membrane_zoom, plot_raster_zoom)
 def main():
-    params_file = 'config/test_normal_noin.json'
+    params_file = 'config/test_dop_noin.json'
     
 
     params = load_params(params_file)
@@ -152,9 +152,13 @@ def main():
         title='Firing Rate FFT Spectra (All Groups)'
     )
 
-    first_window = (4700*ms, 5000*ms) 
-    last_window = (6700*ms, 7000*ms)
-
+    
+    first_window = (5900*ms, 6100*ms) 
+    last_window = (6900*ms, 7100*ms)
+    """
+    first_window = (3800*ms, 4000*ms) 
+    last_window = (7800*ms, 8000*ms)
+    """    
     print("\n=== Membrane Potential Zoom (First & Last Periods) ===")
     for group_name, vmon in results['voltage_monitors'].items():
         print(f"\n{group_name} - First period ({first_window[0]/ms:.0f}-{first_window[1]/ms:.0f} ms):")
