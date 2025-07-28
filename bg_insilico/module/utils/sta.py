@@ -15,8 +15,6 @@ except:
     except:
         matplotlib.use('Agg') 
 
-# plt.ion()  # Disable interactive mode to prevent graphs from disappearing  
-
 def get_monitor_spikes(monitor):
     try:
         if hasattr(monitor, 't') and hasattr(monitor, 'i') and len(monitor.t) > 0:
