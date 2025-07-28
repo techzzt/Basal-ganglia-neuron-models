@@ -14,7 +14,7 @@ All parameters and files set up at the 'config/params.json' file
 Navigate into `bg_insilico/` and run
 + `python run.py -c config/test_normal_noin.json`
 
-<img width="1089" alt="image" src="https://github.com/user-attachments/assets/3e137356-965e-453d-98f6-cd0d137e4b6e">
+<img width="1089" alt="image" src="<img width="364" height="142" alt="image" src="https://github.com/user-attachments/assets/42deebe0-501c-4104-8b44-e9cd1f50bb53"/>">
 
 
 
