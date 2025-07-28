@@ -1,10 +1,10 @@
-import numpy as np
 import os
-from copy import deepcopy
-import time
-from tqdm import tqdm
 import gc
+import time
+from copy import deepcopy
+from tqdm import tqdm
 import random as python_random
+import numpy as np
 
 from brian2 import *
 from brian2 import mV, ms, nS, Hz
@@ -12,9 +12,6 @@ from module.models.neuron_models import create_neurons
 from module.models.Synapse import create_synapses
 from module.models.stimulus import create_poisson_inputs
 from brian2.devices.device import reset_device
-
-# Matplotlib backend setup
-# plt.ion() 
 
 try:
     reset_device()
@@ -59,7 +56,7 @@ class SimulationMonitor:
                 
                 if current_time % 1000 == 0: 
                     gc.collect()
-        except Exception as e:
+        except:
             pass
     
     def close(self):
@@ -100,7 +97,6 @@ def run_simulation_with_inh_ext_input(
     duration = None
     
     try:
-        # Brian2 standard initialization for continuous simulation
         try:
             reset_device()
         except:
@@ -126,26 +122,16 @@ def run_simulation_with_inh_ext_input(
             simulation_params
         ) if ext_inputs else ({}, [])
 
-        # Combine neuron_groups and poisson_groups for synapse creation
         all_groups = {**neuron_groups, **poisson_groups}
         synapse_connections = create_synapses(all_groups, connections, synapse_class)
         
-        # Create monitors for spike activity and membrane potential
         voltage_monitors = {}
         for name, group in neuron_groups.items():
             if not name.startswith(('Cortex_', 'Ext_')):  
-                sp_mon = SpikeMonitor(group)
-                spike_monitors[name] = sp_mon
-                
-                # Add voltage monitor for the first neuron to check continuity
-                v_mon = StateMonitor(group, 'v', record=[0, 1])  # Monitor first neuron only
-                voltage_monitors[name] = v_mon
+                spike_monitors[name] = SpikeMonitor(group)
+                voltage_monitors[name] = StateMonitor(group, 'v', record=[0, 1])
         
-        # Add SpikeMonitors for PoissonGroups to debug stimulus
-        poisson_monitors = {}
-        for name, group in poisson_groups.items():
-            poisson_monitors[name] = SpikeMonitor(group)
-            print(f"Added SpikeMonitor for {name} PoissonGroup")
+        poisson_monitors = {name: SpikeMonitor(group) for name, group in poisson_groups.items()}
         
         net.add(*neuron_groups.values())
         net.add(*synapse_connections)
@@ -158,36 +144,19 @@ def run_simulation_with_inh_ext_input(
         dt = simulation_params.get('dt', 0.1) * ms 
         defaultclock.dt = dt
         
-        report_interval = duration * 0.5
-        net.run(duration, report='text', report_period=report_interval)
+        net.run(duration, report='text', report_period=duration * 0.5)
         
         if not spike_monitors:
             return results
-        
-        # 기본 발화율 출력들은 주석처리 (깔끔한 출력을 위해)
-        # firing_rates = compute_firing_rates_all_neurons(spike_monitors, start_time=start_time, end_time=end_time, plot_order=plot_order)
-        firing_rates = {}  # 빈 딕셔너리로 초기화
-        display_names = simulation_params.get('display_names', None)
-        
-        # 기존 스티뮬러스 효과 분석 및 PoissonGroup 분석 출력들 주석처리
-        # if stimulus_config.get('enabled', False):
-        #     analyze_stimulus_effect(...)
-        #     print("=== PoissonGroup Spike Analysis ===")
-        #     ...
 
-        # Raster plot은 run.py에서 호출하므로 여기서는 제거
-        # plot_raster(spike_monitors, sample_size=30, plot_order=plot_order, start_time=start_time, end_time=end_time, display_names=display_names)
-        
         results = {
             'spike_monitors': spike_monitors,
             'voltage_monitors': voltage_monitors,
-            'firing_rates': firing_rates
+            'firing_rates': {}
         }
         
     except Exception as e:
         print(f"Simulation failed with error: {str(e)}")
-        import traceback
-        traceback.print_exc()
         raise
 
     finally:
@@ -205,7 +174,5 @@ def run_simulation_with_inh_ext_input(
             device.activate()
         except:
             pass
-        
-        gc.collect()
     
     return results
