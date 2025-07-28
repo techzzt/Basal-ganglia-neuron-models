@@ -1,7 +1,7 @@
 ## Code
 Code for constructing the BG simulation is in `bg_insilico/` folder
 
-## Reproducing the Experiments
+## Experiments
 
 ### Setup the Environment
 First to setup the environment, install the requirements with
