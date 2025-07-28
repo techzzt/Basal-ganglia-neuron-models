@@ -3,6 +3,7 @@ import json
 import numpy as np
 import sys
 import os
+import argparse
 from brian2 import ms
 import gc
 gc.collect()
@@ -12,10 +13,55 @@ from module.utils.param_loader import load_params
 from module.utils.visualization import (analyze_firing_rates_by_stimulus_periods, plot_improved_overall_raster,
                                        plot_continuous_firing_rate_with_samples, plot_multi_neuron_stimulus_overview,
                                        plot_firing_rate_fft_multi_page, plot_membrane_zoom, plot_raster_zoom)
-def main():
-    params_file = 'config/test_dop_noin.json'
-    
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description='Run basal ganglia simulation with specified parameters',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+        Examples:
+        python run.py                                  
+        python run.py --config config/test_normal_noin.json
+        python run.py -c config/test_dop_noin.json
+        python run.py --list-configs                   
+        python run.py -l                              
+        """
+    )
+    parser.add_argument('--config', '-c', 
+                       default='config/test_dop_noin.json',
+                       help='Path to configuration JSON file (default: config/test_dop_noin.json)')
+    parser.add_argument('--list-configs', '-l', 
+                       action='store_true',
+                       help='List available configuration files')
+    return parser.parse_args()
+
+def list_available_configs():
+    config_dir = 'config'
+    if os.path.exists(config_dir):
+        config_files = [f for f in os.listdir(config_dir) if f.endswith('.json')]
+        print("Available configuration files:")
+        for i, config in enumerate(sorted(config_files), 1):
+            print(f"  {i}. {config}")
+        print(f"\nUse: python run.py --config config/{config_files[0] if config_files else 'your_config.json'}")
+    else:
+        print(f"Config directory '{config_dir}' not found")
+
+def main():
+    args = parse_arguments()
+    
+    if args.list_configs:
+        list_available_configs()
+        return
+    
+    params_file = args.config
+    
+    # Check if config file exists
+    if not os.path.exists(params_file):
+        print(f"Error: Configuration file '{params_file}' not found!")
+        print("Available options:")
+        list_available_configs()
+        return
+    
     params = load_params(params_file)
     neuron_configs = params['neurons']
     connections = params['connections']   
@@ -27,6 +73,10 @@ def main():
 
     if 'display_names' in params:
         simulation_params['display_names'] = params['display_names']
+    
+    zoom_windows = params.get('zoom_windows', {})
+    first_window = tuple(zoom_windows.get('first_window', [3800, 4000])) * ms
+    last_window = tuple(zoom_windows.get('last_window', [8500, 8700])) * ms
 
     ext_inputs = {}
     for neuron_config in neuron_configs:
@@ -56,7 +106,7 @@ def main():
         amplitude_oscillations=amplitude_oscillations  
         )
     
-    print("Simulation completed successfully")
+
     
     stimulus_enabled = simulation_params.get('stimulus', {}).get('enabled', False)
     if stimulus_enabled:
@@ -73,22 +123,6 @@ def main():
             plot_order,
             params.get('display_names', None)
         )
-
-        """        
-        plot_continuous_firing_rate(
-            results['spike_monitors'],
-            start_time=analysis_start_time,
-            end_time=analysis_end_time,  
-            bin_size=5*ms,  
-            plot_order=plot_order,
-            display_names=params.get('display_names', None),
-            stimulus_config=stimulus_config,
-            smooth_sigma=3,  
-            show_confidence=True,  
-            layout_mode='multi', 
-            plots_per_page=6
-        )        
-        """
     else:
         print("Stimulus: disabled")
 
@@ -149,39 +183,25 @@ def main():
         bin_size=10*ms,
         show_mean=True,
         max_freq=100,
-        title='Firing Rate FFT Spectra (All Groups)'
+        title='Firing Rate FFT Spectra',
+        display_names=params.get('display_names', None)
     )
 
-    
-    first_window = (5900*ms, 6100*ms) 
-    last_window = (6900*ms, 7100*ms)
-    """
-    first_window = (3800*ms, 4000*ms) 
-    last_window = (7800*ms, 8000*ms)
-    """    
-    print("\n=== Membrane Potential Zoom (First & Last Periods) ===")
     for group_name, vmon in results['voltage_monitors'].items():
-        print(f"\n{group_name} - First period ({first_window[0]/ms:.0f}-{first_window[1]/ms:.0f} ms):")
-        plot_membrane_zoom(vmon, time_window=first_window, neuron_indices=[0], group_name=group_name)  
-        
-        print(f"{group_name} - Last period ({last_window[0]/ms:.0f}-{last_window[1]/ms:.0f} ms):")
-        plot_membrane_zoom(vmon, time_window=last_window, neuron_indices=[0], group_name=group_name)
+        plot_membrane_zoom(vmon, time_window=first_window, neuron_indices=[0], group_name=group_name, 
+                          spike_monitors=results['spike_monitors'], thresholds=thresholds,
+                          display_names=params.get('display_names', None))  
+        plot_membrane_zoom(vmon, time_window=last_window, neuron_indices=[0], group_name=group_name,
+                          spike_monitors=results['spike_monitors'], thresholds=thresholds,
+                          display_names=params.get('display_names', None))
 
-    print("\n=== Raster Plot Zoom (First & Last Periods) ===")
     for group_name, smon in results['spike_monitors'].items():
-        print(f"\n{group_name} - First period ({first_window[0]/ms:.0f}-{first_window[1]/ms:.0f} ms):")
-        plot_raster_zoom(smon, time_window=first_window, neuron_indices=None, group_name=group_name) 
-        
-        print(f"{group_name} - Last period ({last_window[0]/ms:.0f}-{last_window[1]/ms:.0f} ms):")
-        plot_raster_zoom(smon, time_window=last_window, neuron_indices=None, group_name=group_name)  
+        plot_raster_zoom(smon, time_window=first_window, neuron_indices=None, group_name=group_name,
+                        display_names=params.get('display_names', None)) 
+        plot_raster_zoom(smon, time_window=last_window, neuron_indices=None, group_name=group_name,
+                        display_names=params.get('display_names', None))  
     
-    try:
-        pass
-    
-    except Exception as e:
-        print(f"Error during spike interval analysis: {str(e)}")
-        import traceback
-        traceback.print_exc()
+
 
 if __name__ == "__main__":
     main()
