@@ -797,3 +797,246 @@ def plot_raster_zoom(spike_monitor, time_window=(0*ms, 100*ms), neuron_indices=N
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show(block=True)
+
+def analyze_input_rates_and_spike_counts(spike_monitors, external_inputs, neuron_configs, stimulus_config=None, analysis_start_time=2000*ms, analysis_end_time=10000*ms):
+    """
+    각 뉴런 그룹별 실제 입력 rate와 spike count를 분석하여 로그로 출력
+    """
+    print("\n" + "="*80)
+    print("INPUT RATE vs SPIKE COUNT ANALYSIS")
+    print("="*80)
+    
+    # 외부 입력 rate 계산
+    input_rates = {}
+    for neuron_config in neuron_configs:
+        if neuron_config.get('neuron_type') == 'poisson':
+            name = neuron_config['name']
+            if 'target_rates' in neuron_config:
+                target, rate_info = list(neuron_config['target_rates'].items())[0]
+                rate_expr = rate_info['equation']
+                
+                # 기본 rate 계산
+                if '*Hz' in rate_expr:
+                    base_rate = eval(rate_expr)
+                else:
+                    base_rate = eval(rate_expr) * Hz
+                
+                # 뉴런 수로 나누기
+                N = neuron_config['N']
+                rate_per_neuron = base_rate / N
+                
+                input_rates[target] = {
+                    'total_rate': base_rate,
+                    'rate_per_neuron': rate_per_neuron,
+                    'N': N,
+                    'source': name
+                }
+                
+                print(f"\n[{target}] Input Analysis:")
+                print(f"  Source: {name}")
+                print(f"  Total input rate: {base_rate/Hz:.2f} Hz")
+                print(f"  Neurons: {N}")
+                print(f"  Rate per neuron: {rate_per_neuron/Hz:.6f} Hz/neuron")
+                
+                # Stimulus가 활성화된 경우
+                if stimulus_config and stimulus_config.get('enabled', False):
+                    if target in stimulus_config.get('rates', {}):
+                        stim_rate_total = stimulus_config['rates'][target] * Hz
+                        stim_rate_per_neuron = stim_rate_total / N
+                        
+                        stim_start = stimulus_config.get('start_time', 0)
+                        stim_duration = stimulus_config.get('duration', 0)
+                        stim_end = stim_start + stim_duration
+                        
+                        print(f"  STIMULUS ACTIVE:")
+                        print(f"    Period: {stim_start}-{stim_end}ms")
+                        print(f"    Stimulus rate per neuron: {stim_rate_per_neuron/Hz:.6f} Hz/neuron")
+                        print(f"    Rate increase: {((stim_rate_per_neuron - rate_per_neuron) / rate_per_neuron * 100):+.1f}%")
+    
+    # 실제 spike count 분석
+    print(f"\n" + "-"*60)
+    print("ACTUAL SPIKE COUNT ANALYSIS")
+    print(f"Analysis period: {analysis_start_time/ms:.0f}-{analysis_end_time/ms:.0f}ms")
+    print("-"*60)
+    
+    for name, monitor in spike_monitors.items():
+        spike_times, spike_indices = get_monitor_spikes(monitor)
+        
+        if len(spike_times) == 0:
+            print(f"\n[{name}]: No spikes recorded")
+            continue
+        
+        total_neurons = monitor.source.N
+        
+        # 분석 기간 내 spike 필터링
+        time_mask = (spike_times >= analysis_start_time) & (spike_times <= analysis_end_time)
+        analysis_spikes = spike_times[time_mask]
+        analysis_indices = spike_indices[time_mask]
+        
+        total_spikes = len(analysis_spikes)
+        analysis_duration = (analysis_end_time - analysis_start_time) / second
+        
+        # 전체 평균 firing rate
+        overall_rate = total_spikes / (total_neurons * analysis_duration)
+        
+        # 개별 뉴런별 firing rate 계산
+        unique_neurons = np.unique(analysis_indices)
+        individual_rates = []
+        active_neurons = 0
+        
+        for neuron_idx in range(total_neurons):
+            neuron_spikes = np.sum(analysis_indices == neuron_idx)
+            neuron_rate = neuron_spikes / analysis_duration
+            individual_rates.append(neuron_rate)
+            if neuron_spikes > 0:
+                active_neurons += 1
+        
+        individual_rates = np.array(individual_rates)
+        mean_rate = np.mean(individual_rates)
+        std_rate = np.std(individual_rates)
+        max_rate = np.max(individual_rates)
+        min_rate = np.min(individual_rates)
+        
+        print(f"\n[{name}] Spike Analysis:")
+        print(f"  Total neurons: {total_neurons}")
+        print(f"  Active neurons: {active_neurons} ({active_neurons/total_neurons*100:.1f}%)")
+        print(f"  Total spikes: {total_spikes}")
+        print(f"  Overall rate: {overall_rate:.3f} Hz")
+        print(f"  Mean rate per neuron: {mean_rate:.3f} Hz")
+        print(f"  Std rate: {std_rate:.3f} Hz")
+        print(f"  Max rate: {max_rate:.3f} Hz")
+        print(f"  Min rate: {min_rate:.3f} Hz")
+        
+        # 입력 rate와 비교
+        if name in input_rates:
+            expected_rate = input_rates[name]['rate_per_neuron'] / Hz
+            rate_ratio = mean_rate / expected_rate if expected_rate > 0 else 0
+            
+            print(f"  Expected input rate: {expected_rate:.6f} Hz/neuron")
+            print(f"  Actual/Expected ratio: {rate_ratio:.3f}")
+            
+            if rate_ratio > 2.0:
+                print(f"  ⚠️  WARNING: Actual rate is {rate_ratio:.1f}x higher than expected!")
+                print(f"      Possible causes: Multiple input sources, synaptic amplification, or parameter issues")
+            elif rate_ratio < 0.5:
+                print(f"  ⚠️  WARNING: Actual rate is {1/rate_ratio:.1f}x lower than expected!")
+                print(f"      Possible causes: Inhibition too strong, threshold too high, or connectivity issues")
+            
+            # 추가 분석: 활성 뉴런 비율이 낮은 경우
+            if active_neurons/total_neurons < 0.1:
+                print(f"  ⚠️  WARNING: Only {active_neurons/total_neurons*100:.1f}% neurons are active!")
+                print(f"      This suggests potential connectivity or parameter issues")
+    
+    print("\n" + "="*80)
+
+def plot_multi_neuron_membrane_potential_comparison(voltage_monitors, spike_monitors, 
+                                                   target_groups=['FSN', 'MSND1', 'MSND2', 'GPeT1', 'GPeTA', 'STN', 'SNr'],
+                                                   neurons_per_group=5, 
+                                                   analysis_window=(2000*ms, 10000*ms),
+                                                   display_names=None,
+                                                   thresholds=None):
+    """
+    여러 뉴런의 membrane potential을 동시에 그려서 평균적 firing rate를 확인
+    """
+    try:
+        available_groups = []
+        
+        for group_name in target_groups:
+            if (group_name in voltage_monitors and 
+                group_name in spike_monitors and
+                len(voltage_monitors[group_name].t) > 0):
+                available_groups.append(group_name)
+        
+        if not available_groups:
+            print("No available neuron groups with voltage data for plotting.")
+            return
+        
+        start_time, end_time = analysis_window
+        
+        # 각 그룹별로 여러 뉴런의 membrane potential을 함께 표시
+        fig, axes = plt.subplots(len(available_groups), 1, figsize=(16, 4 * len(available_groups)), sharex=True)
+        if len(available_groups) == 1:
+            axes = [axes]
+        
+        for idx, group_name in enumerate(available_groups):
+            ax = axes[idx]
+            v_monitor = voltage_monitors[group_name]
+            s_monitor = spike_monitors[group_name]
+            
+            total_neurons = v_monitor.N
+            neurons_to_plot = min(neurons_per_group, total_neurons)
+            
+            # 뉴런들을 균등하게 선택
+            if neurons_to_plot == 1:
+                selected_indices = [0]
+            else:
+                selected_indices = np.linspace(0, total_neurons-1, neurons_to_plot, dtype=int)
+            
+            # 시간 마스크
+            time_mask = (v_monitor.t >= start_time) & (v_monitor.t <= end_time)
+            plot_times = v_monitor.t[time_mask] / ms
+            
+            # 각 선택된 뉴런의 membrane potential 플롯
+            colors = plt.cm.viridis(np.linspace(0, 1, len(selected_indices)))
+            
+            for i, neuron_idx in enumerate(selected_indices):
+                voltage = v_monitor.v[neuron_idx][time_mask] / mV
+                ax.plot(plot_times, voltage, color=colors[i], alpha=0.7, linewidth=1, 
+                       label=f'Neuron {neuron_idx}')
+                
+                # Spike 표시
+                spike_times, spike_indices = get_monitor_spikes(s_monitor)
+                neuron_spike_mask = spike_indices == neuron_idx
+                neuron_spike_times = spike_times[neuron_spike_mask]
+                spike_time_mask = (neuron_spike_times >= start_time) & (neuron_spike_times <= end_time)
+                neuron_spike_times_window = neuron_spike_times[spike_time_mask] / ms
+                
+                if len(neuron_spike_times_window) > 0:
+                    threshold = thresholds.get(group_name, -20) if thresholds else -20
+                    spike_voltages = [threshold] * len(neuron_spike_times_window)
+                    ax.scatter(neuron_spike_times_window, spike_voltages, 
+                             color=colors[i], s=20, marker='o', alpha=0.8, zorder=5)
+            
+            # Threshold 라인
+            if thresholds and group_name in thresholds:
+                threshold = thresholds[group_name]
+                ax.axhline(threshold, color='red', linestyle='--', alpha=0.5, linewidth=1)
+            
+            display_name = display_names.get(group_name, group_name) if display_names else group_name
+            ax.set_title(f'{display_name} - Multiple Neurons Membrane Potential', fontsize=14, fontweight='bold')
+            ax.set_ylabel('Membrane Potential (mV)', fontsize=12)
+            ax.grid(True, alpha=0.3)
+            ax.legend(fontsize=10)
+            
+            # Y축 범위 설정
+            ax.set_ylim(-80, 50)
+        
+        axes[-1].set_xlabel('Time (ms)', fontsize=12)
+        axes[-1].set_xlim(start_time/ms, end_time/ms)
+        
+        plt.tight_layout()
+        plt.show()
+        
+        # 통계 정보 출력
+        print(f"\nMulti-neuron membrane potential analysis:")
+        print(f"Analysis period: {start_time/ms:.0f}-{end_time/ms:.0f}ms")
+        for group_name in available_groups:
+            s_monitor = spike_monitors[group_name]
+            spike_times, spike_indices = get_monitor_spikes(s_monitor)
+            
+            time_mask = (spike_times >= start_time) & (spike_times <= end_time)
+            analysis_spikes = spike_times[time_mask]
+            analysis_indices = spike_indices[time_mask]
+            
+            total_neurons = s_monitor.source.N
+            total_spikes = len(analysis_spikes)
+            analysis_duration = (end_time - start_time) / second
+            overall_rate = total_spikes / (total_neurons * analysis_duration)
+            
+            display_name = display_names.get(group_name, group_name) if display_names else group_name
+            print(f"{display_name}: {overall_rate:.3f} Hz (total {total_spikes} spikes)")
+        
+    except Exception as e:
+        print(f"Error in plot_multi_neuron_membrane_potential_comparison: {e}")
+        import traceback
+        traceback.print_exc()
