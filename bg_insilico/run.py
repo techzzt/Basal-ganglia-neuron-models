@@ -12,7 +12,8 @@ from module.simulation.runner import run_simulation_with_inh_ext_input
 from module.utils.param_loader import load_params
 from module.utils.visualization import (analyze_firing_rates_by_stimulus_periods, plot_improved_overall_raster,
                                        plot_continuous_firing_rate_with_samples, plot_multi_neuron_stimulus_overview,
-                                       plot_firing_rate_fft_multi_page, plot_membrane_zoom, plot_raster_zoom)
+                                       plot_firing_rate_fft_multi_page, plot_membrane_zoom, plot_raster_zoom,
+                                       analyze_input_rates_and_spike_counts, plot_multi_neuron_membrane_potential_comparison)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -125,6 +126,16 @@ def main():
         )
     else:
         print("Stimulus: disabled")
+    
+    # 입력 rate와 spike count 분석
+    analyze_input_rates_and_spike_counts(
+        results['spike_monitors'],
+        ext_inputs,
+        neuron_configs,
+        simulation_params.get('stimulus', {}),
+        analysis_start_time,
+        analysis_end_time
+    )
 
         
     stimulus_periods = []
@@ -171,6 +182,17 @@ def main():
         analysis_window=(analysis_start_time, analysis_end_time), 
         unified_y_scale=True,  
         threshold_clipping=True, 
+        display_names=params.get('display_names', None),
+        thresholds=thresholds
+    )
+    
+    # 여러 뉴런의 membrane potential 비교 분석
+    plot_multi_neuron_membrane_potential_comparison(
+        results['voltage_monitors'],
+        results['spike_monitors'],
+        target_groups=['FSN', 'MSND1', 'MSND2', 'GPeT1', 'GPeTA', 'STN', 'SNr'],
+        neurons_per_group=5,
+        analysis_window=(analysis_start_time, analysis_end_time),
         display_names=params.get('display_names', None),
         thresholds=thresholds
     )
