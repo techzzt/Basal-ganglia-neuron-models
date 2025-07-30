@@ -129,7 +129,10 @@ def run_simulation_with_inh_ext_input(
         for name, group in neuron_groups.items():
             if not name.startswith(('Cortex_', 'Ext_')):  
                 spike_monitors[name] = SpikeMonitor(group)
-                voltage_monitors[name] = StateMonitor(group, 'v', record=[0, 1])
+                # Record more neurons for better visualization (up to 10 neurons)
+                num_to_record = min(10, group.N)
+                neurons_to_record = list(range(num_to_record))
+                voltage_monitors[name] = StateMonitor(group, 'v', record=neurons_to_record)
         
         poisson_monitors = {name: SpikeMonitor(group) for name, group in poisson_groups.items()}
         
