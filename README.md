@@ -79,3 +79,5 @@ Fieblinger, Tim. "Striatal control of movement: a role for new neuronal (Sub-) p
 Dong, Jie, et al. "Connectivity and functionality of the globus pallidus externa under normal conditions and Parkinson's disease." Frontiers in neural circuits 15 (2021): 645287.
 
 The role of neurotransmitter systems in mediating deep brain stimulation effects in Parkinson’s disease
+
+Humphries, Mark D., et al. "Capturing dopaminergic modulation and bimodal membrane behaviour of striatal medium spiny neurons in accurate, reduced models." Frontiers in computational neuroscience 3 (2009): 849.
