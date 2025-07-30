@@ -109,9 +109,11 @@ def main():
     
 
     
-    stimulus_enabled = simulation_params.get('stimulus', {}).get('enabled', False)
+    # Initialize stimulus_config
+    stimulus_config = simulation_params.get('stimulus', {})
+    stimulus_enabled = stimulus_config.get('enabled', False)
+    
     if stimulus_enabled:
-        stimulus_config = simulation_params['stimulus']
         stim_start_time = stimulus_config.get('start_time', 0)
         stim_duration = stimulus_config.get('duration', 0)
         stim_end_time = stim_start_time + stim_duration
@@ -127,7 +129,8 @@ def main():
     else:
         print("Stimulus: disabled")
     
-    # 입력 rate와 spike count 분석
+    # Analyze input rates and spike counts
+    print("Debug: Starting input rates and spike counts analysis...")
     analyze_input_rates_and_spike_counts(
         results['spike_monitors'],
         ext_inputs,
@@ -136,6 +139,7 @@ def main():
         analysis_start_time,
         analysis_end_time
     )
+    print("Debug: Completed input rates and spike counts analysis")
 
         
     stimulus_periods = []
@@ -147,20 +151,32 @@ def main():
                     end_time = period['end'] * ms
                     stimulus_periods.append((start_time, end_time))
 
-    plot_continuous_firing_rate_with_samples(results['spike_monitors'], start_time=analysis_start_time, end_time=analysis_end_time, bin_size=10*ms, 
-                                            plot_order=plot_order, display_names=params.get('display_names', None), stimulus_config=stimulus_config, 
-                                            smooth_sigma=3, save_plot=False, n_samples=10, neurons_per_sample=30)
+    print("Debug: Starting continuous firing rate analysis...")
+    try:
+        plot_continuous_firing_rate_with_samples(results['spike_monitors'], start_time=analysis_start_time, end_time=analysis_end_time, bin_size=10*ms, 
+                                                plot_order=plot_order, display_names=params.get('display_names', None), stimulus_config=stimulus_config, 
+                                                smooth_sigma=3, save_plot=False, n_samples=10, neurons_per_sample=30)
+        print("Debug: Completed continuous firing rate analysis")
+    except Exception as e:
+        print(f"Error in continuous firing rate analysis: {e}")
+        print("Debug: Skipping continuous firing rate analysis")
     
-    plot_improved_overall_raster(
-        results['spike_monitors'],
-        sample_size=10, 
-        plot_order=plot_order,
-        start_time=analysis_start_time,
-        end_time=analysis_end_time,
-        display_names=params.get('display_names', None),
-        stimulus_periods=stimulus_periods,
-        save_plot=True
-    )
+    print("Debug: Starting improved overall raster plot...")
+    try:
+        plot_improved_overall_raster(
+            results['spike_monitors'],
+            sample_size=10, 
+            plot_order=plot_order,
+            start_time=analysis_start_time,
+            end_time=analysis_end_time,
+            display_names=params.get('display_names', None),
+            stimulus_periods=stimulus_periods,
+            save_plot=True
+        )
+        print("Debug: Completed improved overall raster plot")
+    except Exception as e:
+        print(f"Error in improved overall raster plot: {e}")
+        print("Debug: Skipping improved overall raster plot")
         
     thresholds = {
         'FSN': 25.0,
@@ -173,6 +189,7 @@ def main():
     }
     
 
+    print("Debug: Starting multi-neuron stimulus overview...")
     plot_multi_neuron_stimulus_overview(
         results['voltage_monitors'],
         results['spike_monitors'],
@@ -185,8 +202,10 @@ def main():
         display_names=params.get('display_names', None),
         thresholds=thresholds
     )
+    print("Debug: Completed multi-neuron stimulus overview")
     
-    # 여러 뉴런의 membrane potential 비교 분석
+    # Compare membrane potential of multiple neurons
+    print("Debug: Starting multi-neuron membrane potential comparison...")
     plot_multi_neuron_membrane_potential_comparison(
         results['voltage_monitors'],
         results['spike_monitors'],
@@ -196,6 +215,7 @@ def main():
         display_names=params.get('display_names', None),
         thresholds=thresholds
     )
+    print("Debug: Completed multi-neuron membrane potential comparison")
 
     plot_firing_rate_fft_multi_page(
         results['spike_monitors'],
@@ -209,19 +229,18 @@ def main():
         display_names=params.get('display_names', None)
     )
 
-    for group_name, vmon in results['voltage_monitors'].items():
-        plot_membrane_zoom(vmon, time_window=first_window, neuron_indices=[0], group_name=group_name, 
-                          spike_monitors=results['spike_monitors'], thresholds=thresholds,
-                          display_names=params.get('display_names', None))  
-        plot_membrane_zoom(vmon, time_window=last_window, neuron_indices=[0], group_name=group_name,
-                          spike_monitors=results['spike_monitors'], thresholds=thresholds,
-                          display_names=params.get('display_names', None))
+    # Display only the first zoom window of the first neuron group
+    first_group_name = list(results['voltage_monitors'].keys())[0]
+    vmon = results['voltage_monitors'][first_group_name]
+    plot_membrane_zoom(vmon, time_window=first_window, neuron_indices=[0], group_name=first_group_name, 
+                      spike_monitors=results['spike_monitors'], thresholds=thresholds,
+                      display_names=params.get('display_names', None))
 
-    for group_name, smon in results['spike_monitors'].items():
-        plot_raster_zoom(smon, time_window=first_window, neuron_indices=None, group_name=group_name,
-                        display_names=params.get('display_names', None)) 
-        plot_raster_zoom(smon, time_window=last_window, neuron_indices=None, group_name=group_name,
-                        display_names=params.get('display_names', None))  
+    # Display only the first zoom window of the first neuron group
+    first_group_name = list(results['spike_monitors'].keys())[0]
+    smon = results['spike_monitors'][first_group_name]
+    plot_raster_zoom(smon, time_window=first_window, neuron_indices=None, group_name=first_group_name,
+                    display_names=params.get('display_names', None))  
     
 
 
