@@ -219,7 +219,7 @@
             "post": "MSND2",
             "receptor_type": ["AMPA", "NMDA"],
             "p": 0.85,
-            "weight": 1.3,
+            "weight": 1.0,
             "receptor_params": {
                 "AMPA": {
                     "g0": {"value": 0.5, "unit": "nS"},
@@ -277,7 +277,7 @@
             "post": "MSND2",
             "receptor_type": "GABA",
             "p": 0.0133,
-            "weight": 1,
+            "weight": 1.5,
             "receptor_params": {
                 "GABA":{
                 "g0": {"value": 0.35, "unit": "nS"},
@@ -565,8 +565,9 @@
 
     "simulation": {
         "duration": 10000,
+        "dt": 1,
         "stimulus": {
-            "enabled": true,
+            "enabled": false,
             "start_time": 6000,
             "duration": 0,
             "dt_array": 1,
