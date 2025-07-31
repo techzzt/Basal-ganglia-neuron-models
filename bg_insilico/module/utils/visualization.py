@@ -20,6 +20,7 @@ else:
 plt.ion()  
 
 def gaussian_smooth(data, sigma):
+    """Apply Gaussian smoothing to data"""
     if sigma <= 0:
         return data
 
@@ -35,6 +36,7 @@ def gaussian_smooth(data, sigma):
     return smoothed
 
 def get_monitor_spikes(monitor):
+    """Extract spike times and indices from monitor"""
     try:
         if hasattr(monitor, 't') and hasattr(monitor, 'i') and len(monitor.t) > 0:
             return monitor.t, monitor.i
@@ -46,7 +48,7 @@ def get_monitor_spikes(monitor):
         return np.array([]) * ms, np.array([])
 
 def analyze_firing_rates_by_stimulus_periods(spike_monitors, stimulus_config, analysis_start_time=2000*ms, plot_order=None, display_names=None):
-    
+    """Analyze firing rates before, during, and after stimulus periods"""
     if not stimulus_config.get('enabled', False):
         print("Stimulus is disabled.")
         return
@@ -108,11 +110,14 @@ def analyze_firing_rates_by_stimulus_periods(spike_monitors, stimulus_config, an
 def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None, 
                                 start_time=0*ms, end_time=1000*ms, display_names=None, 
                                 stimulus_periods=None, save_plot=True):
-
+    """Plot raster plots for all neuron groups with stratified sampling"""
     np.random.seed(2025)
     try:
+        print(f"Available spike monitors: {list(spike_monitors.keys())}")
         if plot_order:
+            print(f"Plot order: {plot_order}")
             spike_monitors = {name: spike_monitors[name] for name in plot_order if name in spike_monitors}
+            print(f"Filtered monitors: {list(spike_monitors.keys())}")
 
         if not spike_monitors:
             print("No valid neuron groups to plot.")
@@ -123,18 +128,46 @@ def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None
         if n_plots == 1:
             axes = [axes]
 
-        print(f"\nImproved Raster plot Range: {start_time/ms:.0f}ms - {end_time/ms:.0f}ms")
+        print(f"\nRaster Plot: {start_time/ms:.0f}-{end_time/ms:.0f}ms")
           
-        for i, (name, monitor) in enumerate(spike_monitors.items()):
+        for plot_idx, (name, monitor) in enumerate(spike_monitors.items()):
             spike_times, spike_indices = get_monitor_spikes(monitor)
+            
+            print(f"Processing {name}: {len(spike_times)} spikes, {len(spike_indices)} indices")
             
             if len(spike_indices) == 0:
                 print(f"No spikes recorded for {name}")
                 continue
             
             total_neurons = monitor.source.N
-            chosen_neurons = np.random.choice(total_neurons, size=min(sample_size, total_neurons), replace=False)
-            chosen_neurons = sorted(chosen_neurons)
+            sample_size = min(sample_size, total_neurons)
+            
+            # Stratified sampling
+            if sample_size <= 3:
+                chosen_neurons = np.random.choice(total_neurons, size=sample_size, replace=False)
+            else:
+                n_strata = min(sample_size, 5)
+                neurons_per_stratum = sample_size // n_strata
+                remainder = sample_size % n_strata
+                
+                chosen_neurons = []
+                for stratum_idx in range(n_strata):
+                    stratum_start = stratum_idx * total_neurons // n_strata
+                    stratum_end = (stratum_idx + 1) * total_neurons // n_strata
+                    stratum_size = stratum_end - stratum_start
+                    
+                    stratum_sample_size = neurons_per_stratum + (1 if stratum_idx < remainder else 0)
+                    stratum_sample_size = min(stratum_sample_size, stratum_size)
+                    
+                    if stratum_sample_size > 0:
+                        stratum_neurons = np.random.choice(
+                            range(stratum_start, stratum_end), 
+                            size=stratum_sample_size, 
+                            replace=False
+                        )
+                        chosen_neurons.extend(stratum_neurons)
+                
+                chosen_neurons = sorted(chosen_neurons)
 
             time_mask = (spike_times >= start_time) & (spike_times <= end_time)
             neuron_mask = np.isin(spike_indices, chosen_neurons)
@@ -143,36 +176,49 @@ def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None
             display_t = spike_times[combined_mask]
             display_i = spike_indices[combined_mask]
 
+            # Create mapping from original neuron indices to display indices (0, 1, 2, ...)
             neuron_mapping = {original: new for new, original in enumerate(chosen_neurons)}
             remapped_i = [neuron_mapping[original] for original in display_i]
 
             display_name = display_names.get(name, name) if display_names else name
             
-            axes[i].scatter(display_t / ms, remapped_i, s=5.0, alpha=0.9, edgecolors='black', linewidth=0.3)
-            axes[i].set_title(f'{display_name} Raster Plot', fontsize=14, pad=15)
-            axes[i].set_ylabel('')
-            axes[i].set_yticks([])
+            # Plot each spike at the correct y-position
+            if len(display_t) > 0:
+                axes[plot_idx].scatter(display_t / ms, remapped_i, s=5.0, alpha=0.9, edgecolors='black', linewidth=0.3)
+            axes[plot_idx].set_title(f'{display_name} Raster Plot', fontsize=14, pad=15)
+            axes[plot_idx].set_ylabel('Neuron Index', fontsize=12)
             
             if len(chosen_neurons) > 0:
-                axes[i].set_ylim(-0.5, len(chosen_neurons) - 0.5)
+                axes[plot_idx].set_ylim(-0.5, len(chosen_neurons) - 0.5)
                 if len(chosen_neurons) <= 15: 
-                    axes[i].set_yticks(range(len(chosen_neurons)))
+                    axes[plot_idx].set_yticks(range(len(chosen_neurons)))
+                    axes[plot_idx].set_yticklabels([f'{chosen_neurons[j]}' for j in range(len(chosen_neurons))])
                 else: 
                     tick_indices = range(0, len(chosen_neurons), max(1, len(chosen_neurons)//5))
-                    axes[i].set_yticks(tick_indices)
-            axes[i].set_xlim(int(start_time/ms), int(end_time/ms))
+                    axes[plot_idx].set_yticks(tick_indices)
+                    axes[plot_idx].set_yticklabels([f'{chosen_neurons[j]}' for j in tick_indices])
+            axes[plot_idx].set_xlim(int(start_time/ms), int(end_time/ms))
             
             for j in range(0, len(chosen_neurons), max(1, len(chosen_neurons)//10)):
-                axes[i].axhline(y=j-0.5, color='gray', alpha=0.2, linewidth=0.3)
+                axes[plot_idx].axhline(y=j-0.5, color='gray', alpha=0.2, linewidth=0.3)
             
             if stimulus_periods:
                 for period_idx, (stim_start, stim_end) in enumerate(stimulus_periods):
                     if stim_start >= start_time and stim_end <= end_time:
-                        axes[i].axvspan(stim_start/ms, stim_end/ms, alpha=0.2, color='red')
+                        axes[plot_idx].axvspan(stim_start/ms, stim_end/ms, alpha=0.2, color='red')
                 
-                axes[i].grid(True, alpha=0.08, axis='x')
+                axes[plot_idx].grid(True, alpha=0.08, axis='x')
             
-            print(f"{display_name}: {len(display_t)} spikes shown (sampled from {sample_size} neurons)")
+            # Count spikes per neuron for display
+            spike_counts = {}
+            for neuron_idx in chosen_neurons:
+                neuron_spikes = np.sum(display_i == neuron_idx)
+                spike_counts[neuron_idx] = neuron_spikes
+            
+            total_spikes = len(display_t)
+            active_neurons = sum(1 for count in spike_counts.values() if count > 0)
+            
+            print(f"{display_name}: {total_spikes} spikes ({active_neurons}/{len(chosen_neurons)} active)")
 
         axes[-1].set_xlabel('Time (ms)', fontsize=12)
         plt.tight_layout(pad=3.0)
@@ -186,7 +232,7 @@ def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None
             if os.environ.get('MPLBACKEND') == 'Agg':
                 plt.close()  
             else:
-                plt.show() 
+                plt.show(block=True) 
         except Exception as e:
             print(f"Error displaying improved raster plot: {e}")
 
@@ -204,6 +250,7 @@ def plot_firing_rate_fft_multi_page(
     title='Firing Rate FFT Spectra',
     display_names=None
 ):
+    """Plot FFT spectra of firing rates for multiple neuron groups"""
     try:
         if not spike_monitors:
             print("No spike monitors provided")
@@ -311,7 +358,7 @@ def plot_firing_rate_fft_multi_page(
         
         plt.tight_layout()
         fig.suptitle(title, fontsize=16, fontweight='bold', y=0.995)
-        plt.show()
+        plt.show(block=True)
         
     except Exception as e:
         print(f"Error in plot_firing_rate_fft_multi_page: {e}")
@@ -328,6 +375,7 @@ def plot_multi_neuron_stimulus_overview(
     display_names=None,
     thresholds=None
 ):
+    """Plot multi-neuron membrane potentials with stimulus and spike markers"""
     try:
         available_groups = []
         
@@ -408,7 +456,12 @@ def plot_multi_neuron_stimulus_overview(
                     threshold_voltage = -20 * mV
 
                 if threshold_clipping and len(neuron_spike_times_window) > 0:
-                    voltage_to_plot = np.minimum(voltage_with_units, threshold_voltage) / mV
+                    voltage_to_plot = voltage_with_units.copy() / mV
+                    for spike_time in neuron_spike_times_window:
+                        time_indices = np.where((v_monitor.t[group_time_mask] >= spike_time - 0.1*ms) & 
+                                               (v_monitor.t[group_time_mask] <= spike_time + 0.1*ms))[0]
+                        if len(time_indices) > 0:
+                            voltage_to_plot[time_indices] = threshold_voltage / mV
                 else:
                     voltage_to_plot = voltage_with_units / mV
 
@@ -424,7 +477,7 @@ def plot_multi_neuron_stimulus_overview(
         
         if unified_y_scale and all_voltages:
             y_min = np.min(all_voltages) - 5.0
-            y_max = np.max(all_voltages) + 10.0
+            y_max = np.max(all_voltages) + 15.0  # Increased to accommodate spike markers
             y_range = (y_min, y_max)
         else:
             y_range = None
@@ -474,13 +527,16 @@ def plot_multi_neuron_stimulus_overview(
             ax.plot(actual_time_for_plot, voltage, 'b-', linewidth=1.2, alpha=0.8)
             
             if len(spike_times) > 0:
-                spike_voltages = [threshold] * len(spike_times)
+                spike_voltages = [threshold + 2] * len(spike_times)
                 
-                ax.scatter(spike_times, spike_voltages, color='red', s=12, 
-                          marker='o', alpha=0.8, zorder=5)
+                ax.scatter(spike_times, spike_voltages, color='red', s=15, 
+                          marker='o', alpha=0.9, zorder=5, edgecolors='black', linewidth=0.5)
                 
                 if threshold_clipping:
-                    ax.axhline(threshold, color='orange', linestyle='--', alpha=0.5, linewidth=1)
+                    ax.axhline(threshold, color='orange', linestyle='--', alpha=0.7, linewidth=2)
+            else:
+                if threshold_clipping:
+                    ax.axhline(threshold, color='orange', linestyle='--', alpha=0.7, linewidth=2)
             
             if unified_y_scale and y_range:
                 ax.set_ylim(y_range)
@@ -495,6 +551,10 @@ def plot_multi_neuron_stimulus_overview(
             if spike_count > 0:
                 ax.text(0.98, 0.95, f'{spike_count} spikes', transform=ax.transAxes, 
                        ha='right', va='top', fontsize=9, 
+                       bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+            else:
+                ax.text(0.98, 0.95, 'No spikes', transform=ax.transAxes, 
+                       ha='right', va='top', fontsize=9, color='red',
                        bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
         
         axes[-1].set_xlabel('Time (ms)', fontsize=12, fontweight='bold')
@@ -517,7 +577,7 @@ def plot_multi_neuron_stimulus_overview(
             print(f"{display_name} #{neuron_idx}: {spike_count} spikes, threshold: {threshold:.1f} mV")
         
         try:
-            plt.show() 
+            plt.show(block=True) 
         except Exception as e:
             print(f"Error displaying enhanced multi-neuron overview: {e}")
             
@@ -529,6 +589,7 @@ def plot_multi_neuron_stimulus_overview(
 def plot_continuous_firing_rate_with_samples(spike_monitors, start_time=0*ms, end_time=10000*ms, bin_size=20*ms, 
                                             plot_order=None, display_names=None, stimulus_config=None, 
                                             smooth_sigma=3, save_plot=True, n_samples=10, neurons_per_sample=30):
+    """Plot continuous firing rates with multiple samples and smoothing"""
     def calculate_firing_rate_for_neuron_subset(spike_times, spike_indices, 
                                               selected_neurons, total_neurons, time_bins):
         firing_rates = []
@@ -651,7 +712,7 @@ def plot_continuous_firing_rate_with_samples(spike_monitors, start_time=0*ms, en
             plt.savefig(filename, dpi=300, bbox_inches='tight', facecolor='white')
             print(f"Continuous firing rate saved to '{filename}'")
         try:
-            plt.show()
+            plt.show(block=True)
         except Exception as e:
             print(f"Error displaying continuous firing rate: {e}")
     except Exception as e:
@@ -660,6 +721,7 @@ def plot_continuous_firing_rate_with_samples(spike_monitors, start_time=0*ms, en
         traceback.print_exc()
 
 def plot_membrane_zoom(voltage_monitors, time_window=(0*ms, 100*ms), plot_order=None, neuron_indices=None, group_name=None, spike_monitors=None, thresholds=None, display_names=None):
+    """Plot zoomed membrane potential with spike clipping"""
     try:
         if hasattr(voltage_monitors, 'items'):
             if plot_order:
@@ -681,7 +743,6 @@ def plot_membrane_zoom(voltage_monitors, time_window=(0*ms, 100*ms), plot_order=
             
             mask = (t >= time_window[0]/ms) & (t <= time_window[1]/ms)
             
-            # Get spike times for this neuron if spike_monitors provided
             spike_times = []
             if spike_monitors and first_group in spike_monitors:
                 spike_monitor = spike_monitors[first_group]
@@ -691,18 +752,14 @@ def plot_membrane_zoom(voltage_monitors, time_window=(0*ms, 100*ms), plot_order=
                 spike_time_mask = (neuron_spike_times >= time_window[0]) & (neuron_spike_times <= time_window[1])
                 spike_times = neuron_spike_times[spike_time_mask] / ms
             
-            # Get threshold for this neuron type
-            threshold = -20  # default threshold
+            threshold = -20
             if thresholds and first_group in thresholds:
                 threshold = thresholds[first_group]
             
-            # Create voltage array with spike clipping
             voltage_to_plot = v[mask].copy()
             
-            # Clip spikes to threshold value
             if len(spike_times) > 0:
                 for spike_time in spike_times:
-                    # Find the closest time index
                     time_indices = np.where((t[mask] >= spike_time - 0.1) & (t[mask] <= spike_time + 0.1))[0]
                     if len(time_indices) > 0:
                         voltage_to_plot[time_indices] = threshold
@@ -717,7 +774,7 @@ def plot_membrane_zoom(voltage_monitors, time_window=(0*ms, 100*ms), plot_order=
             plt.ylabel("V (mV)", fontsize=12)
             plt.grid(True, alpha=0.3)
             plt.tight_layout()
-            plt.show()
+            plt.show(block=True)
         else:
             monitor = voltage_monitors
             t = monitor.t / ms
@@ -730,7 +787,6 @@ def plot_membrane_zoom(voltage_monitors, time_window=(0*ms, 100*ms), plot_order=
             mask = (t >= time_window[0]/ms) & (t <= time_window[1]/ms)
             name = group_name if group_name is not None else "Neuron"
 
-            # Get spike times for this neuron if spike_monitors provided
             spike_times = []
             if spike_monitors and group_name in spike_monitors:
                 spike_monitor = spike_monitors[group_name]
@@ -740,21 +796,23 @@ def plot_membrane_zoom(voltage_monitors, time_window=(0*ms, 100*ms), plot_order=
                 spike_time_mask = (neuron_spike_times >= time_window[0]) & (neuron_spike_times <= time_window[1])
                 spike_times = neuron_spike_times[spike_time_mask] / ms
             
-            # Get threshold for this neuron type
-            threshold = -20  # default threshold
+            threshold = -20
             if thresholds and group_name in thresholds:
                 threshold = thresholds[group_name]
 
-            # Create voltage array with spike clipping
             voltage_to_plot = v[mask].copy()
             
-            # Clip spikes to threshold value
             if len(spike_times) > 0:
                 for spike_time in spike_times:
-                    # Find the closest time index
                     time_indices = np.where((t[mask] >= spike_time - 0.1) & (t[mask] <= spike_time + 0.1))[0]
                     if len(time_indices) > 0:
                         voltage_to_plot[time_indices] = threshold
+                        spike_idx = np.argmin(np.abs(t[mask] - spike_time))
+                        if spike_idx < len(voltage_to_plot):
+                            voltage_to_plot[spike_idx] = threshold + 2
+                        spike_idx = np.argmin(np.abs(t[mask] - spike_time))
+                        if spike_idx < len(voltage_to_plot):
+                            voltage_to_plot[spike_idx] = threshold + 2
             
             plt.figure(figsize=(12, 4)) 
             plt.plot(t[mask], voltage_to_plot, linewidth=1.5, color='#2E86AB')
@@ -766,13 +824,14 @@ def plot_membrane_zoom(voltage_monitors, time_window=(0*ms, 100*ms), plot_order=
             plt.ylabel("V (mV)", fontsize=12)
             plt.grid(True, alpha=0.3)
             plt.tight_layout()
-            plt.show()
+            plt.show(block=True)
     except Exception as e:
         print(f"Error in plot_membrane_zoom: {e}")
         import traceback
         traceback.print_exc()
 
 def plot_raster_zoom(spike_monitor, time_window=(0*ms, 100*ms), neuron_indices=None, group_name=None, display_names=None):
+    """Plot zoomed raster plot for spike visualization"""
     t = spike_monitor.t / ms
     i = spike_monitor.i
     mask = (t >= time_window[0]/ms) & (t <= time_window[1]/ms)
@@ -792,17 +851,14 @@ def plot_raster_zoom(spike_monitor, time_window=(0*ms, 100*ms), neuron_indices=N
     plt.ylabel("Neuron Index", fontsize=12)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.show()
+    plt.show(block=True)
 
 def analyze_input_rates_and_spike_counts(spike_monitors, external_inputs, neuron_configs, stimulus_config=None, analysis_start_time=2000*ms, analysis_end_time=10000*ms):
-
-    print("\n" + "="*80)
-    print("INPUT RATE vs SPIKE COUNT ANALYSIS")
-    print("="*80)
-    print(f"Debug: Starting analysis with {len(spike_monitors)} spike monitors")
-    print(f"Debug: Available monitors: {list(spike_monitors.keys())}")
+    """Analyze input rates and compare with actual spike counts"""
+    print("\n" + "="*60)
+    print("FIRING RATE ANALYSIS")
+    print("="*60)
     
-    # Calculate external input rates
     input_rates = {}
     for neuron_config in neuron_configs:
         if neuron_config.get('neuron_type') == 'poisson':
@@ -811,13 +867,11 @@ def analyze_input_rates_and_spike_counts(spike_monitors, external_inputs, neuron
                 target, rate_info = list(neuron_config['target_rates'].items())[0]
                 rate_expr = rate_info['equation']
                 
-                # Calculate base rate
                 if '*Hz' in rate_expr:
                     base_rate = eval(rate_expr)
                 else:
                     base_rate = eval(rate_expr) * Hz
                 
-                # Divide by number of neurons
                 N = neuron_config['N']
                 rate_per_neuron = base_rate / N
                 
@@ -828,13 +882,8 @@ def analyze_input_rates_and_spike_counts(spike_monitors, external_inputs, neuron
                     'source': name
                 }
                 
-                print(f"\n[{target}] Input Analysis:")
-                print(f"  Source: {name}")
-                print(f"  Total input rate: {base_rate/Hz:.2f} Hz")
-                print(f"  Neurons: {N}")
-                print(f"  Rate per neuron: {rate_per_neuron/Hz:.6f} Hz/neuron")
+                print(f"[{target}] Input: {rate_per_neuron/Hz:.3f} Hz/neuron")
                 
-                # When stimulus is activated
                 if stimulus_config and stimulus_config.get('enabled', False):
                     if target in stimulus_config.get('rates', {}):
                         stim_rate_total = stimulus_config['rates'][target] * Hz
@@ -844,20 +893,10 @@ def analyze_input_rates_and_spike_counts(spike_monitors, external_inputs, neuron
                         stim_duration = stimulus_config.get('duration', 0)
                         stim_end = stim_start + stim_duration
                         
-                        print(f"  STIMULUS ACTIVE:")
-                        print(f"    Period: {stim_start}-{stim_end}ms")
-                        print(f"    Stimulus rate per neuron: {stim_rate_per_neuron/Hz:.6f} Hz/neuron")
-                        print(f"    Rate increase: {((stim_rate_per_neuron - rate_per_neuron) / rate_per_neuron * 100):+.1f}%")
+                        print(f"  Stimulus: {stim_rate_per_neuron/Hz:.3f} Hz/neuron (+{((stim_rate_per_neuron - rate_per_neuron) / rate_per_neuron * 100):+.1f}%)")
     
-    # Actual spike count analysis
-    print(f"\n" + "-"*60)
-    print("ACTUAL SPIKE COUNT ANALYSIS")
-    print(f"Analysis period: {analysis_start_time/ms:.0f}-{analysis_end_time/ms:.0f}ms")
-    print("-"*60)
-    
-    print(f"Debug: Starting spike count analysis for {len(spike_monitors)} monitors")
+    print(f"\nAnalysis period: {analysis_start_time/ms:.0f}-{analysis_end_time/ms:.0f}ms")
     for name, monitor in spike_monitors.items():
-        print(f"Debug: Processing {name}...")
         spike_times, spike_indices = get_monitor_spikes(monitor)
         
         if len(spike_times) == 0:
@@ -866,7 +905,6 @@ def analyze_input_rates_and_spike_counts(spike_monitors, external_inputs, neuron
         
         total_neurons = monitor.source.N
         
-        # Filter spikes within analysis period
         time_mask = (spike_times >= analysis_start_time) & (spike_times <= analysis_end_time)
         analysis_spikes = spike_times[time_mask]
         analysis_indices = spike_indices[time_mask]
@@ -874,10 +912,8 @@ def analyze_input_rates_and_spike_counts(spike_monitors, external_inputs, neuron
         total_spikes = len(analysis_spikes)
         analysis_duration = (analysis_end_time - analysis_start_time) / second
         
-        # Overall average firing rate
         overall_rate = total_spikes / (total_neurons * analysis_duration)
         
-        # Calculate firing rate for individual neurons
         individual_rates = []
         active_neurons = 0
         
@@ -894,37 +930,21 @@ def analyze_input_rates_and_spike_counts(spike_monitors, external_inputs, neuron
         max_rate = np.max(individual_rates)
         min_rate = np.min(individual_rates)
         
-        print(f"\n[{name}] Spike Analysis:")
-        print(f"  Total neurons: {total_neurons}")
-        print(f"  Active neurons: {active_neurons} ({active_neurons/total_neurons*100:.1f}%)")
-        print(f"  Total spikes: {total_spikes}")
-        print(f"  Overall rate: {overall_rate:.3f} Hz")
-        print(f"  Mean rate per neuron: {mean_rate:.3f} Hz")
-        print(f"  Std rate: {std_rate:.3f} Hz")
-        print(f"  Max rate: {max_rate:.3f} Hz")
-        print(f"  Min rate: {min_rate:.3f} Hz")
+        print(f"[{name}] Rate: {mean_rate:.3f} Hz (active: {active_neurons}/{total_neurons}, max: {max_rate:.1f} Hz)")
         
-        # Compare with input rate
         if name in input_rates:
             expected_rate = input_rates[name]['rate_per_neuron'] / Hz
             rate_ratio = mean_rate / expected_rate if expected_rate > 0 else 0
             
-            print(f"  Expected input rate: {expected_rate:.6f} Hz/neuron")
-            print(f"  Actual/Expected ratio: {rate_ratio:.3f}")
-            
             if rate_ratio > 2.0:
-                print(f"  ⚠️  WARNING: Actual rate is {rate_ratio:.1f}x higher than expected!")
-                print(f"      Possible causes: Multiple input sources, synaptic amplification, or parameter issues")
+                print(f"  ⚠️  Rate {rate_ratio:.1f}x higher than expected")
             elif rate_ratio < 0.5:
-                print(f"  ⚠️  WARNING: Actual rate is {1/rate_ratio:.1f}x lower than expected!")
-                print(f"      Possible causes: Inhibition too strong, threshold too high, or connectivity issues")
+                print(f"  ⚠️  Rate {1/rate_ratio:.1f}x lower than expected")
             
-            # Additional analysis: when active neuron ratio is low
             if active_neurons/total_neurons < 0.1:
-                print(f"  ⚠️  WARNING: Only {active_neurons/total_neurons*100:.1f}% neurons are active!")
-                print(f"      This suggests potential connectivity or parameter issues")
+                print(f"  ⚠️  Only {active_neurons/total_neurons*100:.1f}% neurons active")
     
-    print("\n" + "="*80)
+    print("\n" + "="*60)
 
 def plot_multi_neuron_membrane_potential_comparison(voltage_monitors, spike_monitors, 
                                                    target_groups=['FSN', 'MSND1', 'MSND2', 'GPeT1', 'GPeTA', 'STN', 'SNr'],
@@ -932,9 +952,7 @@ def plot_multi_neuron_membrane_potential_comparison(voltage_monitors, spike_moni
                                                    analysis_window=(2000*ms, 10000*ms),
                                                    display_names=None,
                                                    thresholds=None):
-    """
-    Plot multiple neurons' membrane potential simultaneously to check average firing rate
-    """
+    """Plot multiple neurons' membrane potential with spike markers"""
     try:
         available_groups = []
         
@@ -960,64 +978,81 @@ def plot_multi_neuron_membrane_potential_comparison(voltage_monitors, spike_moni
             v_monitor = voltage_monitors[group_name]
             s_monitor = spike_monitors[group_name]
             
-            # Get the actual recorded neurons from the voltage monitor
             recorded_neurons = v_monitor.record
             total_recorded = len(recorded_neurons)
             neurons_to_plot = min(neurons_per_group, total_recorded)
             
-            # Select from the actually recorded neurons
             if neurons_to_plot == 1:
                 selected_indices = [0]
             else:
                 selected_indices = np.linspace(0, total_recorded-1, neurons_to_plot, dtype=int)
             
-            # Time mask
             time_mask = (v_monitor.t >= start_time) & (v_monitor.t <= end_time)
             plot_times = v_monitor.t[time_mask] / ms
             
-            # Plot membrane potential for each selected neuron
             colors = plt.cm.viridis(np.linspace(0, 1, len(selected_indices)))
             
             for i, neuron_idx in enumerate(selected_indices):
                 voltage = v_monitor.v[neuron_idx][time_mask] / mV
-                ax.plot(plot_times, voltage, color=colors[i], alpha=0.7, linewidth=1, 
-                       label=f'Neuron {neuron_idx}')
                 
-                # Mark spikes
                 spike_times, spike_indices = get_monitor_spikes(s_monitor)
                 neuron_spike_mask = spike_indices == neuron_idx
                 neuron_spike_times = spike_times[neuron_spike_mask]
                 spike_time_mask = (neuron_spike_times >= start_time) & (neuron_spike_times <= end_time)
                 neuron_spike_times_window = neuron_spike_times[spike_time_mask] / ms
                 
+                voltage_clipped = voltage.copy()
+                threshold = thresholds.get(group_name, -20) if thresholds else -20
+                
                 if len(neuron_spike_times_window) > 0:
-                    threshold = thresholds.get(group_name, -20) if thresholds else -20
-                    spike_voltages = [threshold] * len(neuron_spike_times_window)
+                    for spike_time in neuron_spike_times_window:
+                        time_indices = np.where((plot_times >= spike_time - 0.1) & (plot_times <= spike_time + 0.1))[0]
+                        if len(time_indices) > 0:
+                            voltage_clipped[time_indices] = threshold
+                
+                neuron_spike_count = len(neuron_spike_times_window)
+                
+                if len(neuron_spike_times_window) > 0 or i < 3:
+                    ax.plot(plot_times, voltage_clipped, color=colors[i], alpha=0.7, linewidth=1, 
+                           label=f'Neuron {neuron_idx} ({neuron_spike_count} spikes)')
+                else:
+                    ax.plot([], [], color=colors[i], alpha=0.7, linewidth=1, 
+                           label=f'Neuron {neuron_idx} ({neuron_spike_count} spikes)')
+                
+                if len(neuron_spike_times_window) > 0:
+                    spike_voltages = [threshold + 2] * len(neuron_spike_times_window)
                     ax.scatter(neuron_spike_times_window, spike_voltages, 
-                             color=colors[i], s=20, marker='o', alpha=0.8, zorder=5)
+                             color=colors[i], s=40, marker='^', alpha=0.9, zorder=5, edgecolors='black', linewidth=1)
+                else:
+                    if i < 3:
+                        ax.text(0.02, 0.98 - i*0.1, f'Neuron {neuron_idx}: No spikes', 
+                               transform=ax.transAxes, fontsize=8, color=colors[i], 
+                               verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
             
-            # Threshold line
             if thresholds and group_name in thresholds:
                 threshold = thresholds[group_name]
-                ax.axhline(threshold, color='red', linestyle='--', alpha=0.5, linewidth=1)
+                ax.axhline(threshold, color='red', linestyle='--', alpha=0.7, linewidth=2, label=f'Threshold ({threshold} mV)')
+            else:
+                ax.axhline(-20, color='red', linestyle='--', alpha=0.7, linewidth=2, label='Threshold (-20 mV)')
             
             display_name = display_names.get(group_name, group_name) if display_names else group_name
-            ax.set_title(f'{display_name} - Multiple Neurons Membrane Potential', fontsize=14, fontweight='bold')
+            group_spike_times, group_spike_indices = get_monitor_spikes(s_monitor)
+            group_time_mask = (group_spike_times >= start_time) & (group_spike_times <= end_time)
+            total_group_spikes = len(group_spike_times[group_time_mask])
+            ax.set_title(f'{display_name} - Multiple Neurons Membrane Potential (Total Spikes: {total_group_spikes})', fontsize=14, fontweight='bold')
             ax.set_ylabel('Membrane Potential (mV)', fontsize=12)
             ax.grid(True, alpha=0.3)
-            ax.legend(fontsize=10)
+            ax.legend(fontsize=10, loc='upper right')
             
-            # Set Y-axis range
-            ax.set_ylim(-80, 50)
+            ax.set_ylim(-80, 60)
         
         axes[-1].set_xlabel('Time (ms)', fontsize=12)
         axes[-1].set_xlim(start_time/ms, end_time/ms)
         
         plt.tight_layout()
+        plt.show(block=True)
         
-        # Print statistics
-        print(f"\nMulti-neuron membrane potential analysis:")
-        print(f"Analysis period: {start_time/ms:.0f}-{end_time/ms:.0f}ms")
+        print(f"\nMembrane Potential Analysis: {start_time/ms:.0f}-{end_time/ms:.0f}ms")
         for group_name in available_groups:
             s_monitor = spike_monitors[group_name]
             spike_times, spike_indices = get_monitor_spikes(s_monitor)
@@ -1032,7 +1067,7 @@ def plot_multi_neuron_membrane_potential_comparison(voltage_monitors, spike_moni
             overall_rate = total_spikes / (total_neurons * analysis_duration)
             
             display_name = display_names.get(group_name, group_name) if display_names else group_name
-            print(f"{display_name}: {overall_rate:.3f} Hz (total {total_spikes} spikes)")
+            print(f"{display_name}: {overall_rate:.3f} Hz ({total_spikes} spikes)")
         
     except Exception as e:
         print(f"Error in plot_multi_neuron_membrane_potential_comparison: {e}")
