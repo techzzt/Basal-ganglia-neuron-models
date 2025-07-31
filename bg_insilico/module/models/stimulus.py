@@ -5,9 +5,9 @@ def create_poisson_inputs(neuron_groups, external_inputs, scaled_neuron_counts, 
 
     poisson_groups = {}
     
-    print("\n" + "="*60)
-    print("POISSON INPUT CREATION ANALYSIS")
-    print("="*60)
+    print("\n" + "="*50)
+    print("POISSON INPUT RATES")
+    print("="*50)
     
     # Get simulation duration from params
     total_duration = 10000 
@@ -38,10 +38,6 @@ def create_poisson_inputs(neuron_groups, external_inputs, scaled_neuron_counts, 
                 N = neuron_groups[target].N
                 original_n = N
 
-            print(f"\n[{target}] Poisson input analysis:")
-            print(f"  Target neurons: {original_n}")
-            print(f"  Poisson group size: {N}")
-
             if isinstance(rate_expr, str) and '*Hz' in rate_expr:
                 base_rate = eval(rate_expr)
             elif isinstance(rate_expr, str):
@@ -51,9 +47,7 @@ def create_poisson_inputs(neuron_groups, external_inputs, scaled_neuron_counts, 
             
             rate_per_neuron_base = base_rate / original_n
             
-            print(f"  Total input rate: {base_rate/Hz:.2f} Hz")
-            print(f"  Rate per neuron: {rate_per_neuron_base/Hz:.6f} Hz/neuron")
-            print(f"  Rate calculation: {base_rate/Hz:.2f} Hz / {original_n} neurons = {rate_per_neuron_base/Hz:.6f} Hz/neuron")
+            print(f"\n[{target}] Input rate: {rate_per_neuron_base/Hz:.3f} Hz/neuron")
             
             if use_stimulus and target in stim_rates and stim_duration > 0:
                 baseline_rate_total = base_rate
@@ -62,10 +56,9 @@ def create_poisson_inputs(neuron_groups, external_inputs, scaled_neuron_counts, 
                 stim_rate_total = stim_rates[target] * Hz
                 stim_rate_per_neuron = stim_rate_total / original_n
                 
-                print(f"  STIMULUS MODE:")
-                print(f"    Baseline rate per neuron: {baseline_rate_per_neuron/Hz:.6f} Hz/neuron")
-                print(f"    Stimulus rate per neuron: {stim_rate_per_neuron/Hz:.6f} Hz/neuron")
-                print(f"    Rate increase: {((stim_rate_per_neuron - baseline_rate_per_neuron) / baseline_rate_per_neuron * 100):+.1f}%")
+                print(f"  Stimulus period: {stim_start}-{stim_start + stim_duration}ms")
+                print(f"    Baseline: {baseline_rate_per_neuron/Hz:.3f} Hz/neuron")
+                print(f"    Stimulus: {stim_rate_per_neuron/Hz:.3f} Hz/neuron (+{((stim_rate_per_neuron - baseline_rate_per_neuron) / baseline_rate_per_neuron * 100):+.1f}%)")
                 
                 array_duration = total_duration + 1000  
                 time_points = np.arange(0, array_duration, dt_array)
@@ -93,17 +86,13 @@ def create_poisson_inputs(neuron_groups, external_inputs, scaled_neuron_counts, 
                 stim_rate_total = stim_rates[target] * Hz
                 stim_rate_per_neuron = stim_rate_total / original_n
                 
-                print(f"  CONSTANT STIMULUS MODE (duration=0):")
-                print(f"    Using constant stimulus rate: {stim_rate_per_neuron/Hz:.6f} Hz/neuron")
-                print(f"    Note: Stimulus duration is 0, using stimulus rate as constant input")
-                print(f"    WARNING: This may cause excessive firing rates!")
+                print(f"  Constant stimulus rate: {stim_rate_per_neuron/Hz:.3f} Hz/neuron")
                 
                 group = PoissonGroup(N, rates=stim_rate_per_neuron)
             
             else:
                 # Simple constant rate
-                print(f"  CONSTANT RATE MODE:")
-                print(f"    Using constant rate: {rate_per_neuron_base/Hz:.6f} Hz/neuron")
+
                 group = PoissonGroup(N, rates=rate_per_neuron_base)
             
             external_name = None
@@ -117,17 +106,15 @@ def create_poisson_inputs(neuron_groups, external_inputs, scaled_neuron_counts, 
             
             if external_name:
                 poisson_groups[external_name] = group
-                print(f"  Created Poisson group: {external_name} -> {target}")
             else:
                 poisson_groups[target] = group
-                print(f"  Created Poisson group: {target}")
 
         except Exception as e:
             print(f"Error creating Poisson inputs for {target}: {str(e)}")
             import traceback
             traceback.print_exc()
     
-    print(f"\nTotal Poisson groups created: {len(poisson_groups)}")
-    print("="*60)
+    print(f"\nTotal Poisson groups: {len(poisson_groups)}")
+    print("="*50)
     
     return poisson_groups, []
