@@ -165,7 +165,7 @@
             "pre": "MSND1",
             "post": "MSND1",
             "receptor_type": "GABA",
-            "p": 0.0096,
+            "p": 0.0048,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -183,7 +183,7 @@
             "pre": "MSND2",
             "post": "MSND1",
             "receptor_type": "GABA",
-            "p": 0.0103,
+            "p": 0.005,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -258,7 +258,7 @@
             "pre": "MSND1",
             "post": "MSND2",
             "receptor_type": "GABA",
-            "p": 0.0022,
+            "p": 0.0011,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -276,8 +276,8 @@
             "pre": "MSND2",
             "post": "MSND2",
             "receptor_type": "GABA",
-            "p": 0.0133,
-            "weight": 1.5,
+            "p": 0.0066,
+            "weight": 1,
             "receptor_params": {
                 "GABA":{
                 "g0": {"value": 0.35, "unit": "nS"},
