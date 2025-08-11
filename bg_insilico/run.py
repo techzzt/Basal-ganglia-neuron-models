@@ -29,7 +29,7 @@ def parse_arguments():
         """
     )
     parser.add_argument('--config', '-c', 
-                       default='config/test_dop_noin.json',
+                       default='config/test_normal_noin.json',
                        help='Path to configuration JSON file (default: config/test_dop_noin.json)')
     parser.add_argument('--list-configs', '-l', 
                        action='store_true',
@@ -107,9 +107,6 @@ def main():
         amplitude_oscillations=amplitude_oscillations  
         )
     
-
-    
-    # Initialize stimulus_config
     stimulus_config = simulation_params.get('stimulus', {})
     stimulus_enabled = stimulus_config.get('enabled', False)
     
@@ -129,7 +126,6 @@ def main():
     else:
         print("Stimulus: disabled")
     
-    # Analyze input rates and spike counts
     analyze_input_rates_and_spike_counts(
         results['spike_monitors'],
         ext_inputs,
@@ -138,8 +134,7 @@ def main():
         analysis_start_time,
         analysis_end_time
     )
-
-        
+    
     stimulus_periods = []
     if 'external_inputs' in simulation_params and 'poisson_trains' in simulation_params['external_inputs']:
         for train_config in simulation_params['external_inputs']['poisson_trains']:
@@ -230,8 +225,6 @@ def main():
                                     display_names=params.get('display_names', None))
                 except Exception as e:
                     print(f"Error creating zoom plots for {group_name} ({window_name}): {e}")  
-    
-
 
 if __name__ == "__main__":
     main()
