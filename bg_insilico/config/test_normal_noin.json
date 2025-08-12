@@ -60,7 +60,7 @@
             "post": "FSN",
             "receptor_type": "AMPA",
             "p": 1,
-            "weight": 0.5,
+            "weight": 0.45,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
@@ -435,7 +435,7 @@
             "post": "GPeTA",
             "receptor_type": "AMPA",
             "p": 1,
-            "weight": 0.08,
+            "weight": 0.12,
             "receptor_params": {
                 "AMPA":{
                 "g0": {"value": 0.5, "unit": "nS"},
