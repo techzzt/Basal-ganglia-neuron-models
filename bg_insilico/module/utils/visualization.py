@@ -4,6 +4,7 @@ import os
 import numpy as np 
 from brian2 import *
 import platform
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 backend = os.environ.get('MPLBACKEND', None)
 if backend:
@@ -109,8 +110,9 @@ def analyze_firing_rates_by_stimulus_periods(spike_monitors, stimulus_config, an
 
 def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None, 
                                 start_time=0*ms, end_time=1000*ms, display_names=None, 
-                                stimulus_periods=None, save_plot=True):
-    """Plot raster plots for all neuron groups with stratified sampling"""
+                                stimulus_periods=None, save_plot=True,
+                                visual_thinning=True, max_points_per_group=4000, max_spikes_per_neuron=150):
+    """Plot raster plots with activity- and time-balanced sampling per group."""
     np.random.seed(2025)
     try:
         print(f"Available spike monitors: {list(spike_monitors.keys())}")
@@ -140,34 +142,138 @@ def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None
                 continue
             
             total_neurons = monitor.source.N
-            sample_size = min(sample_size, total_neurons)
-            
-            # Stratified sampling
-            if sample_size <= 3:
-                chosen_neurons = np.random.choice(total_neurons, size=sample_size, replace=False)
+            sample_size_local = min(sample_size, total_neurons)
+
+            # Time-balanced + activity-aware sampling
+            # 1) filter by time window
+            time_mask_all = (spike_times >= start_time) & (spike_times <= end_time)
+            t_win = spike_times[time_mask_all]
+            i_win = spike_indices[time_mask_all]
+
+            # 2) define windows
+            n_windows = 8
+            if (end_time - start_time) <= 4*ms:
+                n_windows = 1
+            bin_edges = np.linspace(start_time/ms, end_time/ms, n_windows+1)
+            # window membership for spikes
+            if len(t_win) > 0:
+                win_idx = np.digitize(t_win/ms, bin_edges, right=False) - 1
+                win_idx = np.clip(win_idx, 0, n_windows-1)
             else:
-                n_strata = min(sample_size, 5)
-                neurons_per_stratum = sample_size // n_strata
-                remainder = sample_size % n_strata
-                
-                chosen_neurons = []
-                for stratum_idx in range(n_strata):
-                    stratum_start = stratum_idx * total_neurons // n_strata
-                    stratum_end = (stratum_idx + 1) * total_neurons // n_strata
-                    stratum_size = stratum_end - stratum_start
-                    
-                    stratum_sample_size = neurons_per_stratum + (1 if stratum_idx < remainder else 0)
-                    stratum_sample_size = min(stratum_sample_size, stratum_size)
-                    
-                    if stratum_sample_size > 0:
-                        stratum_neurons = np.random.choice(
-                            range(stratum_start, stratum_end), 
-                            size=stratum_sample_size, 
-                            replace=False
-                        )
-                        chosen_neurons.extend(stratum_neurons)
-                
-                chosen_neurons = sorted(chosen_neurons)
+                win_idx = np.array([], dtype=int)
+
+            # 3) per-neuron stats
+            # overall spike count per neuron in window
+            if len(i_win) > 0:
+                max_index = int(np.max(i_win)) if len(i_win) > 0 else -1
+                bincount_size = max(total_neurons, max_index+1)
+                counts_overall = np.bincount(i_win, minlength=bincount_size)[:total_neurons]
+            else:
+                counts_overall = np.zeros(total_neurons, dtype=int)
+
+            # windows covered per neuron
+            windows_with_spikes = np.zeros(total_neurons, dtype=int)
+            if len(i_win) > 0:
+                for w in range(n_windows):
+                    mask_w = (win_idx == w)
+                    if np.any(mask_w):
+                        neurons_w = np.unique(i_win[mask_w])
+                        windows_with_spikes[neurons_w] += 1
+
+            # z-score of rates (robust)
+            counts_nonzero = counts_overall[counts_overall > 0]
+            if len(counts_nonzero) >= 5:
+                mean_c = np.mean(counts_nonzero)
+                std_c = np.std(counts_nonzero) + 1e-9
+                rate_z = (counts_overall - mean_c) / std_c
+                rate_z = np.clip(rate_z, -2.0, 2.0)
+            else:
+                rate_z = np.zeros_like(counts_overall, dtype=float)
+
+            # scoring: prioritize temporal coverage, then activity
+            alpha, beta = 1.0, 0.3
+            scores = alpha * windows_with_spikes.astype(float) + beta * rate_z
+
+            # quiet quota: ensure including some non-spiking neurons to represent baseline
+            if len(i_win) > 0:
+                spiking_neurons = np.unique(i_win).astype(int)
+            else:
+                spiking_neurons = np.array([], dtype=int)
+            all_neurons = np.arange(total_neurons, dtype=int)
+            quiet_candidates = np.setdiff1d(all_neurons, spiking_neurons)
+            quiet_fraction = 0.3
+            quiet_target = 0
+            if sample_size_local > 1:
+                quiet_target = min(len(quiet_candidates), max(1, int(round(sample_size_local * quiet_fraction))))
+            max_spiking_allowed = max(0, sample_size_local - quiet_target)
+
+            # window-wise quota to ensure time coverage
+            quota = max(1, int(np.ceil(sample_size_local / max(1, n_windows))))
+            chosen_spiking = set()
+            # for each window, pick top-scoring neurons that fired in that window
+            for w in range(n_windows):
+                if len(i_win) == 0:
+                    break
+                mask_w = (win_idx == w)
+                if not np.any(mask_w):
+                    continue
+                neurons_w = np.unique(i_win[mask_w])
+                if len(neurons_w) == 0:
+                    continue
+                # sort by score desc
+                scores_w = scores[neurons_w]
+                order = np.argsort(-scores_w)
+                for idx_in_w in order:
+                    n_id = int(neurons_w[idx_in_w])
+                    if n_id not in chosen_spiking:
+                        if len(chosen_spiking) >= max_spiking_allowed:
+                            break
+                        chosen_spiking.add(n_id)
+                        if len(chosen_spiking) >= min(max_spiking_allowed, len(range(total_neurons))):
+                            break
+                    if len(chosen_spiking) >= len(range(total_neurons)) or len(chosen_spiking) >= max_spiking_allowed:
+                        break
+                if len(chosen_spiking) >= max_spiking_allowed:
+                    break
+
+            # fill remaining with top global scores (including quiet neurons if needed)
+            if len(chosen_spiking) < max_spiking_allowed:
+                all_indices = np.arange(total_neurons)
+                # consider only spiking neurons for global fill
+                spiking_mask = np.zeros(total_neurons, dtype=bool)
+                spiking_mask[spiking_neurons] = True
+                order_global = np.argsort(-scores)
+                for idx_global in order_global:
+                    n_id = int(all_indices[idx_global])
+                    if not spiking_mask[n_id]:
+                        continue
+                    if n_id not in chosen_spiking:
+                        chosen_spiking.add(n_id)
+                        if len(chosen_spiking) >= max_spiking_allowed:
+                            break
+
+            # choose quiet neurons to reach target and fill to sample size
+            remaining_slots = sample_size_local - len(chosen_spiking)
+            quiet_pick = min(len(quiet_candidates), max(quiet_target, remaining_slots))
+            quiet_selected = []
+            if quiet_pick > 0 and len(quiet_candidates) > 0:
+                n_strata_q = min(quiet_pick, 5)
+                per_stratum = quiet_pick // n_strata_q
+                rem_q = quiet_pick % n_strata_q
+                for s in range(n_strata_q):
+                    start_q = s * len(quiet_candidates) // n_strata_q
+                    end_q = (s + 1) * len(quiet_candidates) // n_strata_q
+                    seg = quiet_candidates[start_q:end_q]
+                    take = per_stratum + (1 if s < rem_q else 0)
+                    if take <= 0 or len(seg) == 0:
+                        continue
+                    if take >= len(seg):
+                        chosen_seg = seg
+                    else:
+                        chosen_seg = np.random.choice(seg, size=take, replace=False)
+                    quiet_selected.extend(list(chosen_seg))
+
+            chosen_neurons = sorted(list(chosen_spiking) + quiet_selected)
 
             time_mask = (spike_times >= start_time) & (spike_times <= end_time)
             neuron_mask = np.isin(spike_indices, chosen_neurons)
@@ -181,22 +287,40 @@ def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None
             remapped_i = [neuron_mapping[original] for original in display_i]
 
             display_name = display_names.get(name, name) if display_names else name
-            
+
             # Plot each spike at the correct y-position
-            if len(display_t) > 0:
-                axes[plot_idx].scatter(display_t / ms, remapped_i, s=5.0, alpha=0.9, edgecolors='black', linewidth=0.3)
+            # Optional visual thinning to avoid over-plotting artifacts
+            plotted_t = display_t
+            plotted_i = np.array(remapped_i)
+            if visual_thinning and len(display_t) > 0:
+                idx_all = np.arange(len(display_t))
+                keep_mask = np.zeros(len(display_t), dtype=bool)
+                # per-neuron cap
+                unique_ids = np.unique(plotted_i)
+                for uid in unique_ids:
+                    uid_mask = (plotted_i == uid)
+                    uid_idx = idx_all[uid_mask]
+                    if len(uid_idx) <= max_spikes_per_neuron:
+                        keep_mask[uid_idx] = True
+                    else:
+                        keep_idx = np.random.choice(uid_idx, size=max_spikes_per_neuron, replace=False)
+                        keep_mask[keep_idx] = True
+                kept_idx = np.where(keep_mask)[0]
+                # global cap
+                if len(kept_idx) > max_points_per_group:
+                    kept_idx = np.random.choice(kept_idx, size=max_points_per_group, replace=False)
+                plotted_t = display_t[kept_idx]
+                plotted_i = plotted_i[kept_idx]
+
+            if len(plotted_t) > 0:
+                axes[plot_idx].scatter(plotted_t / ms, plotted_i, s=2.5, alpha=0.6)
             axes[plot_idx].set_title(f'{display_name} Raster Plot', fontsize=14, pad=15)
-            axes[plot_idx].set_ylabel('Neuron Index', fontsize=12)
-            
+            # Hide neuron index labels on Y axis
             if len(chosen_neurons) > 0:
                 axes[plot_idx].set_ylim(-0.5, len(chosen_neurons) - 0.5)
-                if len(chosen_neurons) <= 15: 
-                    axes[plot_idx].set_yticks(range(len(chosen_neurons)))
-                    axes[plot_idx].set_yticklabels([f'{chosen_neurons[j]}' for j in range(len(chosen_neurons))])
-                else: 
-                    tick_indices = range(0, len(chosen_neurons), max(1, len(chosen_neurons)//5))
-                    axes[plot_idx].set_yticks(tick_indices)
-                    axes[plot_idx].set_yticklabels([f'{chosen_neurons[j]}' for j in tick_indices])
+            axes[plot_idx].set_yticks([])
+            axes[plot_idx].set_yticklabels([])
+            axes[plot_idx].set_ylabel('')
             axes[plot_idx].set_xlim(int(start_time/ms), int(end_time/ms))
             
             for j in range(0, len(chosen_neurons), max(1, len(chosen_neurons)//10)):
@@ -209,16 +333,13 @@ def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None
                 
                 axes[plot_idx].grid(True, alpha=0.08, axis='x')
             
-            # Count spikes per neuron for display
-            spike_counts = {}
-            for neuron_idx in chosen_neurons:
-                neuron_spikes = np.sum(display_i == neuron_idx)
-                spike_counts[neuron_idx] = neuron_spikes
-            
-            total_spikes = len(display_t)
-            active_neurons = sum(1 for count in spike_counts.values() if count > 0)
-            
-            print(f"{display_name}: {total_spikes} spikes ({active_neurons}/{len(chosen_neurons)} active)")
+            # Brief stats per group
+            if len(chosen_neurons) > 0:
+                total_spikes = len(display_t)
+                unique_display_ids, _ = np.unique(remapped_i, return_counts=True)
+                active_neurons = len(unique_display_ids)
+                plotted_count = len(plotted_t)
+                print(f"{display_name}: {total_spikes} spikes ({active_neurons}/{len(chosen_neurons)} active), plotted {plotted_count}")
 
         axes[-1].set_xlabel('Time (ms)', fontsize=12)
         plt.tight_layout(pad=3.0)
@@ -1073,3 +1194,119 @@ def plot_multi_neuron_membrane_potential_comparison(voltage_monitors, spike_moni
         print(f"Error in plot_multi_neuron_membrane_potential_comparison: {e}")
         import traceback
         traceback.print_exc()
+
+def compute_pca_trajectories(spike_monitors, bin_size=10*ms, cycle_ms=1000, 
+                             stimulus_start_ms=0, groups=None, n_pcs=3,
+                             start_time=0*ms, end_time=10000*ms,
+                             display_names=None):
+    """Compute PCA trajectories using binned population activity.
+
+    - spike_monitors: dict[name -> SpikeMonitor]
+    - bin_size: width of time bin for population rates
+    - cycle_ms: length of one cycle after stimulus (e.g., 1000ms)
+    - stimulus_start_ms: cycle origin (ms)
+    - groups: subset of groups to include (default: all in spike_monitors)
+    - n_pcs: number of principal components to return
+    - returns: dict with keys: time_centers_ms, pcs (T x n_pcs), per_cycle_indices
+    """
+    try:
+        if groups is None:
+            groups = list(spike_monitors.keys())
+        groups = [g for g in groups if g in spike_monitors]
+        if len(groups) == 0:
+            return None
+
+        t0 = max(start_time, stimulus_start_ms*ms)
+        t1 = end_time
+        bin_edges = np.arange(t0/ms, t1/ms + bin_size/ms, bin_size/ms)
+        time_centers = bin_edges[:-1] + (bin_size/ms)/2
+
+        # Build population vector: concatenated per-group binned rates
+        pop_vectors = []  # list of arrays length = num_bins
+        for g in groups:
+            sm = spike_monitors[g]
+            st = sm.t / ms
+            si = sm.i
+            N = sm.source.N
+            mask = (st >= t0/ms) & (st <= t1/ms)
+            st_w = st[mask]
+            si_w = si[mask]
+
+            # per-neuron histogram → sum → rate per group
+            rates_group = np.zeros(len(bin_edges)-1)
+            if len(st_w) > 0:
+                # accumulate per-neuron counts per bin
+                for idx_bin in range(len(bin_edges)-1):
+                    b0 = bin_edges[idx_bin]
+                    b1 = bin_edges[idx_bin+1]
+                    m = (st_w >= b0) & (st_w < b1)
+                    counts = np.sum(m)
+                    duration_s = (b1 - b0) / 1000.0
+                    rates_group[idx_bin] = counts / (N * duration_s)
+            pop_vectors.append(rates_group)
+
+        # concatenate groups into population activity matrix (time x features)
+        X = np.stack(pop_vectors, axis=1)  # shape (T, G)
+        X = X - np.mean(X, axis=0, keepdims=True)
+
+        # PCA via SVD
+        U, S, Vt = np.linalg.svd(X, full_matrices=False)
+        PCs = U[:, :n_pcs] * S[:n_pcs]
+
+        # cycle indices for plotting later
+        rel_ms = time_centers - stimulus_start_ms
+        rel_ms[rel_ms < 0] = np.nan
+        per_cycle = np.floor(rel_ms / cycle_ms).astype(float)
+
+        return {
+            'time_centers_ms': time_centers,
+            'pcs': PCs,
+            'groups': groups,
+            'per_cycle_indices': per_cycle
+        }
+    except Exception as e:
+        print(f"Error in compute_pca_trajectories: {e}")
+        return None
+
+def plot_pca_trajectories(pca_result, cycles_to_show=6, colors=None, title='PCA Trajectories'):
+    """Plot PCA trajectories in 3D and per-cycle 2D projections.
+    pca_result: output of compute_pca_trajectories
+    """
+    try:
+        if pca_result is None:
+            print('No PCA result to plot')
+            return
+        time_centers = pca_result['time_centers_ms']
+        PCs = pca_result['pcs']  # (T, k)
+        per_cycle = pca_result['per_cycle_indices']
+        k = PCs.shape[1]
+        if k < 3:
+            print('Less than 3 PCs, plotting first 2 only')
+        if colors is None:
+            colors = ['#F5B041', '#DC7633', '#6E2C00', '#A04000', '#CA6F1E', '#7E5109']
+
+        # 3D trajectory (first 3 PCs)
+        fig = plt.figure(figsize=(12, 5))
+        ax3d = fig.add_subplot(1, 2, 1, projection='3d')
+        valid_mask = ~np.isnan(per_cycle)
+        ax3d.plot(PCs[valid_mask,0], PCs[valid_mask,1], PCs[valid_mask,2 if k>=3 else 1], color='black', linewidth=2)
+        ax3d.set_xlabel('PC 1')
+        ax3d.set_ylabel('PC 2')
+        ax3d.set_zlabel('PC 3')
+        ax3d.set_title(title)
+
+        # per-cycle loops in 2D (PC1-2)
+        ax_grid = fig.add_subplot(1, 2, 2)
+        for c in range(int(np.nanmin(per_cycle)), int(np.nanmin([np.nanmax(per_cycle), cycles_to_show-1]))+1):
+            m = (per_cycle == c)
+            if np.any(m):
+                col = colors[c % len(colors)]
+                ax_grid.plot(PCs[m,0], PCs[m,1], color=col, linewidth=2)
+        ax_grid.set_xlabel('PC 1')
+        ax_grid.set_ylabel('PC 2')
+        ax_grid.set_title('Cycle-specific trajectories (PC1–PC2)')
+        ax_grid.axis('equal')
+        plt.tight_layout()
+        plt.show(block=True)
+    except Exception as e:
+        print(f"Error in plot_pca_trajectories: {e}")
