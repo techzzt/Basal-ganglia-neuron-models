@@ -165,7 +165,7 @@
             "pre": "MSND1",
             "post": "MSND1",
             "receptor_type": "GABA",
-            "p": 0.0048,
+            "p": 0.0096,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -183,7 +183,7 @@
             "pre": "MSND2",
             "post": "MSND1",
             "receptor_type": "GABA",
-            "p": 0.005,
+            "p": 0.0103,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -258,7 +258,7 @@
             "pre": "MSND1",
             "post": "MSND2",
             "receptor_type": "GABA",
-            "p": 0.0011,
+            "p": 0.0022,
             "weight": 1,
             "receptor_params": {
                 "GABA":{
@@ -567,9 +567,9 @@
         "duration": 10000,
         "dt": 1,
         "stimulus": {
-            "enabled": false,
-            "start_time": 6000,
-            "duration": 0,
+            "enabled": true,
+            "start_time": 5000,
+            "duration": 1000,
             "dt_array": 1,
             "rates": {
                 "FSN": 787,
@@ -593,7 +593,7 @@
     "end_time": 10000,
     
     "zoom_windows": {
-        "first_window": [3800, 4000],
-        "last_window": [8500, 8700]
+        "first_window": [4850, 5150],
+        "last_window": [5000, 5300]
     }
 }

@@ -566,9 +566,9 @@
     "simulation": {
         "duration": 10000,
         "stimulus": {
-            "enabled": false,
-            "start_time": 8000,
-            "duration": 0,
+            "enabled": true,
+            "start_time": 5000,
+            "duration": 1000,
             "dt_array": 1,
             "rates": {
                 "FSN": 787,
@@ -591,7 +591,7 @@
     "end_time": 10000,
     
     "zoom_windows": {
-        "first_window": [3800, 4000],
-        "last_window": [8500, 8700]
+        "first_window": [4850, 5150],
+        "last_window": [5000, 5300]
     }
 }
