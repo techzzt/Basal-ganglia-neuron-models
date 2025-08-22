@@ -17,7 +17,7 @@ from module.utils.visualization import plot_improved_overall_raster, plot_firing
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description='Run basal ganglia simulation with specified parameters',
+        description='Run simulation',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
         Examples:
