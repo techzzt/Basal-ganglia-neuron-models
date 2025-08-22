@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2025. All rights reserved.
+# Author: keun (Jieun Kim)
+
 import json
 import numpy as np
 import sys
@@ -10,10 +13,8 @@ gc.collect()
 
 from module.simulation.runner import run_simulation_with_inh_ext_input
 from module.utils.param_loader import load_params
-from module.utils.visualization import (analyze_firing_rates_by_stimulus_periods, plot_improved_overall_raster,
-                                       plot_continuous_firing_rate_with_samples, plot_multi_neuron_stimulus_overview,
-                                       plot_firing_rate_fft_multi_page, plot_membrane_zoom, plot_raster_zoom,
-                                       analyze_input_rates_and_spike_counts, plot_multi_neuron_membrane_potential_comparison)
+from module.utils.visualization import (plot_improved_overall_raster,
+                                     plot_firing_rate_fft_multi_page)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -56,13 +57,13 @@ def main():
     
     params_file = args.config
     
-    # Check if config file exists
     if not os.path.exists(params_file):
         print(f"Error: Configuration file '{params_file}' not found!")
         print("Available options:")
         list_available_configs()
         return
     
+    # Load parameters
     params = load_params(params_file)
     neuron_configs = params['neurons']
     connections = params['connections']   
@@ -74,11 +75,8 @@ def main():
 
     if 'display_names' in params:
         simulation_params['display_names'] = params['display_names']
-    
-    zoom_windows = params.get('zoom_windows', {})
-    first_window = tuple(zoom_windows.get('first_window', [3800, 4000])) * ms
-    last_window = tuple(zoom_windows.get('last_window', [8500, 8700])) * ms
 
+    # Setup external inputs
     ext_inputs = {}
     for neuron_config in neuron_configs:
         if neuron_config.get('neuron_type') == 'poisson':
@@ -95,6 +93,7 @@ def main():
         'STN': 0.11 
     }
 
+    # Run simulation
     results = run_simulation_with_inh_ext_input(
         neuron_configs=neuron_configs,
         connections=connections,
@@ -105,126 +104,96 @@ def main():
         end_time=analysis_end_time,
         ext_inputs=ext_inputs,
         amplitude_oscillations=amplitude_oscillations  
-        )
-    
-    stimulus_config = simulation_params.get('stimulus', {})
-    stimulus_enabled = stimulus_config.get('enabled', False)
-    
-    if stimulus_enabled:
-        stim_start_time = stimulus_config.get('start_time', 0)
-        stim_duration = stimulus_config.get('duration', 0)
-        stim_end_time = stim_start_time + stim_duration
-        print(f"Stimulus: {stim_start_time}-{stim_end_time}ms")
-        
-        analyze_firing_rates_by_stimulus_periods(
-            results['spike_monitors'],
-            stimulus_config,
-            analysis_start_time,
-            plot_order,
-            params.get('display_names', None)
-        )
-    else:
-        print("Stimulus: disabled")
-    
-    analyze_input_rates_and_spike_counts(
-        results['spike_monitors'],
-        ext_inputs,
-        neuron_configs,
-        simulation_params.get('stimulus', {}),
-        analysis_start_time,
-        analysis_end_time
     )
-    
-    stimulus_periods = []
-    if 'external_inputs' in simulation_params and 'poisson_trains' in simulation_params['external_inputs']:
-        for train_config in simulation_params['external_inputs']['poisson_trains']:
-            if 'active_periods' in train_config:
-                for period in train_config['active_periods']:
-                    start_time = period['start'] * ms
-                    end_time = period['end'] * ms
-                    stimulus_periods.append((start_time, end_time))
 
-    try:
-        plot_continuous_firing_rate_with_samples(results['spike_monitors'], start_time=analysis_start_time, end_time=analysis_end_time, bin_size=10*ms, 
-                                                plot_order=plot_order, display_names=params.get('display_names', None), stimulus_config=stimulus_config, 
-                                                smooth_sigma=3, save_plot=False, n_samples=10, neurons_per_sample=30)
-    except Exception as e:
-        print(f"Error in continuous firing rate analysis: {e}")
-    
+    # Plot results
     try:
         plot_improved_overall_raster(
             results['spike_monitors'],
             sample_size=15, 
             plot_order=plot_order,
-            start_time=analysis_start_time,
-            end_time=analysis_end_time,
+            start_time=3000*ms,
+            end_time=7000*ms,
             display_names=params.get('display_names', None),
-            stimulus_periods=stimulus_periods,
             save_plot=True
         )
     except Exception as e:
-        print(f"Error in improved overall raster plot: {e}")
+        print(f"Error in raster plot: {e}")
         
-    thresholds = {
-        'FSN': 25.0,
-        'MSND1': 40,
-        'MSND2': 40,
-        'GPeT1': 15,
-        'GPeTA': 15,
-        'STN': 15,
-        'SNr': 20,
-    }
+    try:
+        plot_firing_rate_fft_multi_page(
+            results['spike_monitors'],
+            neuron_indices=None,
+            start_time=0*ms,
+            end_time=10000*ms,
+            bin_size=10*ms,
+            show_mean=True,
+            max_freq=60,
+            title='Firing Rate FFT Spectra',
+            display_names=params.get('display_names', None)
+        )
+    except Exception as e:
+        print(f"Error in FFT plot: {e}")
+
+    # Save results
+    config_file = args.config
+    if 'normal' in config_file.lower():
+        try:
+            import pickle
+            save_data = {
+                'meta': {
+                    'config': os.path.basename(config_file),
+                    'start_time_ms': int(analysis_start_time/ms),
+                    'end_time_ms': int(analysis_end_time/ms),
+                    'default_bin_size_ms': 10
+                },
+                'groups': []
+            }
+
+            for group_name, monitor in results['spike_monitors'].items():
+                N_group = int(monitor.source.N)
+                t_ms_arr = np.array(monitor.t / ms, dtype=float)
+                i_arr = np.array(monitor.i, dtype=int)
+                save_data[f'spike_monitors_{group_name}'] = {
+                    't_ms': t_ms_arr,
+                    'i': i_arr,
+                    'N': N_group
+                }
+                save_data['groups'].append(group_name)
+
+            with open('normal_results.pkl', 'wb') as f:
+                pickle.dump(save_data, f)
+        except Exception as e:
+            print(f"Error saving normal results: {e}")
     
+    elif 'dop' in config_file.lower():
+        try:
+            import pickle
+            save_data = {
+                'meta': {
+                    'config': os.path.basename(config_file),
+                    'start_time_ms': int(analysis_start_time/ms),
+                    'end_time_ms': int(analysis_end_time/ms),
+                    'default_bin_size_ms': 10
+                },
+                'groups': []
+            }
 
-    plot_multi_neuron_stimulus_overview(
-        results['voltage_monitors'],
-        results['spike_monitors'],
-        simulation_params.get('stimulus', {}),
-        target_groups=['FSN', 'MSND1', 'MSND2', 'GPeT1', 'GPeTA', 'STN', 'SNr'],
-        neurons_per_group=1, 
-        analysis_window=(analysis_start_time, analysis_end_time), 
-        unified_y_scale=True,  
-        threshold_clipping=True, 
-        display_names=params.get('display_names', None),
-        thresholds=thresholds
-    )
-    
+            for group_name, monitor in results['spike_monitors'].items():
+                N_group = int(monitor.source.N)
+                t_ms_arr = np.array(monitor.t / ms, dtype=float)
+                i_arr = np.array(monitor.i, dtype=int)
+                save_data[f'spike_monitors_{group_name}'] = {
+                    't_ms': t_ms_arr,
+                    'i': i_arr,
+                    'N': N_group
+                }
+                save_data['groups'].append(group_name)
 
-
-    plot_firing_rate_fft_multi_page(
-        results['spike_monitors'],
-        neuron_indices=None,
-        start_time=0*ms,
-        end_time=10000*ms,
-        bin_size=10*ms,
-        show_mean=True,
-        max_freq=100,
-        title='Firing Rate FFT Spectra',
-        display_names=params.get('display_names', None)
-    )
-
-    # Display zoom windows for key neuron groups
-    key_groups = ['FSN', 'MSND1', 'MSND2', 'STN', 'SNr']
-    zoom_windows = [('First Window', first_window), ('Last Window', last_window)]
-    
-    for window_name, time_window in zoom_windows:
-        print(f"\nCreating zoom plots for {window_name}: {time_window[0]/ms:.0f}-{time_window[1]/ms:.0f}ms")
-        
-        for group_name in key_groups:
-            if group_name in results['voltage_monitors'] and group_name in results['spike_monitors']:
-                try:
-                    # Membrane potential zoom
-                    vmon = results['voltage_monitors'][group_name]
-                    plot_membrane_zoom(vmon, time_window=time_window, neuron_indices=[0], group_name=group_name, 
-                                      spike_monitors=results['spike_monitors'], thresholds=thresholds,
-                                      display_names=params.get('display_names', None))
-                    
-                    # Raster zoom
-                    smon = results['spike_monitors'][group_name]
-                    plot_raster_zoom(smon, time_window=time_window, neuron_indices=None, group_name=group_name,
-                                    display_names=params.get('display_names', None))
-                except Exception as e:
-                    print(f"Error creating zoom plots for {group_name} ({window_name}): {e}")  
+            with open('pd_results.pkl', 'wb') as f:
+                pickle.dump(save_data, f)
+        except Exception as e:
+            print(f"Error saving PD results: {e}")
 
 if __name__ == "__main__":
     main()
