@@ -13,8 +13,7 @@ gc.collect()
 
 from module.simulation.runner import run_simulation_with_inh_ext_input
 from module.utils.param_loader import load_params
-from module.utils.visualization import (plot_improved_overall_raster,
-                                     plot_firing_rate_fft_multi_page)
+from module.utils.visualization import plot_improved_overall_raster, plot_firing_rate_fft_multi_page
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -23,10 +22,7 @@ def parse_arguments():
         epilog="""
         Examples:
         python run.py                                  
-        python run.py --config config/test_normal_noin.json
-        python run.py -c config/test_dop_noin.json
-        python run.py --list-configs                   
-        python run.py -l                              
+        python run.py --config config/test_dop_noin.json                           
         """
     )
     parser.add_argument('--config', '-c', 
@@ -59,7 +55,6 @@ def main():
     
     if not os.path.exists(params_file):
         print(f"Error: Configuration file '{params_file}' not found!")
-        print("Available options:")
         list_available_configs()
         return
     
@@ -163,6 +158,8 @@ def main():
 
             with open('normal_results.pkl', 'wb') as f:
                 pickle.dump(save_data, f)
+            print("Results saved to 'normal_results.pkl'")
+        
         except Exception as e:
             print(f"Error saving normal results: {e}")
     
@@ -192,8 +189,10 @@ def main():
 
             with open('pd_results.pkl', 'wb') as f:
                 pickle.dump(save_data, f)
+            print("Results saved to 'pd_results.pkl'")
+        
         except Exception as e:
-            print(f"Error saving PD results: {e}")
+            print(f"Results Saving Error: {e}")
 
 if __name__ == "__main__":
     main()
