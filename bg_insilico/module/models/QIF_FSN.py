@@ -9,7 +9,6 @@ du/dt = (1/a) * (int(v <= vb) * (b * (v - vb)**3 * cubic_current_coeff - u) - in
 a : second
 b : 1
 k : 1
-E_L    : volt
 vt     : volt
 vr     : volt
 vb     : volt

@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2025. All rights reserved.
+# Author: keun (Jieun Kim)
+# Description: Neuron group management
+
 from brian2 import *
 import importlib
 import json
@@ -6,6 +11,7 @@ from brian2 import mV, ms, nS, Hz
 import gc  
 from module.models.stimulus import create_poisson_inputs
 
+# Load parameters from JSON
 def load_params_from_file(params_file):
     try:
         with open(params_file, 'r') as f:
@@ -15,61 +21,17 @@ def load_params_from_file(params_file):
         print(f"Load Error: {str(e)}")
         raise
 
+# Get neuron count by name
 def get_neuron_count(neuron_configs, target_name):
     for config in neuron_configs:
         if config["name"] == target_name:
             return config["N"]
     return None  
 
-def generate_non_overlapping_poisson_input(N, rate, duration, dt=1):
-    n_steps = int(np.ceil(duration / dt))
-    
-    indices_list = []
-    times_list = []
-    
-    for step in range(n_steps):
-        t = step * dt
-        n_spikes = min(np.random.poisson(rate * dt), N)
-        if n_spikes > 0:
-            chosen = np.random.choice(N, size=n_spikes, replace=False)
-            indices_list.extend(chosen)
-            times_list.extend([t] * n_spikes)
-    
-    if not indices_list:
-        return np.array([], dtype=int), np.array([], dtype=float)
-    
-    indices = np.array(indices_list, dtype=int)
-    times = np.array(times_list, dtype=float)
-    
-    order = np.argsort(times)
-    indices = indices[order]
-    times = times[order]
-    
-    return indices, times
-
-def analyze_input_requirements(name, total_rate, N, target_min_hz, target_max_hz):
-    current_input_per_neuron = total_rate / N
-    target_mean = (target_min_hz + target_max_hz) / 2
-    ratio = target_mean / current_input_per_neuron if current_input_per_neuron > 0 else float('inf')
-    
-    print(f"\nInput Analysis for {name}:")
-    print(f"  Current input per neuron: {current_input_per_neuron:.2f} Hz")
-    print(f"  Required scaling factor: {ratio:.3f}x")
-    
-    if ratio > 1:
-        print(f"  Need to increase weights/input by {ratio:.2f}x to reach target")
-    else:
-        print(f"  Need to decrease weights/input by {1/ratio:.2f}x to reach target")
-    
-    return ratio
-
+# Create neuron groups
 def create_neurons(neuron_configs, simulation_params, connections=None):
-    np.random.seed(2025)
-
     duration = simulation_params.get('duration', 1.0) 
     dt = float(simulation_params.get('dt', 1))  
-    
-    # Check if stimulus is enabled
     stimulus_enabled = simulation_params.get('stimulus', {}).get('enabled', False)
 
     try:
@@ -80,28 +42,10 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
             N = config['N']
 
             if config.get('neuron_type', None) == 'poisson':
-                if stimulus_enabled:
-                    # Skip creating PoissonGroup here - will be created in stimulus.py
-                    print(f"Skipping PoissonGroup creation for {name} - stimulus enabled")
-                    continue
-                
-                if 'target_rates' in config and len(config['target_rates']) > 0:
-                    target, rate_info = list(config['target_rates'].items())[0]
-                    rate_expr = rate_info['equation']
-                    N = config['N']
-                    
-                    # Create PoissonGroup directly
-                    total_rate = eval(rate_expr)
-                    rate_per_neuron = total_rate / N
-                    group = PoissonGroup(N, rates=rate_per_neuron)
-                    neuron_groups[name] = group
-                    print(f"Created PoissonGroup for {name}: {N} neurons @ {rate_per_neuron} each = {total_rate} total")
-
                 continue
 
             if 'model_class' in config and 'params_file' in config:
                 try:
-                    print(f"Creating {name} with model_class: {config['model_class']}")
                     params = load_params_from_file(config['params_file'])
                     module_name = f"Neuronmodels.{config['model_class']}"
                     model_module = importlib.import_module(module_name)
@@ -109,7 +53,6 @@ def create_neurons(neuron_configs, simulation_params, connections=None):
                     model_instance = model_class(N, params, connections)
                     neuron_group = model_instance.create_neurons()
                     neuron_groups[name] = neuron_group
-                    print(f"Successfully created {name}")
                 except Exception as e:
                     print(f"Error creating {name}: {str(e)}")
                     import traceback

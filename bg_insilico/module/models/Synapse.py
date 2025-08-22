@@ -1,9 +1,16 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2025. All rights reserved.
+# Author: keun (Jieun Kim)
+# Description: Synapse management
+
 from brian2 import *
 import importlib
 import logging
+import numpy as np
 
 logging.getLogger('brian2').setLevel(logging.ERROR)
 
+# Base synapse class
 class SynapseBase:
     def __init__(self, neurons, connections):
         self.neurons = neurons
@@ -24,12 +31,14 @@ class SynapseBase:
         }
 
     def _get_on_pre(self, receptor_type, g0_value, tau_value, weight, conn_name=None):
-
         g_increase = f"w * {g0_value} * nS"
         var_map = {'AMPA': 'g_a', 'NMDA': 'g_n', 'GABA': 'g_g'}
         var = var_map.get(receptor_type)
 
-        is_ext_input = conn_name and conn_name.lower().startswith('ext')
+        is_ext_input = False
+        if conn_name:
+            name_lower = conn_name.lower()
+            is_ext_input = name_lower.startswith('ext') or name_lower.startswith('cortex')
         if is_ext_input:
             return f"\n{var} += {g_increase}\n"
     
@@ -61,10 +70,12 @@ class SynapseBase:
         {var} = clip({var} + {g_increase}, 0 * nS, {max_g_value} * nS)
         '''
 
+# Main synapse class
 class Synapse(SynapseBase):
     def __init__(self, neurons, connections):
         super().__init__(neurons, connections)
 
+# Get synapse class by name
 def get_synapse_class(class_name):
     try:
         module = importlib.import_module('module.models.Synapse')
@@ -74,6 +85,7 @@ def get_synapse_class(class_name):
     except AttributeError:
         raise ImportError(f"Class '{class_name}' not found in 'module.models.Synapse'.")
 
+# Create synaptic connections
 def create_synapses(neuron_groups, connections, synapse_class_name):
     try:
         synapse_connections = []
@@ -125,28 +137,34 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
                     created_synapses_map[syn_key] = syn
                     synapse_connections.append(syn)
 
-                    p = conn_config.get('p', 1.0)
-                    N_pre = pre_group.N
-                    fan_in = p * N_pre
-                    N_beta = current_params.get('N_beta', {}).get('value', 1.0)
-                    effective_p = (fan_in * N_beta) / N_pre
-                    effective_p = min(effective_p, 1.0)
-                    syn.connect(p=effective_p)
+                    is_external_pre = pre.startswith('Cortex_') or pre.startswith('Ext_')
+                    if is_external_pre:
+                        N_pre = int(pre_group.N)
+                        N_post = int(post_group.N)
+                        if N_pre == N_post:
+                            syn.connect(j='i')
+                        elif N_pre % N_post == 0 and N_post > 0:
+                            syn.connect(i=np.arange(N_pre), j=(np.arange(N_pre) % N_post))
+                        else:
+                            min_n = min(N_pre, N_post)
+                            syn.connect(i=np.arange(min_n), j=np.arange(min_n))
+                    else:
+                        p = conn_config.get('p', 1.0)
+                        N_pre = pre_group.N
+                        fan_in = p * N_pre
+                        N_beta = current_params.get('N_beta', {}).get('value', 1.0)
+                        effective_p = (fan_in * N_beta) / N_pre
+                        effective_p = min(effective_p, 1.0)
+                        syn.connect(p=effective_p)
 
-                    # Set the 'w' variable in the Synapses object, used by 'g_increase'
                     syn.w = weight_from_config
 
-                    if hasattr(syn, 'tau_' + receptor_type):
-                        tau_val = current_params.get('tau_syn', {}).get('value', 160.0)
-                        setattr(syn, f'tau_{receptor_type}', tau_val * ms)
-
-                    if hasattr(syn, 'E_' + receptor_type):
-                        e_val = current_params.get('E_rev', {}).get('value', 0.0)
-                        setattr(syn, f'E_{receptor_type}', e_val * mV)
-
-                    if hasattr(syn, receptor_type.lower() + '_beta'):
-                        beta_val = current_params.get('beta', {}).get('value', 1.0)
-                        setattr(syn, f'{receptor_type.lower()}_beta', beta_val)
+                    try:
+                        delay_val_ms = current_params.get('delay', {}).get('value', None)
+                        if delay_val_ms is not None:
+                            syn.delay = delay_val_ms * ms
+                    except Exception as _:
+                        pass
 
                 except Exception as e:
                     print(f"ERROR creating {receptor_type} synapse: {str(e)}")
@@ -157,6 +175,7 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
         print(f"Error creating synapses: {str(e)}")
         raise
 
+# Generate synapse inputs for specific neuron
 def generate_neuron_specific_synapse_inputs(neuron_name, connections, already_defined=None):
     used_receptors = set()
     for conn_name, conn_config in connections.items():
@@ -167,6 +186,7 @@ def generate_neuron_specific_synapse_inputs(neuron_name, connections, already_de
 
     return generate_synapse_inputs(list(used_receptors), already_defined=already_defined)
 
+# Generate synapse equations
 def generate_synapse_inputs(receptors=None, already_defined=None):
     if receptors is None:
         receptors = ['AMPA', 'NMDA', 'GABA']
@@ -207,5 +227,3 @@ def generate_synapse_inputs(receptors=None, already_defined=None):
         eqs += f'Isyn = 0 * amp : amp\n'
 
     return eqs
-
-
