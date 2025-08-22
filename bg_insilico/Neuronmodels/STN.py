@@ -71,6 +71,7 @@ class STN(NeuronModel):
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
+        
         self.neurons.I_ext = self.params['I_ext']['value'] * eval(self.params['I_ext']['unit'])
         self.neurons.z = self.params['z']['value'] * eval(self.params['z']['unit'])
         

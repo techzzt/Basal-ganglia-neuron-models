@@ -65,19 +65,12 @@ class FSN(NeuronModel):
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.vt = self.params['vt']['value'] * eval(self.params['vt']['unit'])
         self.neurons.vb = self.params['vb']['value'] * eval(self.params['vb']['unit'])
-        """
-        np.random.seed(2025) 
-        base_v = self.params['v']['value'] * eval(self.params['v']['unit'])
-        v_noise = np.random.normal(0, 1, self.N) * mV  
-        self.neurons.v = base_v + v_noise
-        """
         self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
         
         self.neurons.u = self.params['u']['value'] * eval(self.params['u']['unit'])
         self.neurons.cubic_current_coeff = 1 * pA / mV**3
         
-        # Initialize external current to zero (for consistency across models)
         self.neurons.I_ext = 0 * pA
 
         if hasattr(self.neurons, 'g_a'):

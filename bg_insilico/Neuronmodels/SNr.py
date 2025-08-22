@@ -2,6 +2,7 @@ from brian2 import *
 import importlib
 from module.models import AdEx
 from module.models.Synapse import generate_neuron_specific_synapse_inputs
+from module.utils.init_v import compute_adex_v_rest
 import numpy as np
 from brian2 import mV, ms, nS, pA
 
@@ -59,6 +60,7 @@ class SNr(NeuronModel):
         self.neurons.vr = self.params['vr']['value'] * eval(self.params['vr']['unit'])
         self.neurons.v = self.params['v']['value'] * eval(self.params['v']['unit'])
         self.neurons.th = self.params['th']['value'] * eval(self.params['th']['unit'])
+        
         self.neurons.I_ext = self.params['I_ext']['value'] * eval(self.params['I_ext']['unit'])
         self.neurons.z = self.params['z']['value'] * eval(self.params['z']['unit'])
         

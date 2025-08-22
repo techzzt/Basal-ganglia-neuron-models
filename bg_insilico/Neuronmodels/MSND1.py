@@ -61,7 +61,6 @@ class MSND1(NeuronModel):
         
         self.neurons.u = self.params['u']['value'] * eval(self.params['u']['unit'])
         
-        # Initialize external current to zero (for consistency across models)
         self.neurons.I_ext = 0 * pA
 
         if hasattr(self.neurons, 'g_a'):
