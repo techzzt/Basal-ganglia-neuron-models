@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2025. All rights reserved.
+# Author: keun (Jieun Kim)
+
 import os
 import gc
 import time
 from copy import deepcopy
 from tqdm import tqdm
-import random as python_random
 import numpy as np
 
 from brian2 import *
@@ -28,6 +31,7 @@ prefs.core.default_float_dtype = np.float32
 prefs.codegen.runtime.cython.multiprocess_safe = False
 prefs.codegen.runtime.numpy.discard_units = True
 
+# Monitor simulation progress
 class SimulationMonitor:
     def __init__(self, total_time, dt=1*ms, update_interval=100*ms):  
         self.total_time = float(total_time/ms)  
@@ -62,7 +66,7 @@ class SimulationMonitor:
     def close(self):
         self.pbar.close()
 
-
+# Extract spike data from monitor
 def get_monitor_spikes(monitor):
     try:
         if hasattr(monitor, 't') and hasattr(monitor, 'i') and len(monitor.t) > 0:
@@ -74,7 +78,7 @@ def get_monitor_spikes(monitor):
     except:
         return np.array([]) * ms, np.array([])
 
-
+# Run simulation with external inputs
 def run_simulation_with_inh_ext_input(
     neuron_configs,
     connections,
@@ -86,7 +90,6 @@ def run_simulation_with_inh_ext_input(
     ext_inputs=None,
     amplitude_oscillations=None
 ):
-    
     spike_monitors = {}
     neuron_groups = None
     synapse_connections = None
@@ -129,7 +132,6 @@ def run_simulation_with_inh_ext_input(
         for name, group in neuron_groups.items():
             if not name.startswith(('Cortex_', 'Ext_')):  
                 spike_monitors[name] = SpikeMonitor(group)
-                # Record more neurons for better visualization (up to 10 neurons)
                 num_to_record = min(10, group.N)
                 neurons_to_record = list(range(num_to_record))
                 voltage_monitors[name] = StateMonitor(group, 'v', record=neurons_to_record)
@@ -155,11 +157,11 @@ def run_simulation_with_inh_ext_input(
         results = {
             'spike_monitors': spike_monitors,
             'voltage_monitors': voltage_monitors,
+            'poisson_monitors': poisson_monitors,
             'firing_rates': {}
         }
         
     except Exception as e:
-        print(f"Simulation failed with error: {str(e)}")
         raise
 
     finally:
