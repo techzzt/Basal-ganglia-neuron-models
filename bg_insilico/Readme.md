@@ -11,13 +11,8 @@ pip install -r requirements.txt
 
 ### 2. Run Simulation
 ```bash
-# List available configuration files
 python run.py --list-configs
-
-# Run with default configuration (dopamine-depleted)
 python run.py
-
-# Run with specific configuration
 python run.py --config config/test_normal_noin.json
 ```
 
@@ -26,7 +21,6 @@ python run.py --config config/test_normal_noin.json
 - `config/`: Simulation configuration files
 - `module/`: Neuron models, simulation, and visualization code
 - `run.py`: Main execution script
-- `requirements.txt`: Required packages
 
 ## ⚙️ Configuration
 
