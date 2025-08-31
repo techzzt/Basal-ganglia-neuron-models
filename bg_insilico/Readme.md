@@ -33,10 +33,13 @@ You can modify the following in JSON files:
 ## 📊 Output
 
 The simulation generates:
-- Spike timing (raster plot)
+- Spike patterns (raster plot)
+<img width="590" height="454" alt="image" src="https://github.com/user-attachments/assets/af89b479-dfff-45d9-bc0b-895bd2978160" />
+
 - Membrane potential changes
 - Firing rate analysis
 - FFT spectrum
+
 
 ## 📚 References
 
