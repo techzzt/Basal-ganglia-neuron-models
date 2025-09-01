@@ -19,20 +19,20 @@ neuron models should be put under ```./bg_insilico```
 
 | Neuron Type | Brain Region | Model Type | Description | Alternative Terms | Transmitter | Implementation Status |
 |-----------|--------------|-----------------|------------------|-----------------|---------|-----------------|
-| MSN D1 | Striatum | QIF Model | Direct pathway, D1 receptors | dSPN, Direct SPN | GABA | Implemented | 
-| MSN D2 | Striatum | QIF Model | Indirect pathway, D2 receptors | iSPN, Indirect SPN | GABA | Implemented | 
+| MSN D1 | Striatum | QIF | Direct pathway, D1 receptors | dSPN, Direct SPN | GABA | Implemented | 
+| MSN D2 | Striatum | QIF | Indirect pathway, D2 receptors | iSPN, Indirect SPN | GABA | Implemented | 
 | FSN | Striatum | QIF and Type-2 | Fast-spiking, feedforward inhibition | FSI, FS | GABA | Implemented |
-| ChIN | Striatum | HH Model | Tonically active | TANs | ACh | Planned | 
-| Prototypic | GPe | AdEx Model | High firing rate | GPe-TI, Proto | GABA | Implemented |
-| Arkypallidal | GPe | AdEx Model |  | GPe-TA, Arky | GABA | Implemented | 
-| PV+ | STN | AdEx Model | high frequency bursting | paravalbumin PV+ | Glutamate | Implemented | 
-| PV- | STN | AdEx Model |  | paravalbumin PV+ | Glutamate | Implemented | 
-| PV+ | GPi | Izhikevich Model | High-frequency tonic firing |  | GABA |  | 
-| SST+ | GPi | Izhikevich Model | Lower baseline firing |  | GABA |  |
-| PV+ | SNr | AdEx Model | High-frequency firing | SNr-PV+ | GABA |  | 
-| SST+ | SNr | AdEx Model | Heterogeneous firing, motor control |  | GABA |  | 
-| GABAergic | SNc | LIF Model | local inhibition |  | GABA |  | 
-| Dopaminergic | SNc | HH Model | phasic bursting | SNc-DA, DA neuron | DA + GABA |  |  |
+| ChIN | Striatum | HH | Tonically active | TANs | ACh | Planned | 
+| Prototypic | GPe | AdEx | High firing rate | GPe-TI, Proto | GABA | Implemented |
+| Arkypallidal | GPe | AdEx |  | GPe-TA, Arky | GABA | Implemented | 
+| PV+ | STN | AdEx | high frequency bursting | paravalbumin PV+ | Glutamate | Implemented | 
+| PV- | STN | AdEx |  | paravalbumin PV+ | Glutamate | Implemented | 
+| PV+ | GPi | Izhikevich | High-frequency tonic firing |  | GABA |  | 
+| SST+ | GPi | Izhikevich | Lower baseline firing |  | GABA |  |
+| PV+ | SNr | AdEx | High-frequency firing | SNr-PV+ | GABA |  | 
+| SST+ | SNr | AdEx | Heterogeneous firing, motor control |  | GABA |  | 
+| GABAergic | SNc | LIF | local inhibition |  | GABA |  | 
+| Dopaminergic | SNc | HH | phasic bursting | SNc-DA, DA neuron | DA + GABA |  |  |
 
 #### Population Value 
 Neuron type | [References 1](https://www.eneuro.org/content/3/6/ENEURO.0156-16.2016.short) | [Reference 2](https://www.eneuro.org/content/9/2/ENEURO.0376-21.2022.abstract) | [Reference 3](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1010645) | [Reference 4](https://www.biorxiv.org/content/10.1101/2023.03.07.531640v1) | [Reference 5](https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0189109&type=printable) | [Reference 6](https://www.biorxiv.org/content/10.1101/2023.09.05.556301v3.full.pdf)
