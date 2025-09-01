@@ -14,7 +14,7 @@ AdEx | $$C_m \frac{dV}{dt} = -g_L(V - E_L) + g_L \Delta_T e^{\frac{V-V_T}{\Delta
 <img width="684" height="279" alt="image" src="https://github.com/user-attachments/assets/87717488-fe2a-4926-9e38-b569186e40fd" />
 
 
-## ARGUMENTS
+## Arguments
 neuron models should be put under ```./bg_insilico```
 
 | Neuron Type | Brain Region | Model Type | Description | Alternative Terms | Transmitter | Implementation Status |
