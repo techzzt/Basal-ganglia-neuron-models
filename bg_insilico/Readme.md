@@ -1,6 +1,6 @@
 # Basal Ganglia In Silico Simulation
 
-A computational model of the basal ganglia network using Brian2 neural simulator.
+A computational model of the basal ganglia network using Brian2 library
 
 ## Start
 
