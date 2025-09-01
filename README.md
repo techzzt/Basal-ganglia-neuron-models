@@ -25,11 +25,11 @@ neuron models should be put under ```./bg_insilico```
 | ChIN | Striatum | HH | Tonically active | TANs | ACh | Planned | 
 | Prototypic | GPe | AdEx | High firing rate | GPe-TI, Proto | GABA | Implemented |
 | Arkypallidal | GPe | AdEx |  | GPe-TA, Arky | GABA | Implemented | 
-| PV+ | STN | AdEx | High frequency bursting | paravalbumin PV+ | Glutamate | Implemented | 
+| PV+ | STN | AdEx | High frequency bursting | paravalbumin PV+ | Glutamate | Planned | 
 | PV- | STN | AdEx |  | Tonic bursiting | Glutamate | Implemented | 
 | PV+ | GPi | Izhikevich | High-frequency tonic firing |  | GABA |  | 
 | SST+ | GPi | Izhikevich | Lower baseline firing |  | GABA |  |
-| PV+ | SNr | AdEx | High-frequency firing | SNr-PV+ | GABA |  | 
+| PV+ | SNr | AdEx | High-frequency firing | SNr-PV+ | GABA | Implemented | 
 | SST+ | SNr | AdEx | Heterogeneous firing, motor control |  | GABA |  | 
 | GABAergic | SNc | LIF | Local inhibition |  | GABA |  | 
 | Dopaminergic | SNc | HH | Phasic bursting | SNc-DA, DA neuron | DA + GABA |  |  |
