@@ -4,8 +4,8 @@
         {"name": "Cortex_MSND1", "N": 37971, "neuron_type": "poisson", "target_rates": {"MSND1": {"equation": "448*Hz"}}},  
         {"name": "Cortex_MSND2", "N": 37971, "neuron_type": "poisson", "target_rates": {"MSND2": {"equation": "592*Hz"}}},
         {"name": "Cortex_STN", "N": 388, "neuron_type": "poisson", "target_rates": {"STN": {"equation": "170*Hz"}}},
-        {"name": "Ext_GPeT1", "N": 988, "neuron_type": "poisson", "target_rates": {"GPeT1": {"equation": "100*Hz"}}},
-        {"name": "Ext_GPeTA", "N": 329, "neuron_type": "poisson", "target_rates": {"GPeTA": {"equation": "720*Hz"}}},
+        {"name": "Ext_GPeT1", "N": 988, "neuron_type": "poisson", "target_rates": {"GPeT1": {"equation": "720*Hz"}}},
+        {"name": "Ext_GPeTA", "N": 329, "neuron_type": "poisson", "target_rates": {"GPeTA": {"equation": "100*Hz"}}},
         {"name": "Ext_SNr", "N": 754, "neuron_type": "poisson", "target_rates": {"SNr": {"equation": "1800*Hz"}}},
 
         {
