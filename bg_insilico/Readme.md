@@ -38,7 +38,7 @@ The simulation generates:
 - Firing rate analysis  
 - FFT spectrum  
 
-## 📚 References
+## References
 
 - "Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model"
 - [Brian2 Documentation](https://brian2.readthedocs.io/)
