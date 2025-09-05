@@ -78,7 +78,3 @@ Dong, Jie, et al. "Connectivity and functionality of the globus pallidus externa
 The role of neurotransmitter systems in mediating deep brain stimulation effects in Parkinson’s disease
 
 Humphries, Mark D., et al. "Capturing dopaminergic modulation and bimodal membrane behaviour of striatal medium spiny neurons in accurate, reduced models." Frontiers in computational neuroscience 3 (2009): 849.
-
-
-<img width="440" height="309" alt="image" src="https://github.com/user-attachments/assets/040f3695-6b7c-486c-ab47-3413b9f5d61b" />
-
