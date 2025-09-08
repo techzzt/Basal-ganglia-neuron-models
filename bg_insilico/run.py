@@ -14,6 +14,13 @@ gc.collect()
 from module.simulation.runner import run_simulation_with_inh_ext_input
 from module.utils.param_loader import load_params
 from module.utils.visualization import plot_improved_overall_raster, plot_firing_rate_fft_multi_page
+from module.utils.firing_rate_analysis import (
+    calculate_and_print_firing_rates,
+    analyze_input_rates_and_spike_counts,
+    analyze_firing_rates_by_stimulus_periods,
+    compare_firing_rates_between_conditions
+)
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -85,7 +92,9 @@ def main():
         'MSND1': 0.11,
         'MSND2': 0.11, 
         'FSN': 0.11,
-        'STN': 0.11 
+        'STN': 0.11,
+        'STN_PVminus': 0.11,
+        'STN_PVplus': 0.11
     }
 
     # Run simulation
@@ -99,6 +108,33 @@ def main():
         end_time=analysis_end_time,
         ext_inputs=ext_inputs,
         amplitude_oscillations=amplitude_oscillations  
+    )
+
+    # Calculate and print firing rates
+    firing_rates = calculate_and_print_firing_rates(
+        results['spike_monitors'], 
+        start_time=analysis_start_time,
+        end_time=analysis_end_time,
+        display_names=params.get('display_names', None)
+    )
+
+    # Analyze input rates and spike counts
+    analyze_input_rates_and_spike_counts(
+        results['spike_monitors'],
+        ext_inputs,
+        neuron_configs,
+        simulation_params.get('stimulus', {}),
+        analysis_start_time,
+        analysis_end_time
+    )
+
+    # Analyze firing rates by stimulus periods
+    analyze_firing_rates_by_stimulus_periods(
+        results['spike_monitors'],
+        simulation_params.get('stimulus', {}),
+        analysis_start_time,
+        plot_order,
+        params.get('display_names', None)
     )
 
     # Plot results
