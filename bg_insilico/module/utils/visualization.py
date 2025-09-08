@@ -23,6 +23,22 @@ else:
 
 plt.ion()  
 
+# Apply Gaussian smoothing to 1D data
+def gaussian_smooth(data, sigma):
+    if sigma <= 0:
+        return data
+
+    kernel_size = int(6 * sigma)
+    if kernel_size % 2 == 0:
+        kernel_size += 1
+    x = np.arange(kernel_size) - kernel_size // 2
+    kernel = np.exp(-0.5 * (x / sigma) ** 2)
+    kernel = kernel / np.sum(kernel)
+    
+    padded_data = np.pad(data, kernel_size//2, mode='edge')
+    smoothed = np.convolve(padded_data, kernel, mode='valid')
+    return smoothed
+
 # Extract spike times and indices from monitor
 def get_monitor_spikes(monitor):
     try:
