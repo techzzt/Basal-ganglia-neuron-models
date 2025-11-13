@@ -1,4 +1,4 @@
-# Basal Ganglia In Silico Simulation
+# CBTC circuit Simulation
 
 A computational model of the basal ganglia network using Brian2 library
 
