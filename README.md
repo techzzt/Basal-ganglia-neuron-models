@@ -35,8 +35,6 @@ You can modify the following in JSON files:
 The simulation generates:
 - Spike patterns (raster plot)  
 - Membrane potential changes  
-- Firing rate analysis  
-- FFT spectrum  
 
 ## References
 
