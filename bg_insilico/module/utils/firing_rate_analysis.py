@@ -14,26 +14,101 @@ def get_monitor_spikes(monitor):
     except:
         return np.array([]) * ms, np.array([])
 
-def calculate_and_print_firing_rates(spike_monitors, start_time=2000*ms, end_time=10000*ms, display_names=None):
+def calculate_and_print_firing_rates(spike_monitors, start_time=2000*ms, end_time=10000*ms, display_names=None, skip_warmup_ms=2000):
     firing_rates = {}
+    
+    effective_start_time = max(start_time, skip_warmup_ms * ms)
     
     for group_name, monitor in spike_monitors.items():
         if hasattr(monitor, 't') and hasattr(monitor, 'i') and len(monitor.t) > 0:
             t_ms = monitor.t / ms
-            mask = (t_ms >= start_time/ms) & (t_ms <= end_time/ms)
+            mask = (t_ms >= effective_start_time/ms) & (t_ms <= end_time/ms)
             spikes_in_window = np.sum(mask)
-            duration_sec = (end_time - start_time) / 1000.0
+            duration_sec = (end_time - effective_start_time) / second
             N = monitor.source.N
-            firing_rate = spikes_in_window / (N * duration_sec)
+            firing_rate = spikes_in_window / (N * duration_sec) if duration_sec > 0 else 0.0
             firing_rates[group_name] = firing_rate
             display_name = display_names.get(group_name, group_name) if display_names else group_name
-            print(f"{display_name:<20}: {firing_rate:>8.2f} Hz")
+            
+            print(f"{display_name}: {firing_rate:.2f}Hz (spikes={spikes_in_window}, N={N}, duration={duration_sec:.1f}s, warmup={skip_warmup_ms}ms excluded)")
         else:
             firing_rates[group_name] = 0.0
             display_name = display_names.get(group_name, group_name) if display_names else group_name
-            print(f"{display_name:<20}: {0.0:>8.2f} Hz")
+            print(f"{display_name}: 0.00Hz")
     
     return firing_rates
+
+def calculate_fano_factor(spike_monitors, start_time=2000*ms, end_time=10000*ms, display_names=None, skip_warmup_ms=2000, bin_size_ms=100):
+    
+    fano_factors = {}
+    effective_start_time = max(start_time, skip_warmup_ms * ms)
+    duration_sec = (end_time - effective_start_time) / second
+    
+    if duration_sec <= 0:
+        return fano_factors
+    
+    bin_size_sec = bin_size_ms / 1000.0
+    num_bins = max(1, int(duration_sec / bin_size_sec))
+    
+    bin_edges = np.linspace(effective_start_time/ms, end_time/ms, num_bins + 1)
+    
+    for group_name, monitor in spike_monitors.items():
+        if hasattr(monitor, 't') and hasattr(monitor, 'i'):
+            total_neurons = monitor.source.N if hasattr(monitor, 'source') else 0
+            
+            if total_neurons == 0:
+                fano_factors[group_name] = 0.0
+                continue
+            
+            t_ms = monitor.t / ms if len(monitor.t) > 0 else np.array([])
+            i_arr = monitor.i if len(monitor.i) > 0 else np.array([])
+            
+            if len(t_ms) > 0:
+                mask = (t_ms >= effective_start_time/ms) & (t_ms <= end_time/ms)
+                spike_times = t_ms[mask]
+                spike_indices = i_arr[mask]
+            else:
+                spike_times = np.array([])
+                spike_indices = np.array([])
+            
+            neuron_fano_factors = []
+            
+            for neuron_idx in range(total_neurons):
+                neuron_spikes = spike_times[spike_indices == neuron_idx]
+                bin_counts, _ = np.histogram(neuron_spikes, bins=bin_edges)
+                mean_count = np.mean(bin_counts)
+                if mean_count > 0 and len(bin_counts) >= 3:  
+                    var_count = np.var(bin_counts, ddof=1)  
+                    fano_factor = var_count / mean_count
+                    if np.isfinite(fano_factor):
+                        neuron_fano_factors.append(fano_factor)
+
+            if len(neuron_fano_factors) > 0:
+                fano_factors[group_name] = np.mean(neuron_fano_factors)
+            else:
+                fano_factors[group_name] = 0.0
+
+        else:
+            fano_factors[group_name] = 0.0
+    
+    return fano_factors
+
+def calculate_and_print_firing_rates_with_fano(spike_monitors, start_time=2000*ms, end_time=10000*ms, display_names=None, skip_warmup_ms=2000):
+
+    firing_rates = calculate_and_print_firing_rates(spike_monitors, start_time, end_time, display_names, skip_warmup_ms)
+    fano_factors = calculate_fano_factor(spike_monitors, start_time, end_time, display_names, skip_warmup_ms)
+    
+    print(f"\n{'='*60}")
+    print("Mean Firing Rate and Fano Factor")
+    print(f"{'='*60}")
+    
+    for group_name in firing_rates.keys():
+        firing_rate = firing_rates[group_name]
+        fano_factor = fano_factors.get(group_name, 0.0)
+        display_name = display_names.get(group_name, group_name) if display_names else group_name
+        print(f"{display_name}: Mean Rate={firing_rate:.2f}Hz, Fano Factor={fano_factor:.3f}")
+    
+    return firing_rates, fano_factors
 
 def analyze_input_rates_and_spike_counts(spike_monitors, ext_inputs, neuron_configs, stimulus_config, analysis_start_time, analysis_end_time):
     for group_name, monitor in spike_monitors.items():
@@ -99,7 +174,7 @@ def compare_firing_rates_between_conditions(normal_monitors, pd_monitors, start_
             t_ms = monitor.t / ms
             mask = (t_ms >= start_time/ms) & (t_ms <= end_time/ms)
             spikes_in_window = np.sum(mask)
-            duration_sec = (end_time - start_time) / 1000.0
+            duration_sec = (end_time - start_time) / second
             N = monitor.source.N
             firing_rate = spikes_in_window / (N * duration_sec)
             normal_rates[group_name] = firing_rate
@@ -111,7 +186,7 @@ def compare_firing_rates_between_conditions(normal_monitors, pd_monitors, start_
             t_ms = monitor.t / ms
             mask = (t_ms >= start_time/ms) & (t_ms <= end_time/ms)
             spikes_in_window = np.sum(mask)
-            duration_sec = (end_time - start_time) / 1000.0
+            duration_sec = (end_time - start_time) / second
             N = monitor.source.N
             firing_rate = spikes_in_window / (N * duration_sec)
             pd_rates[group_name] = firing_rate

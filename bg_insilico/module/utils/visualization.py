@@ -6,6 +6,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import os
 import numpy as np 
+import traceback
 from brian2 import *
 
 # Set matplotlib backend
@@ -56,7 +57,9 @@ def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None
                                 start_time=0*ms, end_time=1000*ms, display_names=None, 
                                 stimulus_periods=None, save_plot=True,
                                visual_thinning=True, max_points_per_group=4000, 
-                               max_spikes_per_neuron=150):
+                               max_spikes_per_neuron=150,
+                               save_eps=False, eps_filename=None,
+                               save_png=True, png_filename='improved_raster_plot.png'):
     try:
         if plot_order:
             spike_monitors = {name: spike_monitors[name] for name in plot_order if name in spike_monitors}
@@ -117,7 +120,7 @@ def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None
                 plotted_i = plotted_i[kept_idx]
 
             if len(plotted_t) > 0:
-                axes[plot_idx].scatter(plotted_t / ms, plotted_i, s=2.5, alpha=0.8, color='#4682B4')
+                axes[plot_idx].scatter(plotted_t / ms, plotted_i, s=2.5, alpha=0.8, color='#4682B4', edgecolors='none')
             axes[plot_idx].set_title(f'{display_name}', fontsize=14, pad=2)
 
             if len(chosen_neurons) > 0:
@@ -126,10 +129,9 @@ def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None
             axes[plot_idx].set_yticklabels([])
             axes[plot_idx].set_ylabel('')
             axes[plot_idx].set_xlim(int(start_time/ms), int(end_time/ms))
-            
-            for j in range(0, len(chosen_neurons), max(1, len(chosen_neurons)//10)):
-                axes[plot_idx].axhline(y=j-0.5, color='gray', alpha=0.2, linewidth=0.3)
-            
+            axes[plot_idx].set_facecolor('none')
+            axes[plot_idx].grid(False)
+
             if stimulus_periods:
                 for period_idx, (stim_start, stim_end) in enumerate(stimulus_periods):
                     if stim_start >= start_time and stim_end <= end_time:
@@ -137,10 +139,16 @@ def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None
 
         axes[-1].set_xlabel('Time (ms)', fontsize=12)
         plt.tight_layout(pad=0.5) 
+
+        fig.patch.set_facecolor('none')
         
         if save_plot:
-            filename = 'improved_raster_plot.png'
-            plt.savefig(filename, dpi=300, bbox_inches='tight')
+            if save_png and png_filename:
+                plt.savefig(png_filename, dpi=300, bbox_inches='tight', facecolor='none', transparent=True)
+                print(f"Raster plot saved to {png_filename}")
+            if save_eps and eps_filename:
+                plt.savefig(eps_filename, format='eps', dpi=300, bbox_inches='tight', facecolor='none', transparent=True)
+                print(f"Raster plot saved to {eps_filename}")
         
         try:
             if os.environ.get('MPLBACKEND') == 'Agg':
@@ -150,8 +158,9 @@ def plot_improved_overall_raster(spike_monitors, sample_size=12, plot_order=None
         except:
             pass
 
-    except:
-        pass
+    except Exception as e:
+        print(f"Error in plot_improved_overall_raster: {e}")
+        traceback.print_exc()
 
 # Plot FFT spectra for firing rates
 def plot_firing_rate_fft_multi_page(
@@ -240,10 +249,13 @@ def plot_firing_rate_fft_multi_page(
                 if len(neuron_indices) <= 5:
                     ax.plot(freqs[pos_mask], normalized_spectrum, alpha=0.4, linewidth=0.8, color=colors[idx % len(colors)])
 
+            color_normal = '#87CEEB'  
+            color_pd = '#F5A623'      
+            
             all_spectra = np.array(all_spectra)
             if show_mean and len(all_spectra) > 0:
                 mean_spectrum = np.mean(all_spectra, axis=0)
-                ax.plot(all_freqs, mean_spectrum, color='#808080', linestyle='-', linewidth=2, label='Normal')
+                ax.plot(all_freqs, mean_spectrum, color=color_normal, linestyle='-', linewidth=2, label='Normal')
 
             if has_comparison:
                 comp_monitor = comparison_monitors[group_name]
@@ -274,7 +286,7 @@ def plot_firing_rate_fft_multi_page(
                 if len(comp_spectra) > 0:
                     comp_spectra = np.array(comp_spectra)
                     comp_mean_spectrum = np.mean(comp_spectra, axis=0)
-                    ax.plot(all_freqs, comp_mean_spectrum, color='#C00000', linestyle='--', linewidth=2, label=comparison_label)
+                    ax.plot(all_freqs, comp_mean_spectrum, color=color_pd, linestyle='-', linewidth=2, label=comparison_label)
             
             display_name = display_names.get(group_name, group_name) if display_names else group_name
             ax.set_title(f'{display_name}', fontweight='bold', fontsize=10)
