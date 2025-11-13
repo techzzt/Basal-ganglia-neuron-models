@@ -136,22 +136,23 @@ def create_poisson_inputs(neuron_groups, external_inputs, scaled_neuron_counts, 
             group = SpikeGeneratorGroup(N_pre, idx, t_ms * ms)
             
             external_name = None
-            for neuron_config in neuron_configs:
-                if neuron_config.get('neuron_type') == 'poisson':
-                    if 'target_rates' in neuron_config:
-                        config_target, _ = list(neuron_config['target_rates'].items())[0]
-                        if config_target == target:
-                            external_name = neuron_config['name']
-                            break
+            if external_conf:
+                external_name = external_conf.get('name')
+            else:
+                for neuron_config in neuron_configs:
+                    if neuron_config.get('neuron_type') == 'poisson':
+                        if 'target_rates' in neuron_config:
+                            config_target, _ = list(neuron_config['target_rates'].items())[0]
+                            if config_target == target:
+                                external_name = neuron_config['name']
+                                break
             
             if external_name:
                 poisson_groups[external_name] = group
             else:
                 poisson_groups[target] = group
 
-        except Exception as e:
-            print(f"Error creating Poisson inputs for {target}: {str(e)}")
-            import traceback
-            traceback.print_exc()
+        except Exception:
+            pass
     
     return poisson_groups, []

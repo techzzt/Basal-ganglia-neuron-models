@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2025. All rights reserved.
 # Author: keun (Jieun Kim)
-# Description: Synapse management
 
 from brian2 import *
 import importlib
@@ -86,13 +85,26 @@ def get_synapse_class(class_name):
         raise ImportError(f"Class '{class_name}' not found in 'module.models.Synapse'.")
 
 # Create synaptic connections
-def create_synapses(neuron_groups, connections, synapse_class_name):
+def create_synapses(neuron_groups, connections, synapse_class_name, dop_cfg: dict = None):
     try:
         synapse_connections = []
         synapse_class = get_synapse_class(synapse_class_name) if isinstance(synapse_class_name, str) else synapse_class_name
         synapse_instance = synapse_class(neurons=neuron_groups, connections=connections)
 
         created_synapses_map = {}
+
+        def _alpha_scale(cfg: dict):
+            try:
+                if not cfg or not cfg.get('enabled', False):
+                    return 0.0
+                a0 = float(cfg.get('alpha0', 0.8))
+                ad = float(cfg.get('alpha_dop', 1.0))
+                phi = ad - a0
+                if not np.isfinite(phi):
+                    return 0.0
+                return float(phi)
+            except Exception:
+                return 0.0
 
         for conn_name, conn_config in connections.items():
             pre, post = conn_config['pre'], conn_config['post']
@@ -104,6 +116,7 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
             receptor_types = receptor_types if isinstance(receptor_types, list) else [receptor_types]
             
             weight_from_config = conn_config.get('weight', 1.0)
+            alpha_value = _alpha_scale(dop_cfg)
 
             for receptor_type in receptor_types:
                 syn_key = (pre, post, receptor_type, conn_name)
@@ -127,7 +140,40 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
                     conn_name=conn_name
                 )
 
+                tau_syn_dict = current_params.get('tau_syn', {})
+                tau_val = tau_syn_dict.get('value', None) if tau_syn_dict else None
+                erev_dict = current_params.get('E_rev', {})
+                erev_val = erev_dict.get('value', None) if erev_dict else None
+                beta_dict = current_params.get('beta', {})
+                beta_val = beta_dict.get('value', None) if beta_dict else None
+                
                 try:
+                    if receptor_type == 'AMPA':
+                        if tau_val is not None and hasattr(post_group, 'tau_AMPA'):
+                            post_group.tau_AMPA = tau_val * ms
+                        if erev_val is not None and hasattr(post_group, 'E_AMPA'):
+                            post_group.E_AMPA = erev_val * mV
+                        if beta_val is not None and hasattr(post_group, 'ampa_beta'):
+                            post_group.ampa_beta = float(beta_val)
+                    elif receptor_type == 'GABA':
+                        if tau_val is not None and hasattr(post_group, 'tau_GABA'):
+                            post_group.tau_GABA = tau_val * ms
+                        if erev_val is not None and hasattr(post_group, 'E_GABA'):
+                            post_group.E_GABA = erev_val * mV
+                        if beta_val is not None and hasattr(post_group, 'gaba_beta'):
+                            post_group.gaba_beta = float(beta_val)
+                    elif receptor_type == 'NMDA':
+                        if tau_val is not None and hasattr(post_group, 'tau_NMDA'):
+                            post_group.tau_NMDA = tau_val * ms
+                        if erev_val is not None and hasattr(post_group, 'E_NMDA'):
+                            post_group.E_NMDA = erev_val * mV
+                        if beta_val is not None and hasattr(post_group, 'nmda_beta'):
+                            post_group.nmda_beta = float(beta_val)
+                except Exception:
+                    pass
+                
+                try:
+
                     syn = Synapses(
                         pre_group,
                         post_group,
@@ -151,28 +197,49 @@ def create_synapses(neuron_groups, connections, synapse_class_name):
                     else:
                         p = conn_config.get('p', 1.0)
                         N_pre = pre_group.N
-                        fan_in = p * N_pre
-                        N_beta = current_params.get('N_beta', {}).get('value', 1.0)
-                        effective_p = (fan_in * N_beta) / N_pre
+
+                        try:
+                            N_beta_val = current_params.get('N_beta', {}).get('value', 1.0)
+                            if N_beta_val is not None:
+                                N_beta_val = float(N_beta_val)
+                            else:
+                                N_beta_val = 1.0
+                        except Exception:
+                            N_beta_val = 1.0
+                        N_beta_scale = 1.0 + N_beta_val * float(alpha_value)
+                        
+                        if not np.isfinite(N_beta_scale):
+                            N_beta_scale = 1.0
+                        
+                        fan_in = p * N_pre * N_beta_scale
+                        effective_p = fan_in / N_pre
                         effective_p = min(effective_p, 1.0)
                         syn.connect(p=effective_p)
 
-                    syn.w = weight_from_config
+                    try:
+                        beta_val_for_weight = float(beta_val) if beta_val is not None else 0.0
+                        scale = 1.0 + beta_val_for_weight * float(alpha_value)
+                        if not np.isfinite(scale):
+                            scale = 1.0
+                    except Exception:
+                        scale = 1.0
+                    
+                    syn.w = weight_from_config * scale
 
                     try:
-                        delay_val_ms = current_params.get('delay', {}).get('value', None)
+                        delay_dict = current_params.get('delay', {})
+                        delay_val_ms = delay_dict.get('value', None) if delay_dict else None
                         if delay_val_ms is not None:
                             syn.delay = delay_val_ms * ms
-                    except Exception as _:
+                    except Exception:
                         pass
 
-                except Exception as e:
-                    print(f"ERROR creating {receptor_type} synapse: {str(e)}")
+                except Exception:
+                    pass
 
-        return synapse_connections
+        return synapse_connections, created_synapses_map
 
     except Exception as e:
-        print(f"Error creating synapses: {str(e)}")
         raise
 
 # Generate synapse inputs for specific neuron
