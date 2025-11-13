@@ -27,7 +27,7 @@ class STN(NeuronModel):
     def get_receptor_params(self, connections):
         receptor_params = {}
         for conn_name, conn_data in connections.items():
-            if conn_data['post'] == "STN":  
+            if conn_data['post'] in ["STN", "STN_PVminus"]:  # Support both old and new naming
                 conn_receptor_params = conn_data.get('receptor_params', {})
                 
                 for receptor_type, params in conn_receptor_params.items():

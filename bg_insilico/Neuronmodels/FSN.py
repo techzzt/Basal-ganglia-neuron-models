@@ -71,7 +71,10 @@ class FSN(NeuronModel):
         self.neurons.u = self.params['u']['value'] * eval(self.params['u']['unit'])
         self.neurons.cubic_current_coeff = 1 * pA / mV**3
         
-        self.neurons.I_ext = 0 * pA
+        if 'I_ext' in self.params:
+            self.neurons.I_ext = self.params['I_ext']['value'] * eval(self.params['I_ext']['unit'])
+        else:
+            self.neurons.I_ext = 0 * pA
 
         if hasattr(self.neurons, 'g_a'):
             self.neurons.g_a = 0 * nS
