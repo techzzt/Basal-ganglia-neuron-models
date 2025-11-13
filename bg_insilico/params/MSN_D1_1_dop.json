@@ -1,0 +1,19 @@
+{
+    "model": "QIF",
+    "params": {
+        "a": {"value": 0.01, "unit": "second"},
+        "b": {"value": -20, "unit": "1"},
+        "C": {"value": 15.2, "unit": "pF"},
+        "c": {"value": -60, "unit": "mV"},
+        "d": {"value": 66.9, "unit": "pA"},
+        "k": {"value": 1, "unit": ""},
+        "vr": {"value": -78.2, "unit": "mV"},
+        "vt": {"value": -29.7, "unit": "mV"},
+        "th": {"value": 40, "unit": "mV"},
+        "v": {"value": -75, "unit": "mV"},
+        "u": {"value": 0, "unit": "pA"},
+        "I_ext": {"value": 0, "unit": "pA"}
+        },
+    "reference": {
+        "title": "Untangling Basal Ganglia Network Dynamics and Function: Role of Dopamine Depletion and Inhibition Investigated in a Spiking Network Model"    }
+}
