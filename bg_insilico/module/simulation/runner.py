@@ -3,68 +3,40 @@
 # Author: keun (Jieun Kim)
 
 import os
-import gc
+import sys
 import time
-from copy import deepcopy
-from tqdm import tqdm
+import gc
 import numpy as np
 
 from brian2 import *
-from brian2 import mV, ms, nS, Hz
+from brian2 import mV, ms, nS, Hz, second
 from module.models.neuron_models import create_neurons
 from module.models.Synapse import create_synapses
 from module.models.stimulus import create_poisson_inputs
+from module.models.thalamus import Thalamus
 from brian2.devices.device import reset_device
+
+import platform
 
 try:
     reset_device()
 except:
     pass
 
-import platform
 if platform.system() == 'Darwin':
     os.environ['CC'] = '/usr/bin/clang'
     os.environ['CXX'] = '/usr/bin/clang++'
 
-prefs.codegen.target = 'cython'
+prefs.codegen.target = 'numpy'
 prefs.core.default_float_dtype = np.float32
-prefs.codegen.runtime.cython.multiprocess_safe = False
 prefs.codegen.runtime.numpy.discard_units = True
+prefs.codegen.loop_invariant_optimisations = True
 
-# Monitor simulation progress
-class SimulationMonitor:
-    def __init__(self, total_time, dt=1*ms, update_interval=100*ms):  
-        self.total_time = float(total_time/ms)  
-        self.start_time = time.time()
-        self.last_t = 0
-        self.dt = float(dt/ms)
-        self.update_interval = float(update_interval/ms)
-        self.total_steps = int(self.total_time / self.dt)
-        self.pbar = tqdm(total=self.total_time, unit='ms', desc='Simulation Progress')
-    
-    def update(self, t):
-        try:
-            current_time = float(t/ms)
-            if current_time - self.last_t >= self.update_interval: 
-                progress = current_time - self.last_t
-                self.pbar.update(progress)
-                self.last_t = current_time
-                
-                elapsed = time.time() - self.start_time
-                total_progress_fraction = current_time / self.total_time
-                
-                if total_progress_fraction > 0:
-                    estimated_total = elapsed / total_progress_fraction
-                    remaining = max(0, estimated_total - elapsed)
-                    self.pbar.set_postfix(remaining=f"{remaining:.1f}s")
-                
-                if current_time % 1000 == 0: 
-                    gc.collect()
-        except:
-            pass
-    
-    def close(self):
-        self.pbar.close()
+# Enable progress reporting
+try:
+    prefs.core.network.report = 'text'
+except:
+    pass  
 
 # Extract spike data from monitor
 def get_monitor_spikes(monitor):
@@ -94,10 +66,7 @@ def run_simulation_with_inh_ext_input(
     neuron_groups = None
     synapse_connections = None
     poisson_groups = None
-    firing_rates = {}
-    results = {'spike_monitors': {}, 'firing_rates': {}}
     net = None
-    duration = None
     
     try:
         try:
@@ -115,7 +84,7 @@ def run_simulation_with_inh_ext_input(
         
         stimulus_config = simulation_params.get('stimulus', {})
         
-        poisson_groups, timed_arrays = create_poisson_inputs(
+        poisson_groups, _ = create_poisson_inputs(
             neuron_groups, 
             ext_inputs, 
             scaled_neuron_counts,
@@ -126,7 +95,7 @@ def run_simulation_with_inh_ext_input(
         ) if ext_inputs else ({}, [])
 
         all_groups = {**neuron_groups, **poisson_groups}
-        synapse_connections = create_synapses(all_groups, connections, synapse_class)
+        synapse_connections, synapse_map = create_synapses(all_groups, connections, synapse_class)
         
         voltage_monitors = {}
         for name, group in neuron_groups.items():
@@ -134,9 +103,51 @@ def run_simulation_with_inh_ext_input(
                 spike_monitors[name] = SpikeMonitor(group)
                 num_to_record = min(10, group.N)
                 neurons_to_record = list(range(num_to_record))
-                voltage_monitors[name] = StateMonitor(group, 'v', record=neurons_to_record)
+                try:
+                    voltage_monitors[name] = StateMonitor(group, ['v', 'z'], record=neurons_to_record)
+                except Exception:
+                    voltage_monitors[name] = StateMonitor(group, 'v', record=neurons_to_record)
         
         poisson_monitors = {name: SpikeMonitor(group) for name, group in poisson_groups.items()}
+        
+        # Initialize thalamus for SNr
+        thalamus = None
+        cortex_groups = {name: group for name, group in poisson_groups.items() if name.startswith('Cortex_')}
+        snr_spike_monitor = spike_monitors.get('SNr', None)
+        
+        thalamus_params = simulation_params.get('thalamus', {})
+        thalamus_enabled = thalamus_params.get('enabled', True)  # Default: enabled
+        
+        if cortex_groups and snr_spike_monitor is not None and thalamus_enabled:
+            mu_max = thalamus_params.get('mu_max', 40) * Hz
+            mu_snr_max = thalamus_params.get('mu_snr_max', 35) * Hz
+            mu_min = thalamus_params.get('mu_min', 10) * Hz
+            snr_min = thalamus_params.get('snr_min', 20) * Hz
+            filter_tau = thalamus_params.get('filter_tau', 50) * ms
+            window_ms = thalamus_params.get('window_ms', 300.0)
+            
+            # Extract cortex baselines from config (original target rates)
+            cortex_baselines = {}
+            for group_name, group in cortex_groups.items():
+                if group_name.startswith('Cortex_'):
+                    for nc in neuron_configs:
+                        if nc.get('name') == group_name and 'target_rates' in nc:
+                            target, rate_info = list(nc['target_rates'].items())[0]
+                            rate_expr = rate_info['equation']
+                            try:
+                                baseline_rate = float(eval(rate_expr) / Hz) * Hz
+                                cortex_baselines[group_name] = baseline_rate
+                            except:
+                                cortex_baselines[group_name] = mu_max
+                            break
+
+                    if group_name not in cortex_baselines:
+                        cortex_baselines[group_name] = mu_max
+            
+            thalamus = Thalamus(mu_max=mu_max, mu_snr_max=mu_snr_max, 
+                               filter_tau=filter_tau, window_ms=window_ms,
+                               cortex_baselines=cortex_baselines,
+                               mu_min=mu_min, snr_min=snr_min)
         
         net.add(*neuron_groups.values())
         net.add(*synapse_connections)
@@ -145,25 +156,94 @@ def run_simulation_with_inh_ext_input(
         net.add(*voltage_monitors.values())
         net.add(*poisson_monitors.values())
         
+        defaultclock.dt = simulation_params.get('dt', 0.1) * ms
+        
         duration = simulation_params.get('duration', 1000) * ms
-        dt = simulation_params.get('dt', 0.1) * ms 
-        defaultclock.dt = dt
+        print(f"\n{'='*60}")
+        print(f"Starting simulation (duration: {duration/ms:.0f}ms, dt: {defaultclock.dt/ms:.1f}ms)")
+        print(f"{'='*60}")
+        sys.stdout.flush()  
         
-        net.run(duration, report='text', report_period=duration * 0.5)
+        start_real_time = time.time()
+        update_interval = 100*ms 
+        last_reported_time = 0*ms
+        chunk_size = max(10*ms, update_interval)  
+        total_simulated = 0*ms
         
-        if not spike_monitors:
-            return results
+        while total_simulated < duration:
+            remaining = duration - total_simulated
+            chunk = min(chunk_size, remaining)
+            
+            net.run(chunk, report=None)
+            
+            if thalamus is not None and snr_spike_monitor is not None and cortex_groups:
+                window_ms = 100.0
+                current_time_ms = float(total_simulated / ms)
+                cutoff_ms = current_time_ms - window_ms
+                
+                if hasattr(snr_spike_monitor, 't') and hasattr(snr_spike_monitor, 'i') and len(snr_spike_monitor.t) > 0:
+                    t_arr = np.array(snr_spike_monitor.t / ms)
+                    mask = t_arr >= cutoff_ms
+                    recent_spikes = np.sum(mask)
+                    snr_neurons = snr_spike_monitor.source.N
+                    
+                    if snr_neurons > 0 and window_ms > 0:
+                        snr_rate = (recent_spikes / snr_neurons) / (window_ms / 1000.0) * Hz
+                    else:
+                        snr_rate = 0 * Hz
+                    
+                    dt_ms = float(defaultclock.dt / ms)
+                    thalamus.update_cortex_lambda(cortex_groups, snr_rate, dt_ms=dt_ms, current_time_ms=current_time_ms)
+                    
+                    if int(current_time_ms / 1000) != int((current_time_ms - chunk_size/ms) / 1000):
+                        lambda_values = thalamus.get_current_lambda()
+                        print(f"\n[Thalamus Debug @ {current_time_ms:.0f}ms] SNr={snr_rate/Hz:.1f}Hz, Cortex rates:")
+                    
+                        for name, rate in lambda_values.items():
+                            print(f"  {name}: {rate/Hz:.1f}Hz")
+                    
+                        sys.stdout.flush()
+            
+            total_simulated += chunk
+            current_real_time = time.time()
+            elapsed_real_time = current_real_time - start_real_time
+            
+            # Report progress if enough simulation time has passed (update_interval)
+            if total_simulated - last_reported_time >= update_interval or total_simulated >= duration:
+                progress_pct = (total_simulated / duration) * 100
+                
+                elapsed_min = int(elapsed_real_time // 60)
+                elapsed_sec = int(elapsed_real_time % 60)
+                
+                if elapsed_real_time > 0 and progress_pct > 0:
+                    estimated_total_time = elapsed_real_time / (progress_pct / 100.0)
+                    estimated_remaining = estimated_total_time - elapsed_real_time
+                    
+                    remaining_hr = int(estimated_remaining // 3600)
+                    remaining_min = int((estimated_remaining % 3600) // 60)
+                    remaining_sec = int(estimated_remaining % 60)
+                    
+                    print(f"{total_simulated/ms:.1f} ms ({progress_pct:.0f}%) simulated in {elapsed_min}m {elapsed_sec}s, estimated {remaining_hr}h {remaining_min}m {remaining_sec}s remaining.")
+                else:
+                    print(f"{total_simulated/ms:.1f} ms ({progress_pct:.0f}%) simulated in {elapsed_min}m {elapsed_sec}s, estimated time calculating...")
+                
+                sys.stdout.flush()
+                last_reported_time = total_simulated
+                
+                # Periodic garbage collection (every 1000ms of simulation time)
+                if int(total_simulated/ms) % 1000 == 0 and total_simulated > 0*ms:
+                    gc.collect()
 
         results = {
             'spike_monitors': spike_monitors,
             'voltage_monitors': voltage_monitors,
             'poisson_monitors': poisson_monitors,
-            'firing_rates': {}
+            'neuron_groups': neuron_groups,
+            'firing_rates': {},
+            'synapses': synapse_map,
+            'connections': connections
         }
         
-    except Exception as e:
-        raise
-
     finally:
         if spike_monitors:
             for mon in spike_monitors.values():
