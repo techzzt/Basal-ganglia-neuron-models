@@ -1,8 +1,6 @@
 # Basal-ganglia-neuron-models
 
 **Network Structure**
-
-![readme](https://github.com/techzzt/Basal-ganglia-neuron-models/assets/49440852/23c7f1c7-f357-4d2a-b546-126fd4996887)
 ![neurotransmitter](https://github.com/user-attachments/assets/4bd7e1a5-2c19-457f-a619-24c511868422)
 
 
@@ -19,7 +17,7 @@ Izhikevich |$$\frac{dv}{dt} = \left(0.04 \, \frac{1}{\text{ms} \cdot \text{mV}}\
 ## ARGUMENTS
 neuron models should be put under ```./bg_insilico```
 
-- models/model{}.py: define quadratic integrate and fire model (AdEx, LIF, QIF, HH, Izh)
+- models/model.py: define quadratic integrate and fire model (AdEx, LIF, QIF, HH, Izh)
 - params: parameter list with json format
 - simulation_runner.py: generate neuron model, spike monitoring
 - simulation_runner.py: generate neuron model, spike monitoring with various I 
