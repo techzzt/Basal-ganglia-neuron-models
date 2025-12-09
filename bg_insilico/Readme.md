@@ -21,8 +21,8 @@ neuron models should be put under ```./bg_insilico```
 
 - models/model{}.py: define quadratic integrate and fire model (AdEx, LIF, QIF, HH, Izh)
 - params: parameter list with json format
-- simulation_runner.py: generate neuron model, spike mornitoring
-- simulation_runner.py: generate neuron model, spike mornitoring with various I 
+- simulation_runner.py: generate neuron model, spike monitoring
+- simulation_runner.py: generate neuron model, spike monitoring with various I 
 - test.ipynb: define params, simulation
 
 
@@ -39,7 +39,7 @@ PV+ | STN | not seperate STN type [1] | | | glu |
 PV- | STN |  | | | glu |
 PV+ | GPi |  | | | GABA |
 SST+ | GPi |  | | | GABA |
-PV+ | SNr | not seperate SNr type [1] <br> spike cut off refer to [1], and set I arbitarily [2] | | | GABA [6] |
+PV+ | SNr | not separate SNr type [1] <br> spike cut off refer to [1], and set I arbitrarily [2] | | | GABA [6] |
 SST+ | SNr |  | | | GABA |
 GABAergic | SNc |  | | | |
 Dopaminergic | SNc |  | | | |
@@ -88,7 +88,7 @@ Dopaminergic (SNc) | - | - | - | - | -
 
 [7] Lévesque, Martin, and André Parent. "The striatofugal fiber system in primates: a reevaluation of its organization based on single‐axon tracing studies." Proceedings of the National Academy of Sciences 102.33 (2005): 11888-11893.
 
-[8] Cooper, Andrew J., and Jeffery R. Wickens. "Measurement of the membrane time constant and yield of GABA-mediated inhibition in the subthalamic nucleus." Journal of neurophysiology 103.2 (2010): 1049-1059.
+[8] Cooper, Andrew J., and Jeffery R. Wickens. "Measurement of the membrane time constant and yield of GABA-mediated inhibition in the subthalamic nucleus." Journal of Neurophysiology 103.2 (2010): 1049-1059.
 
 - Kim et al. (2024): Kim, Sang-Yoon, and Woochang Lim. "Quantifying harmony between direct and indirect pathways in the basal ganglia: healthy and Parkinsonian states." Cognitive Neurodynamics (2024): 1-21.
 
