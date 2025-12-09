@@ -1,6 +1,7 @@
 # Basal-ganglia-neuron-models
 
 **Network Structure**
+
 ![neurotransmitter](https://github.com/user-attachments/assets/4bd7e1a5-2c19-457f-a619-24c511868422)
 
 
