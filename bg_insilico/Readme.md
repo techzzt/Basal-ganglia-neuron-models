@@ -54,14 +54,17 @@ FSN | 1,599 | 80 | 80 | 420 | 11,500,000 (0.2 * 2.8 * 10<sup>6</sup>)
 ChiN | - | - | - | - | -
 prototypic (GPe) | 988 | - | 988 | 780 | 322,000 (0.7 * 4.6 * 10<sup>4</sup>)
 Arkypallidal (GPe) | 329 | - | 329 | 264 | 115,000 (0.25 * 4.6 * 10<sup>4</sup>)
-PV+ (STN) | **388** | - | **388** | **408** | **13,560**
-PV- (STN) | - | - | - | - | -
+**STN total** | **388** | - | **388** | **408** | **13,560**
+PV+ (STN) | **155 (~40%)** | - | - | - | -
+PV- (STN) | **233 (~60%)** | - | - | - | -
 PV+ (GPi) | - | - | - | - | -
 SST+ (GPi) | - | - | - | - | -
 PV+ (SNr) | **754** | - | **754** | - | -
 SST+ (SNr) | - | - | - | - | -
 GABAergic (SNc) | - | - | - | - | -
 Dopaminergic (SNc) | - | - | - | - | -
+
+**Note on STN PV+/PV- subdivision**: The subdivision of STN into PV+ (~40%) and PV- (~60%) populations is based on experimental evidence showing that approximately 30-40% of STN neurons express parvalbumin [7,8]. This proportion is consistent with immunohistochemical studies in rodent models.
 
 #### References (parameters)
 [1] Lindahl, Mikael, and Jeanette Hellgren Kotaleski. "Untangling basal ganglia network dynamics and function: Role of dopamine depletion and inhibition investigated in a spiking network model." eneuro 3.6 (2016).
@@ -81,11 +84,11 @@ Dopaminergic (SNc) | - | - | - | - | -
 
 [5] Dong, Jie, et al. "Connectivity and functionality of the globus pallidus externa under normal conditions and Parkinson's disease." Frontiers in neural circuits 15 (2021): 645287.
 
-[6] The role of neurotransmitter systems in mediating deep brain stimulation effects in Parkinson’s disease
+[6] The role of neurotransmitter systems in mediating deep brain stimulation effects in Parkinson's disease
+
+[7] Lévesque, Martin, and André Parent. "The striatofugal fiber system in primates: a reevaluation of its organization based on single‐axon tracing studies." Proceedings of the National Academy of Sciences 102.33 (2005): 11888-11893.
+
+[8] Cooper, Andrew J., and Jeffery R. Wickens. "Measurement of the membrane time constant and yield of GABA-mediated inhibition in the subthalamic nucleus." Journal of neurophysiology 103.2 (2010): 1049-1059.
 
 - Kim et al. (2024): Kim, Sang-Yoon, and Woochang Lim. "Quantifying harmony between direct and indirect pathways in the basal ganglia: healthy and Parkinsonian states." Cognitive Neurodynamics (2024): 1-21.
-- Sheng, M. J., Lu, D., Shen, Z. M., and Poo, M. M. (2019). Emergence of stable striatal D1R and D2R neuronal ensembles with distinct firing sequence during motor learning. Proc. Natl. Acad. Sci. U. S. A. 116, 11038–11047. doi: 10.1073/pnas.1901712116
-- Surmeier, Dalton James, et al. "Rethinking the network determinants of motor disability in Parkinson’s disease." Frontiers in Synaptic Neuroscience 15 (2023): 1186484.
-- Kumaravelu, Karthik, David T. Brocker, and Warren M. Grill. "A biophysical model of the cortex-basal ganglia-thalamus network in the 6-OHDA lesioned rat model of Parkinson’s disease." Journal of computational neuroscience 40 (2016): 207-229.
-- McCarthy, M. M., et al. "Striatal origin of the pathologic beta oscillations in Parkinson's disease." Proceedings of the national academy of sciences 108.28 (2011): 11620-11625.
-- Ortone, Andrea, et al. "Dopamine depletion leads to pathological synchronization of distinct basal ganglia loops in the beta band." PLoS computational biology 19.4 (2023): e1010645.
+
