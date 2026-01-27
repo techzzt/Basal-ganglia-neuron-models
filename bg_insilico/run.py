@@ -9,6 +9,8 @@ import os
 import argparse
 from brian2 import ms
 import gc
+import pickle
+
 gc.collect()
 
 from module.simulation.runner import run_simulation_with_inh_ext_input
@@ -16,7 +18,6 @@ from module.utils.param_loader import load_params
 from module.utils.visualization import plot_improved_overall_raster, plot_firing_rate_fft_multi_page
 from module.utils.firing_rate_analysis import (
     calculate_and_print_firing_rates,
-    calculate_and_print_firing_rates_with_fano,
     analyze_input_rates_and_spike_counts,
     analyze_firing_rates_by_stimulus_periods
 )
@@ -38,8 +39,6 @@ def parse_arguments():
     parser.add_argument('--list-configs', '-l', 
                        action='store_true',
                        help='List available configuration files')
-    parser.add_argument('--output', '-o', type=str, default=None,
-                       help='Output results filename (e.g., results.pkl or path/to/results.pkl)')
     return parser.parse_args()
 
 def list_available_configs():
@@ -94,10 +93,8 @@ def main():
         'MSND1': 0.11,
         'MSND2': 0.11, 
         'FSN': 0.11,
-        'STN': 0.11,
-        'STN_PVminus': 0.11,
-        'STN_PVplus': 0.11
-    }
+        'STN': 0.11
+        }
 
     # Run simulation
     results = run_simulation_with_inh_ext_input(
@@ -112,16 +109,12 @@ def main():
         amplitude_oscillations=amplitude_oscillations  
     )
 
-    # Calculate and print firing rates with Fano factor (excluding first 2000ms warmup)
-    print(f"\n{'='*60}")
-    print("Firing Rate Analysis")
-    print(f"{'='*60}")
-    firing_rates, fano_factors = calculate_and_print_firing_rates_with_fano(
+    # Calculate and print firing rates
+    calculate_and_print_firing_rates(
         results['spike_monitors'], 
         start_time=analysis_start_time,
         end_time=analysis_end_time,
-        display_names=params.get('display_names', None),
-        skip_warmup_ms=2000
+        display_names=params.get('display_names', None)
     )
 
     # Analyze input rates and spike counts
@@ -163,7 +156,7 @@ def main():
             sample_size=15,
             plot_order=plot_order,
             start_time=3000*ms,
-            end_time=10000*ms,
+            end_time=7000*ms,
             display_names=params.get('display_names', None),
             save_plot=True,
             save_png=True,
@@ -182,7 +175,7 @@ def main():
             end_time=10000*ms,
             bin_size=10*ms,
             show_mean=True,
-            max_freq=45,
+            max_freq=60,
             title='Firing Rate FFT Spectra',
             display_names=params.get('display_names', None)
         )
@@ -191,18 +184,8 @@ def main():
 
     # Save results
     config_file = args.config
-    # Ensure output directory exists if user specified a path
-    def _ensure_parent_dir(path):
-        try:
-            d = os.path.dirname(path)
-            if d:
-                os.makedirs(d, exist_ok=True)
-        except Exception:
-            pass
-
     if 'normal' in config_file.lower():
         try:
-            import pickle
             save_data = {
                 'meta': {
                     'config': os.path.basename(config_file),
@@ -224,18 +207,15 @@ def main():
                 }
                 save_data['groups'].append(group_name)
 
-            out_file = args.output if args.output else 'normal_results.pkl'
-            _ensure_parent_dir(out_file)
-            with open(out_file, 'wb') as f:
+            with open('normal_results.pkl', 'wb') as f:
                 pickle.dump(save_data, f)
-            print(f"Results saved to '{out_file}'")
+            print("Results saved to 'normal_results.pkl'")
         
         except Exception as e:
             print(f"Error saving normal results: {e}")
     
     elif 'dop' in config_file.lower():
         try:
-            import pickle
             save_data = {
                 'meta': {
                     'config': os.path.basename(config_file),
@@ -257,11 +237,9 @@ def main():
                 }
                 save_data['groups'].append(group_name)
 
-            out_file = args.output if args.output else 'pd_results.pkl'
-            _ensure_parent_dir(out_file)
-            with open(out_file, 'wb') as f:
+            with open('pd_results.pkl', 'wb') as f:
                 pickle.dump(save_data, f)
-            print(f"Results saved to '{out_file}'")
+            print("Results saved to 'pd_results.pkl'")
         
         except Exception as e:
             print(f"Results Saving Error: {e}")
