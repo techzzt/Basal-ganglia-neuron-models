@@ -10,7 +10,7 @@ import argparse
 import pickle
 from brian2 import *
 from brian2 import prefs
-
+from datetime import datetime
 prefs.codegen.target = 'numpy'
 
 from module.utils.param_loader import load_params
@@ -390,7 +390,7 @@ def main():
             'enabled': False,
             'alpha_dop': 0.8,
             'alpha0': 0.8,
-            'EL_delta_mV': 10.0 # check 
+            'EL_delta_mV': 10.0 
         }
     plot_order = params['plot_order']
     analysis_start_time = params.get('start_time', 2000) * ms
@@ -531,7 +531,6 @@ def main():
         prefix = f"{base_name}_{topo_tag}_{target_tag}"
 
     # Use a dedicated timestamped result directory for all outputs
-    from datetime import datetime
     base_result_dir = 'result'
     try:
         os.makedirs(base_result_dir, exist_ok=True)
@@ -771,6 +770,7 @@ def main():
                         }
             except Exception:
                 pass
+                
         # Save SNr region-specific monitor if available
         if 'snr_region_monitor' in results and results['snr_region_monitor'] is not None:
             monitor = results['snr_region_monitor']
