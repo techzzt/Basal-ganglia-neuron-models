@@ -4,9 +4,9 @@
 <img width="1151" alt="prototype_structure" src="https://github.com/user-attachments/assets/336e1cd1-16f9-4d9a-b520-6db1933aeb92">
 
 
-### Equation/Parameters & Variable names:
+### Integrate and Fire Model 
 
-Eqns | eqs | Condition
+Model | eqs | Condition
 --- | --- | ---
 QIF | $$\frac{dv}{dt} = \frac{k \cdot 1 \, \text{pF/ms/mV} \cdot (v - v_r) \cdot (v - v_t) - u \, \text{pF} + I}{C}$$ <br> <br> $$\frac{du}{dt} = a \cdot \left(b \cdot (v - v_r) - u\right)$$ | $$v>vpeak, v = c, u = u + d$$ 
 AdEx | $$C_m \frac{dV}{dt} = -g_L(V - E_L) + g_L \Delta_T e^{\frac{V-V_T}{\Delta_T}} - u + I$$ <br> <br> $$\tau_w \frac{du}{dt} = a(V - E_L) - u$$ | v>t<sup>f</sup>, v = c, u = u + d
