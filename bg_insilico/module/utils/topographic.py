@@ -327,8 +327,7 @@ def get_topographic_groups() -> List[str]:
     return [
         'CTX', 'Cortex', 
         'MSND1', 'MSND2', 'FSN', 
-        'GPeT1', 'GPeTA',  
-        'STN', 'STN_PVminus', 'STN_PVplus'
+        'GPeT1', 'GPeTA', 'STN'
     ]
 
 
