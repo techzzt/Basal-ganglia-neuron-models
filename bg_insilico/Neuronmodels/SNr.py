@@ -1,10 +1,10 @@
 from brian2 import *
+import numpy as np
 import importlib
 from module.models import AdEx
 from module.models.Synapse import generate_neuron_specific_synapse_inputs
 from module.utils.init_v import compute_adex_v_rest
-import numpy as np
-from brian2 import mV, ms, nS, pA
+
 
 class NeuronModel:
     def __init__(self, N, params):
